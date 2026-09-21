@@ -795,7 +795,7 @@
                     </svg>
                 </button>
             </div>
-            <div class="modal-body" style="padding: 24px; text-align: left;">
+            <div class="modal-body" style="padding: 24px; text-align: left; max-height: 70vh; overflow-y: auto;">
                 <div id="saleModalAlert" class="modal-alert"></div>
 
                 <div class="step-indicators" style="display: flex; justify-content: center; margin-bottom: 20px;">
@@ -931,7 +931,7 @@
                     </svg>
                 </button>
             </div>
-            <div class="modal-body" style="padding: 24px; text-align: left;">
+            <div class="modal-body" style="padding: 24px; text-align: left; max-height: 70vh; overflow-y: auto;">
                 <div id="clientModalContent"></div>
             </div>
             <div class="modal-footer" style="padding: 0 24px 24px;">
@@ -953,14 +953,14 @@
                     </svg>
                 </button>
             </div>
-            <div class="modal-body" style="padding: 24px; text-align: left;">
+            <div class="modal-body" style="padding: 24px; text-align: left; max-height: 70vh; overflow-y: auto;">
                 <div id="editSaleModalAlert" class="modal-alert"></div>
                 <form id="editSaleForm" novalidate>
                     <input type="hidden" id="editSaleId">
                     <input type="hidden" id="editSaleIndex">
+                    <input type="hidden" id="editSaleOriginalTotal">
                     <input type="hidden" id="editSaleOriginalSize">
                     <input type="hidden" id="editSaleOriginalAmount">
-                    <input type="hidden" id="editSaleOriginalTotal">
                     <div class="sale-form-group">
                         <label for="editSaleReference">Referencia</label>
                         <input type="text" id="editSaleReference" required disabled>
@@ -984,6 +984,7 @@
                         <label for="editSaleTotal">Total venta</label>
                         <input type="text" id="editSaleTotal" required disabled>
                     </div>
+                    <div id="editSaleItemsContainer"></div>
                     <div class="modal-actions">
                         <button type="button" class="btn-modal-back" id="cancelEditSaleBtn">Cancelar</button>
                         <button type="submit" class="btn-modal-submit" id="btnSaveEditSale">
@@ -1647,14 +1648,24 @@ const clientData = {
                 closeCreateSaleModalFn();
                 await loadSales();
                 
-                // Descargar mini automáticamente
-                if (newSale && newSale.id) {
-                    // Buscar la venta recién creada en la lista
-                    const newSaleIndex = salesList.findIndex(s => s.id === newSale.id);
-                    if (newSaleIndex >= 0) {
-                        setTimeout(() => downloadMiniInvoice(newSale.id, newSaleIndex), 500);
-                    }
-                }
+                // Descargar mini automáticamente con los datos locales
+                const saleDataForInvoice = {
+                    id: newSale?.id,
+                    reference: saleItems.map(i => i.reference),
+                    size: saleItems.map(i => i.size),
+                    price: saleItems.map(i => i.price),
+                    amount: saleItems.map(i => i.amount),
+                    total_sale: grandTotal,
+                    client_data: {
+                        nombre: clientData.nombre,
+                        celular: clientData.celular,
+                        direccion: clientData.direccion,
+                        tipoPago: clientData.tipoPago,
+                        payment: clientData.tipoPago
+                    },
+                    created_at: new Date().toISOString()
+                };
+                setTimeout(() => downloadMiniInvoice(newSale?.id || 0, 0, saleDataForInvoice), 500);
             } catch (err) {
                 console.error('Error al registrar la venta:', err);
                 showSaleAlert(err.message || 'Error al registrar la venta. Intenta nuevamente.');
@@ -1863,168 +1874,279 @@ const clientData = {
             updateEditSaleTotal();
         });
 
-        editSaleForm.addEventListener('submit', async (e) => {
+editSaleForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             editSaleModalAlert.style.display = 'none';
 
             const id = editSaleId.value;
             const index = parseInt(editSaleIndex.value, 10);
-            const amountVal = parseInt(editSaleAmount.value, 10);
-            // Remove $, spaces, and dots (thousands separators) before parsing
-            const priceVal = parseFloat(editSalePrice.value.replace(/[^0-9.-]/g, '').replace(/\./g, '')) || 0;
-            const originalSize = editSaleOriginalSize.value;
-            const newSize = editSaleSize.value;
-            const originalAmount = parseInt(editSaleOriginalAmount.value, 10) || 0;
-
-            if (isNaN(amountVal) || amountVal <= 0) {
+            const sale = salesList[index];
+            if (!sale) {
                 editSaleModalAlert.className = 'modal-alert error';
-                editSaleModalAlert.textContent = 'La cantidad debe ser un número entero mayor a 0.';
+                editSaleModalAlert.textContent = 'No se pudo encontrar la venta a editar.';
                 editSaleModalAlert.style.display = 'block';
                 return;
             }
 
-            const reference = editSaleReference.value;
-            const totalVal = priceVal * amountVal;
+            const items = getSaleItems(sale);
+            const isMultiItem = items.length > 1;
 
             btnSaveEditSale.disabled = true;
             btnSaveEditSaleText.style.display = 'none';
             btnSaveEditSaleLoader.style.display = 'inline-flex';
 
             try {
-                // 1. Update the sale record
+                let grandTotal = 0;
+                const updatedItems = [];
+
+                if (isMultiItem) {
+                    // Multi-item sale: collect data from dynamic rows
+                    const itemRows = document.querySelectorAll('.edit-sale-item');
+                    
+                    for (let i = 0; i < itemRows.length; i++) {
+                        const row = itemRows[i];
+                        const reference = row.querySelector('.edit-item-reference').value;
+                        const size = row.querySelector('.edit-item-size').value;
+                        const priceStr = row.querySelector('.edit-item-price').value;
+                        const amountVal = parseInt(row.querySelector('.edit-item-amount').value, 10);
+                        const originalItem = items[i];
+                        
+                        // Parse price
+                        const priceVal = parseFloat(priceStr.replace(/[^0-9.-]/g, '').replace(/\./g, '')) || 0;
+                        const originalSize = originalItem.size || '';
+                        const originalAmount = originalItem.amount || 0;
+
+                        if (!reference || !size || priceVal <= 0 || isNaN(amountVal) || amountVal <= 0) {
+                            throw new Error(`Producto ${i + 1}: Complete todos los campos (referencia, talla, precio, cantidad).`);
+                        }
+
+                        const subtotal = priceVal * amountVal;
+                        grandTotal += subtotal;
+
+                        updatedItems.push({
+                            index: i,
+                            reference,
+                            size,
+                            price: priceVal,
+                            amount: amountVal,
+                            subtotal,
+                            originalSize,
+                            originalAmount
+                        });
+                    }
+                } else {
+                    // Single-item sale: use form fields
+                    const amountVal = parseInt(editSaleAmount.value, 10);
+                    const priceStr = editSalePrice.value;
+                    const priceVal = parseFloat(priceStr.replace(/[^0-9.-]/g, '').replace(/\./g, '')) || 0;
+                    const reference = editSaleReference.value;
+                    const newSize = editSaleSize.value;
+                    const originalSize = editSaleOriginalSize.value;
+                    const originalAmount = parseInt(editSaleOriginalAmount.value, 10) || 0;
+
+                    if (isNaN(amountVal) || amountVal <= 0) {
+                        editSaleModalAlert.className = 'modal-alert error';
+                        editSaleModalAlert.textContent = 'La cantidad debe ser un número entero mayor a 0.';
+                        editSaleModalAlert.style.display = 'block';
+                        btnSaveEditSale.disabled = false;
+                        btnSaveEditSaleText.style.display = 'inline';
+                        btnSaveEditSaleLoader.style.display = 'none';
+                        return;
+                    }
+
+                    if (!reference || !newSize || priceVal <= 0) {
+                        editSaleModalAlert.className = 'modal-alert error';
+                        editSaleModalAlert.textContent = 'Complete todos los campos requeridos.';
+                        editSaleModalAlert.style.display = 'block';
+                        btnSaveEditSale.disabled = false;
+                        btnSaveEditSaleText.style.display = 'inline';
+                        btnSaveEditSaleLoader.style.display = 'none';
+                        return;
+                    }
+
+                    const subtotal = priceVal * amountVal;
+                    grandTotal = subtotal;
+
+                    updatedItems.push({
+                        index: 0,
+                        reference,
+                        size: newSize,
+                        price: priceVal,
+                        amount: amountVal,
+                        subtotal,
+                        originalSize,
+                        originalAmount
+                    });
+                }
+
+                // Verify stock for all items
+                for (const item of updatedItems) {
+                    const { data: invRows, error: invFetchErr } = await supabase
+                        .from('inventory')
+                        .select('*')
+                        .eq('reference', item.reference)
+                        .eq('size', item.size);
+
+                    if (invFetchErr) {
+                        throw new Error('Error al consultar inventario: ' + invFetchErr.message);
+                    }
+
+                    const totalAvailableNow = (invRows || []).reduce((acc, row) => acc + (Number(row.amount) || 0), 0);
+                    // For size change, the original amount goes back to old size
+                    const availableForNewSize = item.size === item.originalSize 
+                        ? totalAvailableNow + item.originalAmount 
+                        : totalAvailableNow;
+
+                    if (availableForNewSize < item.amount) {
+                        throw new Error(`Stock insuficiente para ${item.reference} (${item.size}). Disponible: ${availableForNewSize}`);
+                    }
+                }
+
+                // 1. Update the sale record with new arrays
+                const refsArray = '{' + updatedItems.map(i => '"' + i.reference.replace(/"/g, '\\"') + '"').join(',') + '}';
+                const sizesArray = '{' + updatedItems.map(i => '"' + i.size.replace(/"/g, '\\"') + '"').join(',') + '}';
+                const pricesArray = '{' + updatedItems.map(i => i.price).join(',') + '}';
+                const amountsArray = '{' + updatedItems.map(i => i.amount).join(',') + '}';
+
                 let query = supabase
                     .from('sales')
-                    .update({ amount: amountVal, size: newSize, total_sale: totalVal });
+                    .update({ 
+                        reference: refsArray,
+                        size: sizesArray,
+                        price: pricesArray,
+                        amount: amountsArray,
+                        total_sale: grandTotal 
+                    });
 
                 if (id) {
                     query = query.eq('id', id);
-                } else if (salesList[index]) {
-                    const sale = salesList[index];
+                } else {
                     query = query
                         .eq('reference', sale.reference)
                         .eq('size', sale.size)
                         .eq('created_at', sale.created_at);
-                } else {
-                    throw new Error('No se pudo identificar la venta a editar');
                 }
 
                 const { error } = await query;
                 if (error) throw error;
 
-                // 2. Handle inventory changes
-                if (newSize !== originalSize) {
-                    // Size changed: add original amount back to old size, subtract new amount from new size
-                    // Add back to original size
-                    const { data: oldInvData, error: oldInvError } = await supabase
-                        .from('inventory')
-                        .select('*')
-                        .eq('reference', reference)
-                        .eq('size', originalSize)
-                        .single();
+                // 2. Handle inventory changes for each item
+                for (const item of updatedItems) {
+                    const { reference, size, amount: newAmount, originalSize, originalAmount } = item;
 
-                    if (!oldInvError && oldInvData) {
-                        const newOldAmount = (Number(oldInvData.amount) || 0) + originalAmount;
-                        let oldUpdateQuery = supabase.from('inventory').update({ amount: newOldAmount });
-                        if (oldInvData.id) {
-                            oldUpdateQuery = oldUpdateQuery.eq('id', oldInvData.id);
-                        } else {
-                            oldUpdateQuery = oldUpdateQuery.eq('reference', reference).eq('size', originalSize);
-                        }
-                        const { error: oldUpdateErr } = await oldUpdateQuery;
-                        if (oldUpdateErr) throw oldUpdateErr;
-                    } else if (oldInvError && oldInvError.code === 'PGRST116') {
-                        // No existing record for old size, create it
-                        const { error: createErr } = await supabase
-                            .from('inventory')
-                            .insert({ reference, size: originalSize, amount: originalAmount, categorie: null });
-                        if (createErr) throw createErr;
-                    }
-
-                    // Subtract from new size
-                    const { data: newInvData, error: newInvError } = await supabase
-                        .from('inventory')
-                        .select('*')
-                        .eq('reference', reference)
-                        .eq('size', newSize)
-                        .single();
-
-                    if (!newInvError && newInvData) {
-                        const newNewAmount = (Number(newInvData.amount) || 0) - amountVal;
-                        if (newNewAmount < 0) throw new Error(`Stock insuficiente en talla ${newSize}. Solo hay ${Number(newInvData.amount) || 0} unidades disponibles.`);
-                        let newUpdateQuery = supabase.from('inventory').update({ amount: newNewAmount });
-                        if (newInvData.id) {
-                            newUpdateQuery = newUpdateQuery.eq('id', newInvData.id);
-                        } else {
-                            newUpdateQuery = newUpdateQuery.eq('reference', reference).eq('size', newSize);
-                        }
-                        const { error: newUpdateErr } = await newUpdateQuery;
-                        if (newUpdateErr) throw newUpdateErr;
-                    } else if (newInvError && newInvError.code === 'PGRST116') {
-                        throw new Error(`No hay stock en talla ${newSize}.`);
-                    } else {
-                        throw newInvError;
-                    }
-                } else {
-                    // Same size: adjust by difference
-                    const diff = amountVal - originalAmount;
-                    if (diff !== 0) {
-                        const { data: invData, error: invError } = await supabase
+                    if (size !== originalSize) {
+                        // Size changed: add original amount back to old size, subtract new amount from new size
+                        // Add back to original size
+                        const { data: oldInvData, error: oldInvError } = await supabase
                             .from('inventory')
                             .select('*')
                             .eq('reference', reference)
                             .eq('size', originalSize)
                             .single();
 
-                        if (!invError && invData) {
-                            const newAmount = (Number(invData.amount) || 0) - diff;
-                            if (newAmount < 0) throw new Error(`Stock insuficiente. Solo hay ${Number(invData.amount) || 0 + diff} unidades disponibles.`);
-                            let updateQuery = supabase.from('inventory').update({ amount: newAmount });
-                            if (invData.id) {
-                                updateQuery = updateQuery.eq('id', invData.id);
+                        if (!oldInvError && oldInvData) {
+                            const newOldAmount = (Number(oldInvData.amount) || 0) + originalAmount;
+                            let oldUpdateQuery = supabase.from('inventory').update({ amount: newOldAmount });
+                            if (oldInvData.id) {
+                                oldUpdateQuery = oldUpdateQuery.eq('id', oldInvData.id);
                             } else {
-                                updateQuery = updateQuery.eq('reference', reference).eq('size', originalSize);
+                                oldUpdateQuery = oldUpdateQuery.eq('reference', reference).eq('size', originalSize);
                             }
-                            const { error: updateErr } = await updateQuery;
-                            if (updateErr) throw updateErr;
-                        } else if (invError && invError.code === 'PGRST116') {
-                            throw new Error(`No hay stock en talla ${originalSize}.`);
-} else {
-                    throw invError;
+                            const { error: oldUpdateErr } = await oldUpdateQuery;
+                            if (oldUpdateErr) throw oldUpdateErr;
+                        } else if (oldInvError && oldInvError.code === 'PGRST116') {
+                            const { error: createErr } = await supabase
+                                .from('inventory')
+                                .insert({ reference, size: originalSize, amount: originalAmount, categorie: null });
+                            if (createErr) throw createErr;
+                        }
+
+                        // Subtract from new size
+                        const { data: newInvData, error: newInvError } = await supabase
+                            .from('inventory')
+                            .select('*')
+                            .eq('reference', reference)
+                            .eq('size', size)
+                            .single();
+
+                        if (!newInvError && newInvData) {
+                            const newNewAmount = (Number(newInvData.amount) || 0) - newAmount;
+                            if (newNewAmount < 0) throw new Error(`Stock insuficiente en talla ${size}. Solo hay ${Number(newInvData.amount) || 0} unidades disponibles.`);
+                            let newUpdateQuery = supabase.from('inventory').update({ amount: newNewAmount });
+                            if (newInvData.id) {
+                                newUpdateQuery = newUpdateQuery.eq('id', newInvData.id);
+                            } else {
+                                newUpdateQuery = newUpdateQuery.eq('reference', reference).eq('size', size);
+                            }
+                            const { error: newUpdateErr } = await newUpdateQuery;
+                            if (newUpdateErr) throw newUpdateErr;
+                        } else if (newInvError && newInvError.code === 'PGRST116') {
+                            throw new Error(`No hay stock en talla ${size}.`);
+                        } else {
+                            throw newInvError;
+                        }
+                    } else {
+                        // Same size: adjust by difference
+                        const diff = newAmount - originalAmount;
+                        if (diff !== 0) {
+                            const { data: invData, error: invError } = await supabase
+                                .from('inventory')
+                                .select('*')
+                                .eq('reference', reference)
+                                .eq('size', originalSize)
+                                .single();
+
+                            if (!invError && invData) {
+                                const newAmt = (Number(invData.amount) || 0) - diff;
+                                if (newAmt < 0) throw new Error(`Stock insuficiente. Solo hay ${Number(invData.amount) || 0 + diff} unidades disponibles.`);
+                                let updateQuery = supabase.from('inventory').update({ amount: newAmt });
+                                if (invData.id) {
+                                    updateQuery = updateQuery.eq('id', invData.id);
+                                } else {
+                                    updateQuery = updateQuery.eq('reference', reference).eq('size', originalSize);
+                                }
+                                const { error: updateErr } = await updateQuery;
+                                if (updateErr) throw updateErr;
+                            } else if (invError && invError.code === 'PGRST116') {
+                                throw new Error(`No hay stock en talla ${originalSize}.`);
+                            } else {
+                                throw invError;
+                            }
+                        }
+                    }
                 }
-            }
-        }
 
-        // 3. Update capital (budget)
-        const originalTotal = parseFloat(editSaleOriginalTotal.value) || 0;
-        const capitalDiff = totalVal - originalTotal;
-        if (capitalDiff !== 0) {
-            const { data: budgetRows, error: budgetFetchErr } = await supabase
-                .from('budget')
-                .select('id, value')
-                .limit(1);
+                // 3. Update capital (budget)
+                const originalTotal = parseFloat(editSaleOriginalTotal.value) || 0;
+                const capitalDiff = grandTotal - originalTotal;
+                if (capitalDiff !== 0) {
+                    const { data: budgetRows, error: budgetFetchErr } = await supabase
+                        .from('budget')
+                        .select('id, value')
+                        .limit(1);
 
-            if (budgetFetchErr) {
-                console.error('Error al consultar el capital:', budgetFetchErr);
-                throw new Error('La venta se actualizó pero ocurrió un error al consultar el capital: ' + budgetFetchErr.message);
-            }
+                    if (budgetFetchErr) {
+                        console.error('Error al consultar el capital:', budgetFetchErr);
+                        throw new Error('La venta se actualizó pero ocurrió un error al consultar el capital: ' + budgetFetchErr.message);
+                    }
 
-            if (budgetRows && budgetRows.length > 0) {
-                const budgetRecord = budgetRows[0];
-                const newCapital = (Number(budgetRecord.value) || 0) + capitalDiff;
+                    if (budgetRows && budgetRows.length > 0) {
+                        const budgetRecord = budgetRows[0];
+                        const newCapital = (Number(budgetRecord.value) || 0) + capitalDiff;
 
-                const { error: budgetUpdateErr } = await supabase
-                    .from('budget')
-                    .update({ value: newCapital })
-                    .eq('id', budgetRecord.id);
+                        const { error: budgetUpdateErr } = await supabase
+                            .from('budget')
+                            .update({ value: newCapital })
+                            .eq('id', budgetRecord.id);
 
-                if (budgetUpdateErr) {
-                    console.error('Error al actualizar el capital:', budgetUpdateErr);
-                    throw new Error('La venta se actualizó pero ocurrió un error al actualizar el capital: ' + budgetUpdateErr.message);
+                        if (budgetUpdateErr) {
+                            console.error('Error al actualizar el capital:', budgetUpdateErr);
+                            throw new Error('La venta se actualizó pero ocurrió un error al actualizar el capital: ' + budgetUpdateErr.message);
+                        }
+                    }
                 }
-            }
-        }
 
-        closeEditSaleModalFn();
+                closeEditSaleModalFn();
                 await loadSales();
             } catch (err) {
                 console.error('Error updating sale:', err);
@@ -2305,8 +2427,8 @@ const clientData = {
         }
 
         // Generar y descargar mini factura como JPG
-async function downloadMiniInvoice(saleId, index) {
-            const sale = salesList[index];
+async function downloadMiniInvoice(saleId, index, saleData = null) {
+            const sale = saleData || salesList[index];
             if (!sale) return;
 
             const client = sale.client_data || {};
@@ -2449,59 +2571,158 @@ async function openEditSaleModal(id, index) {
             currentEditSaleIndex = index;
 
             const items = getSaleItems(sale);
-            const firstItem = items[0] || { reference: sale.reference, size: sale.size, price: sale.price, amount: sale.amount };
-
             editSaleId.value = id || '';
             editSaleIndex.value = index;
-            editSaleReference.value = firstItem.reference || '';
-            editSaleOriginalSize.value = firstItem.size || '';
-            editSaleOriginalAmount.value = firstItem.amount || '';
             editSaleOriginalTotal.value = sale.total_sale || 0;
-            editSalePrice.value = formatCurrency(firstItem.price);
-            editSaleAmount.value = firstItem.amount || '';
             editSaleTotal.value = formatCurrency(sale.total_sale);
 
-            // Fetch available sizes for this product
-            const { data: productData, error: productError } = await supabase
-                .from('products')
-                .select('size')
-                .eq('reference', firstItem.reference)
-                .single();
+            const isMultiItem = items.length > 1;
 
-            if (productError || !productData) {
-                editSaleSize.innerHTML = `<option value="${escapeHtml(firstItem.size)}">${escapeHtml(firstItem.size)}</option>`;
-            } else {
-                let sizesArr = [];
-                if (Array.isArray(productData.size)) {
-                    sizesArr = productData.size;
-                } else if (typeof productData.size === 'string' && productData.size.trim()) {
-                    try {
-                        const parsed = JSON.parse(productData.size);
-                        sizesArr = Array.isArray(parsed) ? parsed : [productData.size];
-                    } catch {
-                        sizesArr = productData.size.split(',').map(s => s.trim()).filter(Boolean);
-                    }
-                }
+            // Hide single-item fields when multiple items
+            const singleItemFields = document.querySelectorAll('#editSaleForm > .sale-form-group:not(#editSaleItemsContainer)');
+            singleItemFields.forEach(field => {
+                field.style.display = isMultiItem ? 'none' : 'block';
+            });
+            
+            // Populate single-item fields and hidden inputs for single-item sales
+            if (!isMultiItem && items.length === 1) {
+                const item = items[0];
+                editSaleReference.value = item.reference || '';
+                editSalePrice.value = formatCurrency(item.price);
+                editSaleAmount.value = item.amount || '';
+                
+                // Store original values for inventory calculation
+                editSaleOriginalSize.value = item.size || '';
+                editSaleOriginalAmount.value = item.amount || 0;
 
-                let sizeOpts = '';
-                sizesArr.forEach(s => {
-                    const selected = s === firstItem.size ? 'selected' : '';
-                    sizeOpts += `<option value="${escapeHtml(s)}" ${selected}>${escapeHtml(s)}</option>`;
-                });
-                editSaleSize.innerHTML = sizeOpts;
+                // Load sizes for the single item
+                await loadEditSaleSizes(item.reference);
+                // Load stock for original size
+                await fetchEditSaleStock(item.reference, item.size);
             }
 
-            // Fetch inventory for the original size
-            await fetchEditSaleStock(firstItem.reference, firstItem.size);
+            // Build editable items list for multi-item sales
+            const container = document.getElementById('editSaleItemsContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (isMultiItem) {
+                items.forEach((item, itemIndex) => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'edit-sale-item';
+                    itemDiv.style.cssText = 'padding: 12px; margin-bottom: 12px; background: var(--card-bg); border-radius: var(--radius-sm); border: 1px solid var(--border);';
+                    itemDiv.dataset.itemIndex = itemIndex;
+
+                    itemDiv.innerHTML = `
+                        <div class="sale-form-group" style="margin-bottom: 8px;">
+                            <label>Referencia ${itemIndex + 1}</label>
+                            <input type="text" class="edit-item-reference" value="${escapeHtml(item.reference || '')}" disabled style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px;">
+                        </div>
+                        <div class="sale-form-group" style="margin-bottom: 8px;">
+                            <label>Talla ${itemIndex + 1}</label>
+                            <select class="edit-item-size" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px; background: var(--background); color: var(--text-primary);">
+                                <option value="">Cargando...</option>
+                            </select>
+                        </div>
+                        <div class="sale-form-group" style="margin-bottom: 8px;">
+                            <label>Precio unitario ${itemIndex + 1}</label>
+                            <input type="text" class="edit-item-price" value="${formatCurrency(item.price)}" disabled style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px;">
+                        </div>
+                        <div class="sale-form-group" style="margin-bottom: 8px;">
+                            <label>Cantidad ${itemIndex + 1}</label>
+                            <input type="number" class="edit-item-amount" value="${item.amount || ''}" min="1" step="1" placeholder="Ej. 1" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px;">
+                            <div class="stock-info-box" style="display: none; margin-top: 4px;"></div>
+                        </div>
+                        <div class="sale-form-group" style="margin-bottom: 8px;">
+                            <label>Subtotal ${itemIndex + 1}</label>
+                            <div class="edit-item-subtotal" style="padding: 8px 12px; background: var(--background); border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 14px; font-weight: 600; color: var(--primary); min-height: 40px; display: flex; align-items: center;">
+                                ${formatCurrency(item.price * item.amount)}
+                            </div>
+                        </div>
+                    `;
+
+                    container.appendChild(itemDiv);
+
+                    // Add real-time subtotal update
+                    const amountInput = itemDiv.querySelector('.edit-item-amount');
+                    const priceInput = itemDiv.querySelector('.edit-item-price');
+                    const sizeSelect = itemDiv.querySelector('.edit-item-size');
+                    const subtotalEl = itemDiv.querySelector('.edit-item-subtotal');
+                    
+                    function updateSubtotal() {
+                        const amount = parseInt(amountInput.value, 10) || 0;
+                        const priceStr = priceInput.value;
+                        const price = parseFloat(priceStr.replace(/[^0-9.-]/g, '').replace(/\./g, '')) || 0;
+                        subtotalEl.textContent = formatCurrency(price * amount);
+                    }
+                    
+                    amountInput.addEventListener('input', updateSubtotal);
+                    sizeSelect.addEventListener('change', updateSubtotal);
+
+                    // Load sizes for this product
+                    loadEditItemSizes(item.reference, itemIndex, item.size);
+                    // Load stock for original size
+                    loadEditItemStock(item.reference, item.size, itemIndex);
+                });
+            }
 
             editSaleModalAlert.style.display = 'none';
             editSaleModal.classList.add('active');
         }
 
-        async function fetchEditSaleStock(reference, size) {
-            const editStockInfoBox = document.getElementById('editStockInfoBox');
-            editStockInfoBox.style.display = 'none';
-            currentEditSaleAvailableStock = 0;
+        async function loadEditItemSizes(reference, itemIndex, originalSize = '') {
+            const sizeSelect = document.querySelector(`.edit-sale-item[data-item-index="${itemIndex}"] .edit-item-size`);
+            if (!sizeSelect) return;
+
+            const { data: productData, error } = await supabase
+                .from('products')
+                .select('size')
+                .eq('reference', reference)
+                .single();
+
+            if (error || !productData) {
+                sizeSelect.innerHTML = '<option value="">Sin tallas</option>';
+                return;
+            }
+
+            let sizesArr = [];
+            if (Array.isArray(productData.size)) {
+                sizesArr = productData.size;
+            } else if (typeof productData.size === 'string' && productData.size.trim()) {
+                try {
+                    const parsed = JSON.parse(productData.size);
+                    sizesArr = Array.isArray(parsed) ? parsed : [productData.size];
+                } catch {
+                    sizesArr = productData.size.split(',').map(s => s.trim()).filter(Boolean);
+                }
+            }
+
+            let opts = '<option value="">Selecciona talla...</option>';
+            sizesArr.forEach(s => {
+                const selected = s === originalSize ? ' selected' : '';
+                opts += `<option value="${escapeHtml(s)}"${selected}>${escapeHtml(s)}</option>`;
+            });
+            sizeSelect.innerHTML = opts;
+
+            // Trigger stock load for the selected size
+            if (originalSize) {
+                loadEditItemStock(reference, originalSize, itemIndex);
+            }
+
+            // Add change handler to reload stock when size changes
+            sizeSelect.onchange = () => {
+                const newSize = sizeSelect.value;
+                if (newSize) {
+                    loadEditItemStock(reference, newSize, itemIndex);
+                }
+            };
+        }
+
+        async function loadEditItemStock(reference, size, itemIndex) {
+            const stockBox = document.querySelector(`.edit-sale-item[data-item-index="${itemIndex}"] .stock-info-box`);
+            if (!stockBox) return;
+
+            stockBox.style.display = 'none';
 
             const { data, error } = await supabase
                 .from('inventory')
@@ -2509,22 +2730,66 @@ async function openEditSaleModal(id, index) {
                 .eq('reference', reference)
                 .eq('size', size);
 
-            if (error) {
-                console.error('Error consultando stock:', error);
+            if (error) return;
+
+            const totalStock = (data || []).reduce((acc, row) => acc + (Number(row.amount) || 0), 0);
+            stockBox.style.display = 'block';
+            stockBox.className = 'stock-info-box in-stock';
+            stockBox.innerHTML = `Disponibles: <strong>${totalStock}</strong> uds`;
+        }
+
+        async function loadEditSaleSizes(reference) {
+            const sizeSelect = document.getElementById('editSaleSize');
+            if (!sizeSelect) return;
+
+            const { data: productData, error } = await supabase
+                .from('products')
+                .select('size')
+                .eq('reference', reference)
+                .single();
+
+            if (error || !productData) {
+                sizeSelect.innerHTML = '<option value="">Sin tallas</option>';
                 return;
             }
 
-            currentEditSaleAvailableStock = (data || []).reduce((acc, row) => acc + (Number(row.amount) || 0), 0);
+            let sizesArr = [];
+            if (Array.isArray(productData.size)) {
+                sizesArr = productData.size;
+            } else if (typeof productData.size === 'string' && productData.size.trim()) {
+                try {
+                    const parsed = JSON.parse(productData.size);
+                    sizesArr = Array.isArray(parsed) ? parsed : [productData.size];
+                } catch {
+                    sizesArr = productData.size.split(',').map(s => s.trim()).filter(Boolean);
+                }
+            }
 
-            editStockInfoBox.style.display = 'flex';
-            editStockInfoBox.className = 'stock-info-box in-stock';
-            editStockInfoBox.innerHTML = `Disponibles en inventario: <strong>${currentEditSaleAvailableStock}</strong> uds`;
+            let opts = '<option value="">Selecciona talla...</option>';
+            sizesArr.forEach(s => {
+                opts += `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`;
+            });
+            sizeSelect.innerHTML = opts;
+        }
 
-            editSaleAmount.min = 1;
-            editSaleAmount.max = currentEditSaleAvailableStock;
-            editSaleAmount.placeholder = `Máx. ${currentEditSaleAvailableStock}`;
+        async function fetchEditSaleStock(reference, size) {
+            const stockBox = document.getElementById('editStockInfoBox');
+            if (!stockBox) return;
 
-            updateEditSaleTotal();
+            stockBox.style.display = 'none';
+
+            const { data, error } = await supabase
+                .from('inventory')
+                .select('amount')
+                .eq('reference', reference)
+                .eq('size', size);
+
+            if (error) return;
+
+            const totalStock = (data || []).reduce((acc, row) => acc + (Number(row.amount) || 0), 0);
+            stockBox.style.display = 'block';
+            stockBox.className = 'stock-info-box in-stock';
+            stockBox.innerHTML = `Disponibles: <strong>${totalStock}</strong> uds`;
         }
 
         function updateEditSaleTotal() {
@@ -2545,18 +2810,27 @@ async function openEditSaleModal(id, index) {
             currentEditSaleId = null;
             currentEditSaleIndex = null;
             editSaleForm.reset();
-            editSaleSize.innerHTML = '<option value="">Cargando tallas...</option>';
+            document.getElementById('editSaleItemsContainer').innerHTML = '';
+            
+            // Reset single-item fields visibility
+            const singleItemFields = document.querySelectorAll('#editSaleForm > .sale-form-group:not(#editSaleItemsContainer)');
+            singleItemFields.forEach(field => {
+                field.style.display = 'block';
+            });
+            const singleTotalField = document.querySelector('#editSaleForm > .sale-form-group:nth-of-type(5)');
+            if (singleTotalField) {
+                singleTotalField.style.display = 'block';
+            }
         }
 
         async function deleteSale(id, index) {
             const sale = salesList[index];
             if (!sale) return;
 
-            const refs = Array.isArray(sale.reference) ? sale.reference : [sale.reference];
-            const sizes = Array.isArray(sale.size) ? sale.size : [sale.size];
-            const amounts = Array.isArray(sale.amount) ? sale.amount : [sale.amount];
+            const items = getSaleItems(sale);
+            const refs = items.map(item => item.reference || '—').join(', ');
 
-            if (!confirm(`¿Eliminar la venta de "${refs.join(', ')}"?`)) return;
+            if (!confirm(`¿Eliminar la venta de "${refs}"?`)) return;
 
             try {
                 let query = supabase.from('sales').delete();
@@ -2575,34 +2849,36 @@ async function openEditSaleModal(id, index) {
                 if (error) throw error;
 
                 // Restore inventory stock for each product
-                const { data: invData, error: invError } = await supabase
-                    .from('inventory')
-                    .select('*')
-                    .eq('reference', sale.reference)
-                    .eq('size', sale.size)
-                    .single();
-
-                if (!invError && invData) {
-                    const newAmount = (Number(invData.amount) || 0) + (Number(sale.amount) || 0);
-                    let updateQuery = supabase.from('inventory').update({ amount: newAmount });
-                    if (invData.id) {
-                        updateQuery = updateQuery.eq('id', invData.id);
-                    } else {
-                        updateQuery = updateQuery.eq('reference', sale.reference).eq('size', sale.size);
-                    }
-                    const { error: updateErr } = await updateQuery;
-                    if (updateErr) throw updateErr;
-                } else if (invError && invError.code === 'PGRST116') {
-                    // Create new inventory entry
-                    const { error: createErr } = await supabase
+                for (const item of items) {
+                    const { data: invData, error: invError } = await supabase
                         .from('inventory')
-                        .insert({ 
-                            reference: sale.reference, 
-                            size: sale.size, 
-                            amount: sale.amount || 0, 
-                            categorie: null 
-                        });
-                    if (createErr) throw createErr;
+                        .select('*')
+                        .eq('reference', item.reference)
+                        .eq('size', item.size)
+                        .single();
+
+                    if (!invError && invData) {
+                        const newAmount = (Number(invData.amount) || 0) + (Number(item.amount) || 0);
+                        let updateQuery = supabase.from('inventory').update({ amount: newAmount });
+                        if (invData.id) {
+                            updateQuery = updateQuery.eq('id', invData.id);
+                        } else {
+                            updateQuery = updateQuery.eq('reference', item.reference).eq('size', item.size);
+                        }
+                        const { error: updateErr } = await updateQuery;
+                        if (updateErr) throw updateErr;
+                    } else if (invError && invError.code === 'PGRST116') {
+                        // Create new inventory entry
+                        const { error: createErr } = await supabase
+                            .from('inventory')
+                            .insert({ 
+                                reference: item.reference, 
+                                size: item.size, 
+                                amount: item.amount || 0, 
+                                categorie: null 
+                            });
+                        if (createErr) throw createErr;
+                    }
                 }
 
                 // 2. Decrease capital (subtract sale total from capital since revenue is removed)
