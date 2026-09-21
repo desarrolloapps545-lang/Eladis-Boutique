@@ -943,9 +943,31 @@
             </div>
             <div class="modal-footer" style="padding: 0 24px 24px;">
                 <button type="button" class="btn-modal-close-footer" id="btnCloseClientModalFooter">Cerrar</button>
-</div>
+            </div>
+        </div>
     </div>
-</div>
+
+    <!-- Modal Ganancias (Visor de JSONB) -->
+    <div id="earningsModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="earningsModalTitle">
+        <div class="modal-overlay" id="earningsModalOverlay"></div>
+        <div class="modal-content client-modal-content">
+            <div class="modal-header">
+                <h2 id="earningsModalTitle">Ganancias</h2>
+                <button type="button" class="modal-close" id="closeEarningsModal" aria-label="Cerrar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 24px; text-align: left; max-height: 70vh; overflow-y: auto;">
+                <div id="earningsModalContent"></div>
+            </div>
+            <div class="modal-footer" style="padding: 0 24px 24px;">
+                <button type="button" class="btn-modal-close-footer" id="btnCloseEarningsModalFooter">Cerrar</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal Editar Venta -->
     <div id="editSaleModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="editSaleTitle">
@@ -1036,12 +1058,19 @@
         const saleProductRows = document.getElementById('saleProductRows');
         const grandTotalDisplay = document.getElementById('grandTotalDisplay');
 
-        // Modal Visor de Cliente
-        const clientModal = document.getElementById('clientModal');
-        const clientModalOverlay = document.getElementById('clientModalOverlay');
-        const closeClientModal = document.getElementById('closeClientModal');
-        const btnCloseClientModalFooter = document.getElementById('btnCloseClientModalFooter');
-        const clientModalContent = document.getElementById('clientModalContent');
+         // Modal Visor de Cliente
+         const clientModal = document.getElementById('clientModal');
+         const clientModalOverlay = document.getElementById('clientModalOverlay');
+         const closeClientModal = document.getElementById('closeClientModal');
+         const btnCloseClientModalFooter = document.getElementById('btnCloseClientModalFooter');
+         const clientModalContent = document.getElementById('clientModalContent');
+
+         // Modal Visor de Ganancias
+         const earningsModal = document.getElementById('earningsModal');
+         const earningsModalOverlay = document.getElementById('earningsModalOverlay');
+         const closeEarningsModal = document.getElementById('closeEarningsModal');
+         const btnCloseEarningsModalFooter = document.getElementById('btnCloseEarningsModalFooter');
+         const earningsModalContent = document.getElementById('earningsModalContent');
 
         // Edit Sale Modal Elements
         const editSaleModal = document.getElementById('editSaleModal');
@@ -1138,15 +1167,15 @@
                     </select>
                 </div>
                 
-                <!-- Product search -->
-                <div class="sale-row-product" style="position: relative;">
-                    <input type="text" class="sale-row-product-input" placeholder="Buscar producto..." style="width: 100%; padding: 10px 40px 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px; background: var(--background); color: var(--text-primary);" autocomplete="off" required>
-                    <svg style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-muted); pointer-events: none;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M6 9l6 6 6-6"/>
-                    </svg>
-                    <div class="sale-row-product-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); max-height: 250px; overflow-y: auto; z-index: 50;"></div>
-                    <input type="hidden" class="sale-row-product-value" name="product[]" required>
-                </div>
+<!-- Product search -->
+                 <div class="sale-row-product" style="position: relative;">
+                     <input type="text" class="sale-row-product-input" placeholder="Buscar producto..." style="width: 100%; padding: 10px 40px 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px; background: var(--background); color: var(--text-primary);" autocomplete="off" required>
+                     <svg style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-muted); pointer-events: none;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                         <path d="M6 9l6 6 6-6"/>
+                     </svg>
+                     <div class="sale-row-product-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); max-height: 250px; overflow-y: auto; z-index: 50;"></div>
+                     <input type="hidden" class="sale-row-product-value" name="product[]" required>
+                 </div>
                 <div class="sale-row-size">
                     <select class="sale-row-size-select" disabled style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px; background: var(--background); color: var(--text-muted);" required>
                         <option value="">Selecciona...</option>
@@ -1565,28 +1594,45 @@ const clientData = {
                     }
                 }
 
-                // Calculate grand total
-                saleItems.forEach(item => grandTotal += item.subtotal);
+                 // Calculate grand total and earnings per product
+                 saleItems.forEach(item => grandTotal += item.subtotal);
 
-                // Insert a SINGLE sale record with all items as arrays in Postgres format
-                const refsArray = '{"' + saleItems.map(i => i.reference.replace(/"/g, '\\"')).join('","') + '"}';
-                const sizesArray = '{"' + saleItems.map(i => i.size.replace(/"/g, '\\"')).join('","') + '"}';
-                const pricesArray = '{' + saleItems.map(i => i.price).join(',') + '}';
-                const amountsArray = '{' + saleItems.map(i => i.amount).join(',') + '}';
+                 // Fetch purchase prices to calculate earnings per product
+                 let earningsObj = {};
+                 for (const item of saleItems) {
+                     const { data: prodData } = await supabase
+                         .from('products')
+                         .select('purchase_price')
+                         .eq('reference', item.reference)
+                         .maybeSingle();
+                     const purchasePrice = prodData?.purchase_price || 0;
+                     const salePrice = item.price;
+                     const amount = item.amount;
+                     // earnings = (units_sold * sale_price) - (units_sold * purchase_price)
+                     const totalEarnings = (amount * salePrice) - (amount * purchasePrice);
+                     earningsObj[item.reference] = totalEarnings;
+                 }
 
-                const { data: newSale, error: insertSaleError } = await supabase
-                    .from('sales')
-                    .insert({
-                        reference: refsArray,
-                        size: sizesArray,
-                        price: pricesArray,
-                        amount: amountsArray,
-                        total_sale: grandTotal,
-                        client_data: clientData,
-                        created_at: new Date().toISOString()
-                    })
-                    .select('id')
-                    .single();
+                 // Insert a SINGLE sale record with all items as arrays in Postgres format
+                 const refsArray = '{"' + saleItems.map(i => i.reference.replace(/"/g, '\\"')).join('","') + '"}';
+                 const sizesArray = '{"' + saleItems.map(i => i.size.replace(/"/g, '\\"')).join('","') + '"}';
+                 const pricesArray = '{' + saleItems.map(i => i.price).join(',') + '}';
+                 const amountsArray = '{' + saleItems.map(i => i.amount).join(',') + '}';
+
+                 const { data: newSale, error: insertSaleError } = await supabase
+                     .from('sales')
+                     .insert({
+                         reference: refsArray,
+                         size: sizesArray,
+                         price: pricesArray,
+                         amount: amountsArray,
+                         total_sale: grandTotal,
+                         earnings: earningsObj,
+                         client_data: clientData,
+                         created_at: new Date().toISOString()
+                     })
+                     .select('id')
+                     .single();
 
                 if (insertSaleError) {
                     throw insertSaleError;
@@ -1854,13 +1900,33 @@ const clientData = {
                 });
             }
         }
-        loadWorkspaceUser();
+         loadWorkspaceUser();
 
-        // Visor de Cliente
-        function openClientModal(clientData) {
-            clientModalContent.innerHTML = renderClientData(clientData);
-            clientModal.classList.add('active');
-        }
+         // Visor de Ganancias
+         function openEarningsModal(earningsData) {
+             earningsModalContent.innerHTML = renderClientData(earningsData);
+             earningsModal.classList.add('active');
+         }
+
+         function closeEarningsModalFn() {
+             earningsModal.classList.remove('active');
+         }
+
+         closeEarningsModal.addEventListener('click', closeEarningsModalFn);
+         btnCloseEarningsModalFooter.addEventListener('click', closeEarningsModalFn);
+         earningsModalOverlay.addEventListener('click', closeEarningsModalFn);
+
+         earningsModal.addEventListener('click', (e) => {
+             if (e.target === earningsModal) {
+                 closeEarningsModalFn();
+             }
+         });
+
+         // Visor de Cliente
+         function openClientModal(data) {
+             clientModalContent.innerHTML = renderClientData(data);
+             clientModal.classList.add('active');
+         }
 
         function closeClientModalFn() {
             clientModal.classList.remove('active');
@@ -1870,11 +1936,13 @@ const clientData = {
         btnCloseClientModalFooter.addEventListener('click', closeClientModalFn);
         clientModalOverlay.addEventListener('click', closeClientModalFn);
 
-        clientModal.addEventListener('click', (e) => {
-            if (e.target === clientModal) {
-                closeClientModalFn();
-            }
-        });
+         clientModal.addEventListener('click', (e) => {
+             if (e.target === clientModal) {
+                 closeClientModalFn();
+             }
+         });
+
+         // Edit Sale Modal Event Listeners
 
         // Edit Sale Modal Event Listeners
         closeEditSaleModal.addEventListener('click', closeEditSaleModalFn);
@@ -2333,9 +2401,10 @@ editSaleForm.addEventListener('submit', async (e) => {
                             <th>Talla</th>
                             <th>Precio</th>
                             <th>Cantidad</th>
-                            <th>Total</th>
-                            <th>Cliente</th>
-                            <th class="actions-cell">Acciones</th>
+                             <th>Total</th>
+                             <th>Ganancia</th>
+                             <th>Cliente</th>
+                             <th class="actions-cell">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -2350,60 +2419,78 @@ editSaleForm.addEventListener('submit', async (e) => {
                 const prices = items.map(item => formatCurrency(item.price)).join(', ');
                 const amounts = items.map(item => item.amount !== null && item.amount !== undefined ? item.amount : '—').join(', ');
 
-                html += `
-                    <tr>
-                        <td>${escapeHtml(formatDate(sale.created_at))}</td>
-                        <td style="font-size: 13px;">${escapeHtml(refs)}</td>
-                        <td style="font-size: 13px;">${escapeHtml(sizes)}</td>
-                        <td class="price-cell">${escapeHtml(prices)}</td>
-                        <td style="font-size: 13px;">${escapeHtml(amounts)}</td>
-                        <td class="total-cell">${formatCurrency(sale.total_sale)}</td>
-                        <td>
-                            <button type="button" class="btn-eye" data-index="${index}" title="Ver datos del cliente" aria-label="Ver datos del cliente">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                    <circle cx="12" cy="12" r="3"/>
-                                </svg>
-                            </button>
-                        </td>
-                        <td class="actions-cell">
-                            <button class="btn-action btn-download" data-id="${sale.id || ''}" data-index="${index}" aria-label="Descargar mini factura" title="Descargar mini factura">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                    <polyline points="7 10 12 15 17 10"/>
-                                    <line x1="12" y1="15" x2="12" y2="3"/>
-                                </svg>
-                            </button>
-                            <button class="btn-action btn-edit" data-id="${sale.id || ''}" data-index="${index}" aria-label="Editar venta">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                                </svg>
-                            </button>
-                            <button class="btn-action btn-delete" data-id="${sale.id || ''}" data-index="${index}" aria-label="Eliminar venta">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="3 6 5 6 21 6"/>
-                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                                </svg>
-                            </button>
-                        </td>
-                    </tr>
-                `;
+                 html += `
+                     <tr>
+                         <td>${escapeHtml(formatDate(sale.created_at))}</td>
+                         <td style="font-size: 13px;">${escapeHtml(refs)}</td>
+                         <td style="font-size: 13px;">${escapeHtml(sizes)}</td>
+                          <td class="price-cell">${escapeHtml(prices)}</td>
+                          <td style="font-size: 13px;">${escapeHtml(amounts)}</td>
+                          <td class="total-cell">${formatCurrency(sale.total_sale)}</td>
+                          <td>
+                              <button type="button" class="btn-eye" data-index="${index}" title="Ver ganancias" aria-label="Ver ganancias" id="btnViewEarnings${index}">
+                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                      <circle cx="12" cy="12" r="3"/>
+                                  </svg>
+                              </button>
+                          </td>
+                          <td>
+                              <button type="button" class="btn-eye" data-index="${index}" title="Ver datos del cliente" aria-label="Ver datos del cliente" id="btnViewClient${index}">
+                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                      <circle cx="12" cy="12" r="3"/>
+                                  </svg>
+                              </button>
+                          </td>
+                         <td class="actions-cell">
+                             <button class="btn-action btn-download" data-id="${sale.id || ''}" data-index="${index}" aria-label="Descargar mini factura" title="Descargar mini factura">
+                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                     <polyline points="7 10 12 15 17 10"/>
+                                     <line x1="12" y1="15" x2="12" y2="3"/>
+                                 </svg>
+                             </button>
+                             <button class="btn-action btn-edit" data-id="${sale.id || ''}" data-index="${index}" aria-label="Editar venta">
+                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                 </svg>
+                             </button>
+                             <button class="btn-action btn-delete" data-id="${sale.id || ''}" data-index="${index}" aria-label="Eliminar venta">
+                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                     <polyline points="3 6 5 6 21 6"/>
+                                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                 </svg>
+                             </button>
+                         </td>
+                     </tr>
+                 `;
             });
 
-            html += '</tbody></table>';
-            tableContent.innerHTML = html;
+             html += '</tbody></table>';
+             tableContent.innerHTML = html;
 
-            // Event listeners para los botones de ver cliente
-            const eyeButtons = tableContent.querySelectorAll('.btn-eye');
-            eyeButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const idx = btn.getAttribute('data-index');
-                    if (idx !== null && salesList[idx]) {
-                        openClientModal(salesList[idx].client_data);
-                    }
-                });
-            });
+             // Event listeners para los botones de ver ganancias
+             salesList.forEach((sale, idx) => {
+                 const earningsBtn = document.getElementById('btnViewEarnings' + idx);
+                 if (earningsBtn) {
+                     earningsBtn.addEventListener('click', () => {
+                         openEarningsModal(sale.earnings);
+                     });
+                 }
+             });
+
+             // Event listeners para los botones de ver cliente
+             const clientButtons = tableContent.querySelectorAll('[id^="btnViewClient"]');
+             clientButtons.forEach(btn => {
+                 btn.addEventListener('click', () => {
+                     const idx = btn.getAttribute('data-index');
+                     if (idx !== null && salesList[idx]) {
+                         openClientModal(salesList[idx].client_data);
+                     }
+                 });
+             });
 
             // Event listeners para botones de editar/eliminar/descargar ventas
             tableContent.querySelectorAll('.btn-edit').forEach(btn => {

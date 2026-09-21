@@ -357,18 +357,161 @@
             }
         }
 
-        @media (max-width: 600px) {
-            .financiera-header {
-                flex-direction: column;
-                align-items: stretch;
-            }
+@media (max-width: 600px) {
+             .financiera-header {
+                 flex-direction: column;
+                 align-items: stretch;
+             }
 
-            .budget-status-box {
-                flex-direction: column;
-                align-items: stretch;
-            }
-        }
-    </style>
+             .budget-status-box {
+                 flex-direction: column;
+                 align-items: stretch;
+             }
+         }
+
+         /* Reporte Ganancias Modal */
+         .modal-lg .modal-content {
+             max-width: 900px;
+             width: 95%;
+         }
+
+         .reporte-ganancias-filters {
+             display: flex;
+             gap: 12px;
+             flex-wrap: wrap;
+             margin-bottom: 16px;
+         }
+
+         .reporte-ganancias-filters .modal-form-group {
+             flex: 1;
+             min-width: 150px;
+             margin-bottom: 0;
+         }
+
+         .reporte-ganancias-total {
+             text-align: left;
+             font-weight: 700;
+             color: var(--text-primary);
+             margin-bottom: 12px;
+             font-size: 16px;
+         }
+
+         .reporte-ganancias-table .bills-table {
+             min-width: 100%;
+         }
+
+         .reporte-ganancias-table .bills-table thead th {
+             font-size: 12px;
+             padding: 12px 16px;
+         }
+
+         .reporte-ganancias-table .bills-table tbody td {
+             padding: 12px 16px;
+             font-size: 13px;
+         }
+
+         /* Reporte Ganancias - Custom Select Styling */
+         .reporte-ganancias-filters select {
+             width: 100%;
+             padding: 10px 12px;
+             border: 2px solid var(--border);
+             border-radius: var(--radius-md);
+             font-size: 14px;
+             color: var(--text-primary);
+             background: var(--card-bg);
+             transition: var(--transition);
+             appearance: auto;
+             cursor: pointer;
+         }
+
+         .reporte-ganancias-filters select:focus {
+             outline: none;
+             border-color: var(--primary);
+             box-shadow: 0 0 0 3px rgba(45, 55, 72, 0.15);
+         }
+
+         .reporte-ganancias-filters select:hover {
+             border-color: var(--primary);
+         }
+
+          /* Reporte Ganancias - Product Combobox (input + dropdown) */
+          .fin-product-combobox {
+              position: relative;
+              width: 100%;
+          }
+
+          .fin-product-combobox input {
+              width: 100%;
+              padding: 10px 40px 10px 12px;
+              border: 2px solid var(--border);
+              border-radius: var(--radius-md);
+              font-size: 14px;
+              color: var(--text-primary);
+              background: var(--card-bg);
+              transition: var(--transition);
+              box-sizing: border-box;
+              appearance: none;
+          }
+
+          .fin-product-combobox input:focus {
+              outline: none;
+              border-color: var(--primary);
+              box-shadow: 0 0 0 3px rgba(45, 55, 72, 0.15);
+          }
+
+          .fin-product-combobox input::placeholder {
+              color: var(--text-muted);
+              font-style: italic;
+          }
+
+          .fin-product-combobox-icon {
+              position: absolute;
+              right: 12px;
+              top: 50%;
+              transform: translateY(-50%);
+              width: 16px;
+              height: 16px;
+              color: var(--text-muted);
+              pointer-events: none;
+          }
+
+          .fin-product-combobox-dropdown {
+              display: none;
+              position: absolute;
+              top: 100%;
+              left: 0;
+              right: 0;
+              margin-top: 4px;
+              background: var(--card-bg);
+              border: 1px solid var(--border);
+              border-radius: var(--radius-md);
+              box-shadow: var(--shadow-lg);
+              max-height: 250px;
+              overflow-y: auto;
+              z-index: 50;
+          }
+
+          .fin-product-combobox-option {
+              padding: 10px 12px;
+              cursor: pointer;
+              font-size: 13px;
+              color: var(--text-primary);
+              border-bottom: 1px solid var(--border);
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+          }
+
+          .fin-product-combobox-option:last-child {
+              border-bottom: none;
+          }
+
+          .fin-product-combobox-option:hover,
+          .fin-product-combobox-option.highlighted {
+              background: var(--background);
+              color: var(--primary);
+          }
+      </style>
 </head>
 <body>
     <div class="financiera-container">
@@ -396,6 +539,8 @@
                     <button class="btn-action-budget" id="btnRegistrarCapital" style="display: none;">Registrar capital actual</button>
                 </div>
                 <button class="btn-action-budget" id="btnRegistrarGasto">Registrar gasto</button>
+                <button class="btn-action-budget" id="btnRegistrarGanancia">Registrar ganancia</button>
+                <button class="btn-action-budget" id="btnReporteGanancias">Reporte de ganancias</button>
                 <button class="btn-back-financiera" id="btnBack">← Regresar</button>
             </div>
         </header>
@@ -468,6 +613,13 @@
                             <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                         </svg>
                         Usuarios
+                    </a>
+                    <a href="historial.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 8v4l2 2"/>
+                        </svg>
+                        Historial
                     </a>
                 </div>
             </div>
@@ -584,15 +736,111 @@
         </div>
     </div>
 
+    <!-- Modal Registrar Ganancia -->
+    <div id="gainModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="gainModalTitle">
+        <div class="modal-overlay" id="gainModalOverlay"></div>
+        <div class="modal-content bill-modal-content">
+            <div class="modal-header">
+                <h2 id="gainModalTitle">Registrar ganancia</h2>
+                <button type="button" class="modal-close" id="closeGainModal" aria-label="Cerrar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 24px; text-align: left;">
+                <div id="gainModalAlert" class="modal-alert"></div>
+                <form id="gainForm" novalidate>
+                    <div class="modal-form-row">
+                        <div class="modal-form-group">
+                            <label for="gainReferenceInput">Concepto</label>
+                            <input type="text" id="gainReferenceInput" placeholder="Ej. Venta del día" required>
+                        </div>
+                        <div class="modal-form-group">
+                            <label for="gainAmountInput">Valor (Ganancia)</label>
+                            <input type="text" id="gainAmountInput" placeholder="Ej. 500000" inputmode="decimal" required class="price-input">
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-modal-cancel" id="cancelGainBtn">Cancelar</button>
+                        <button type="submit" class="btn-modal-submit" id="btnSaveGain">
+                            <span id="btnSaveGainText">Registrar Ganancia</span>
+                            <span id="btnSaveGainLoader" style="display:none;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;animation:spin 0.8s linear infinite;">
+                                    <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+                                    <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Reporte de Ganancias -->
+    <div id="reporteGananciasModal" class="modal modal-lg" role="dialog" aria-modal="true" aria-labelledby="reporteGananciasTitle">
+        <div class="modal-overlay" id="reporteGananciasOverlay"></div>
+        <div class="modal-content" style="max-width: 900px; width: 95%;">
+            <div class="modal-header">
+                <h2 id="reporteGananciasTitle">Reporte de Ganancias</h2>
+                <button type="button" class="modal-close" id="closeReporteGananciasModal" aria-label="Cerrar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 24px; text-align: left;">
+                <div class="reporte-ganancias-filters">
+                    <div class="modal-form-group">
+                        <label for="reporteGananciasFilterDate">Fecha</label>
+                        <input type="date" id="reporteGananciasFilterDate">
+                    </div>
+                    <div class="modal-form-group">
+                        <label for="reporteGananciasFilterCategory">Categoría</label>
+                        <select id="reporteGananciasFilterCategory">
+                            <option value="">Todas las categorías</option>
+                        </select>
+                    </div>
+                    <div class="modal-form-group">
+                        <label for="reporteGananciasFilterProduct">Producto</label>
+                        <div class="fin-product-combobox">
+                            <input type="text" id="reporteGananciasFilterProduct" placeholder="Buscar o seleccionar producto..." autocomplete="off">
+                            <svg class="fin-product-combobox-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 9l6 6 6-6"/>
+                            </svg>
+                            <div class="fin-product-combobox-dropdown"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="reporte-ganancias-total">
+                    Total ganancias: <span id="reporteGananciasTotal">$ 0</span>
+                </div>
+                <div id="reporteGananciasContent" class="reporte-ganancias-table">
+                    <div class="bills-empty">
+                        <p>No hay ganancias registradas.</p>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-modal-cancel" id="cancelReporteGananciasBtn">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { supabase } from './app.js';
 
-        const btnBack = document.getElementById('btnBack');
-        const btnRegistrarCapital = document.getElementById('btnRegistrarCapital');
-        const btnRegistrarGasto = document.getElementById('btnRegistrarGasto');
-        const budgetValueDisplay = document.getElementById('budgetValueDisplay');
-        const tableContent = document.getElementById('tableContent');
-        const billsCount = document.getElementById('billsCount');
+const btnBack = document.getElementById('btnBack');
+         const btnRegistrarCapital = document.getElementById('btnRegistrarCapital');
+         const btnRegistrarGasto = document.getElementById('btnRegistrarGasto');
+         const btnRegistrarGanancia = document.getElementById('btnRegistrarGanancia');
+         const btnReporteGanancias = document.getElementById('btnReporteGanancias');
+         const budgetValueDisplay = document.getElementById('budgetValueDisplay');
+         const tableContent = document.getElementById('tableContent');
+         const billsCount = document.getElementById('billsCount');
 
         // Modal Budget
         const budgetModal = document.getElementById('budgetModal');
@@ -619,8 +867,38 @@
         const btnSaveBillText = document.getElementById('btnSaveBillText');
         const btnSaveBillLoader = document.getElementById('btnSaveBillLoader');
 
-        let currentBudgetRecordId = null;
-        let currentBudgetValue = 0;
+        // Modal Gain (Ganancia)
+        const gainModal = document.getElementById('gainModal');
+        const gainModalOverlay = document.getElementById('gainModalOverlay');
+        const closeGainModal = document.getElementById('closeGainModal');
+        const cancelGainBtn = document.getElementById('cancelGainBtn');
+        const gainForm = document.getElementById('gainForm');
+        const gainReferenceInput = document.getElementById('gainReferenceInput');
+        const gainAmountInput = document.getElementById('gainAmountInput');
+        const gainModalAlert = document.getElementById('gainModalAlert');
+        const btnSaveGain = document.getElementById('btnSaveGain');
+        const btnSaveGainText = document.getElementById('btnSaveGainText');
+        const btnSaveGainLoader = document.getElementById('btnSaveGainLoader');
+
+         // Modal Reporte de Ganancias
+         const reporteGananciasModal = document.getElementById('reporteGananciasModal');
+         const reporteGananciasOverlay = document.getElementById('reporteGananciasOverlay');
+         const closeReporteGananciasModal = document.getElementById('closeReporteGananciasModal');
+         const cancelReporteGananciasBtn = document.getElementById('cancelReporteGananciasBtn');
+         const reporteGananciasForm = document.getElementById('reporteGananciasForm');
+         const reporteGananciasContent = document.getElementById('reporteGananciasContent');
+         const reporteGananciasTotal = document.getElementById('reporteGananciasTotal');
+         const reporteGananciasFilterDate = document.getElementById('reporteGananciasFilterDate');
+         const reporteGananciasFilterCategory = document.getElementById('reporteGananciasFilterCategory');
+         const reporteGananciasFilterProduct = document.getElementById('reporteGananciasFilterProduct');
+         const reporteGananciasProductDropdown = document.querySelector('.fin-product-combobox-dropdown');
+
+         let currentBudgetRecordId = null;
+         let currentBudgetValue = 0;
+         let movementsList = [];
+         let salesList = [];
+         let productsList = [];
+         let categoriesList = [];
 
         function formatCurrency(value) {
             if (value === null || value === undefined || value === '') return '—';
@@ -673,10 +951,20 @@
             billModalAlert.style.display = 'block';
         }
 
-        function hideBillAlert() {
-            billModalAlert.textContent = '';
-            billModalAlert.style.display = 'none';
-        }
+         function hideBillAlert() {
+             billModalAlert.textContent = '';
+             billModalAlert.style.display = 'none';
+         }
+
+         function showGainAlert(msg) {
+             gainModalAlert.textContent = msg;
+             gainModalAlert.style.display = 'block';
+         }
+
+         function hideGainAlert() {
+             gainModalAlert.textContent = '';
+             gainModalAlert.style.display = 'none';
+         }
 
         // Formateador de precios en vivo para inputs numéricos
         document.querySelectorAll('.price-input').forEach(input => {
@@ -806,13 +1094,91 @@
                         <td class="cost-cell">${escapeHtml(formattedCost)}</td>
                     </tr>
                 `;
-            });
+             });
 
-            html += '</tbody></table>';
-            tableContent.innerHTML = html;
-        }
+             html += '</tbody></table>';
+             tableContent.innerHTML = html;
+         }
 
-        // Modal Capital
+         async function loadMovements() {
+             const { data, error } = await supabase
+                 .from('movements')
+                 .select('*')
+                 .order('created_at', { ascending: false });
+
+             if (error) {
+                 console.error('Error loading movements:', error);
+                 return;
+             }
+
+             movementsList = data || [];
+         }
+
+         function getMovementDetail(movement) {
+             const data = movement.sale_data || movement.movement_data || movement.purchase_data || movement.inventory_data || movement.bill_data || {};
+             const parts = [];
+
+             if (data.items) {
+                 const items = Array.isArray(data.items) ? data.items : [data.items];
+                 items.forEach((item, i) => {
+                     if (i > 0) parts.push('<br>');
+                     let itemDetail = `<strong>${escapeHtml(item.reference || '—')}</strong> - Tall. ${escapeHtml(item.size || '—')} - ${item.amount || 0} x ${formatCurrency(item.price || 0)} = ${formatCurrency((item.price || 0) * (item.amount || 0))}`;
+                     parts.push(itemDetail);
+                 });
+                 if (data.total_sale) {
+                     parts.push(`<br><strong>Total:</strong> ${formatCurrency(data.total_sale)}`);
+                 }
+                 if (data.client_data && data.client_data.nombre) {
+                     parts.push(`<br><strong>Cliente:</strong> ${escapeHtml(data.client_data.nombre)}`);
+                 }
+             } else if (data.reference) {
+                 parts.push(`<strong>${escapeHtml(data.reference)}</strong>`);
+                 if (data.size) {
+                     parts.push(` - Tall. ${escapeHtml(data.size)}`);
+                 }
+                 if (data.amount) {
+                     parts.push(` - ${data.amount} uds`);
+                 }
+                 if (data.purchase_price) {
+                     parts.push(` x ${formatCurrency(data.purchase_price)}`);
+                 }
+                 if (data.total_purchase) {
+                     parts.push(` = <strong>${formatCurrency(data.total_purchase)}</strong>`);
+                 } else if (data.total_sale) {
+                     parts.push(` = <strong>${formatCurrency(data.total_sale)}</strong>`);
+                 } else if (data.cost) {
+                     parts.push(` = <strong>${formatCurrency(data.cost)}</strong>`);
+                 } else if (data.amount) {
+                     parts.push(` = <strong>${formatCurrency(data.amount)}</strong>`);
+                 }
+             } else if (data.entries) {
+                 const entries = Array.isArray(data.entries) ? data.entries : [data.entries];
+                 entries.forEach((entry, i) => {
+                     if (i > 0) parts.push('<br>');
+                     parts.push(`<strong>${escapeHtml(entry.reference || '—')}</strong> - Tall. ${escapeHtml(entry.size || '—')} - ${entry.amount || 0} uds`);
+                 });
+             }
+
+             if (data.observation) {
+                 parts.push(`<br><strong>Observación:</strong> ${escapeHtml(data.observation)}`);
+             }
+
+return parts.join('');
+          }
+
+          function getSaleItems(sale) {
+              if (!sale.bill_data || !sale.bill_data.items) return [];
+              const items = Array.isArray(sale.bill_data.items) ? sale.bill_data.items : [sale.bill_data.items];
+              return items.map(item => ({
+                  reference: item.reference || '',
+                  size: item.size || '',
+                  amount: item.amount || 0,
+                  price: item.price || 0,
+                  purchase_price: item.purchase_price || 0
+              }));
+          }
+
+          // Modal Capital
         function openBudgetModal() {
             hideBudgetAlert();
             budgetForm.reset();
@@ -845,33 +1211,142 @@
             billForm.reset();
         }
 
-        btnRegistrarGasto.addEventListener('click', openBillModal);
-        closeBillModal.addEventListener('click', closeBillModalFn);
-        cancelBillBtn.addEventListener('click', closeBillModalFn);
-        billModalOverlay.addEventListener('click', closeBillModalFn);
+// Modal Reporte de Ganancias
+         function openReporteGananciasModal() {
+             reporteGananciasModal.classList.add('active');
+             loadSalesForReport();
+         }
 
-        budgetModal.addEventListener('click', (e) => {
-            if (e.target === budgetModal) {
-                closeBudgetModalFn();
-            }
-        });
+         function closeReporteGananciasModalFn() {
+             reporteGananciasModal.classList.remove('active');
+         }
 
-        billModal.addEventListener('click', (e) => {
-            if (e.target === billModal) {
-                closeBillModalFn();
-            }
-        });
+         btnReporteGanancias.addEventListener('click', openReporteGananciasModal);
+         closeReporteGananciasModal.addEventListener('click', closeReporteGananciasModalFn);
+         cancelReporteGananciasBtn.addEventListener('click', closeReporteGananciasModalFn);
+         reporteGananciasOverlay.addEventListener('click', closeReporteGananciasModalFn);
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                if (budgetModal.classList.contains('active')) {
-                    closeBudgetModalFn();
-                }
-                if (billModal.classList.contains('active')) {
-                    closeBillModalFn();
-                }
-            }
-        });
+         reporteGananciasModal.addEventListener('click', (e) => {
+             if (e.target === reporteGananciasModal) {
+                 closeReporteGananciasModalFn();
+             }
+         });
+
+          reporteGananciasFilterDate.addEventListener('change', filterReporteGanancias);
+          reporteGananciasFilterCategory.addEventListener('change', () => {
+              renderProductDropdown(reporteGananciasFilterProduct.value);
+              filterReporteGanancias();
+          });
+
+          reporteGananciasFilterProduct.addEventListener('input', (e) => {
+              renderProductDropdown(e.target.value);
+              filterReporteGanancias();
+          });
+
+          reporteGananciasFilterProduct.addEventListener('focus', () => {
+              renderProductDropdown(reporteGananciasFilterProduct.value);
+          });
+
+          reporteGananciasFilterProduct.addEventListener('keydown', (e) => {
+              if (e.key === 'ArrowDown') {
+                  e.preventDefault();
+                  const opts = reporteGananciasProductDropdown.querySelectorAll('.fin-product-combobox-option');
+                  if (opts.length === 0) return;
+                  const current = reporteGananciasProductDropdown.querySelector('.fin-product-combobox-option.highlighted');
+                  const next = current ? current.nextElementSibling : opts[0];
+                  if (next) {
+                      if (current) current.classList.remove('highlighted');
+                      next.classList.add('highlighted');
+                      next.scrollIntoView({ block: 'nearest' });
+                  }
+              } else if (e.key === 'ArrowUp') {
+                  e.preventDefault();
+                  const current = reporteGananciasProductDropdown.querySelector('.fin-product-combobox-option.highlighted');
+                  if (!current) return;
+                  const prev = current.previousElementSibling;
+                  current.classList.remove('highlighted');
+                  if (prev) {
+                      prev.classList.add('highlighted');
+                      prev.scrollIntoView({ block: 'nearest' });
+                  }
+              } else if (e.key === 'Enter') {
+                  const highlighted = reporteGananciasProductDropdown.querySelector('.fin-product-combobox-option.highlighted');
+                  if (highlighted && reporteGananciasProductDropdown.style.display !== 'none') {
+                      e.preventDefault();
+                      selectProductOption(highlighted);
+                  }
+              } else if (e.key === 'Escape') {
+                  reporteGananciasProductDropdown.style.display = 'none';
+              }
+          });
+
+          function selectProductOption(opt) {
+              reporteGananciasFilterProduct.value = opt.dataset.value;
+              reporteGananciasProductDropdown.style.display = 'none';
+              reporteGananciasProductDropdown.querySelectorAll('.fin-product-combobox-option').forEach(o => o.classList.remove('highlighted'));
+              filterReporteGanancias();
+          }
+
+          document.addEventListener('click', (e) => {
+              if (!reporteGananciasFilterProduct.contains(e.target) && !reporteGananciasProductDropdown.contains(e.target)) {
+                  reporteGananciasProductDropdown.style.display = 'none';
+              }
+          });
+
+btnRegistrarGasto.addEventListener('click', openBillModal);
+
+         function openGainModal() {
+             hideGainAlert();
+             gainForm.reset();
+             gainModal.classList.add('active');
+             gainReferenceInput.focus();
+         }
+
+         function closeGainModalFn() {
+             gainModal.classList.remove('active');
+             hideGainAlert();
+             gainForm.reset();
+         }
+
+         btnRegistrarGanancia.addEventListener('click', openGainModal);
+         closeGainModal.addEventListener('click', closeGainModalFn);
+         cancelGainBtn.addEventListener('click', closeGainModalFn);
+         gainModalOverlay.addEventListener('click', closeGainModalFn);
+
+         budgetModal.addEventListener('click', (e) => {
+             if (e.target === budgetModal) {
+                 closeBudgetModalFn();
+             }
+         });
+
+         billModal.addEventListener('click', (e) => {
+             if (e.target === billModal) {
+                 closeBillModalFn();
+             }
+         });
+
+         gainModal.addEventListener('click', (e) => {
+             if (e.target === gainModal) {
+                 closeGainModalFn();
+             }
+         });
+
+document.addEventListener('keydown', (e) => {
+              if (e.key === 'Escape') {
+                  if (budgetModal.classList.contains('active')) {
+                      closeBudgetModalFn();
+                  }
+                  if (billModal.classList.contains('active')) {
+                      closeBillModalFn();
+                  }
+                  if (gainModal.classList.contains('active')) {
+                      closeGainModalFn();
+                  }
+                  if (reporteGananciasModal.classList.contains('active')) {
+                      closeReporteGananciasModalFn();
+                  }
+              }
+          });
 
         // Guardar o Actualizar Capital
         budgetForm.addEventListener('submit', async (e) => {
@@ -947,45 +1422,142 @@
             try {
                 const now = new Date().toISOString();
 
-                // 1. Registrar el gasto en la tabla bills
-                const { error: insertBillErr } = await supabase
-                    .from('bills')
-                    .insert({
-                        reference: referenceVal,
-                        cost: costVal,
-                        created_at: now
-                    });
+                 // 1. Registrar el gasto en la tabla bills
+                 const { error: insertBillErr } = await supabase
+                     .from('bills')
+                     .insert({
+                         reference: referenceVal,
+                         cost: costVal,
+                         created_at: now
+                     });
 
-                if (insertBillErr) {
-                    throw insertBillErr;
-                }
+                 if (insertBillErr) {
+                     throw insertBillErr;
+                 }
 
-                // 2. Actualizar el capital restando el costo del gasto (capital actual - valor gasto)
-                if (currentBudgetRecordId) {
-                    const newBudgetVal = currentBudgetValue - costVal;
+                 // 2. Guardar en movements con type "Gasto" y datos en bill_data
+                 const { error: movementErr } = await supabase
+                     .from('movements')
+                     .insert({
+                         type: 'Gasto',
+                         bill_data: {
+                             reference: referenceVal,
+                             cost: costVal
+                         },
+                         created_at: now
+                     });
 
-                    const { error: updateBudgetErr } = await supabase
-                        .from('budget')
-                        .update({ value: newBudgetVal })
-                        .eq('id', currentBudgetRecordId);
+                 if (movementErr) {
+                     console.error('Error saving movement:', movementErr);
+                 }
 
-                    if (updateBudgetErr) {
-                        throw new Error('El gasto se registró pero ocurrió un error al actualizar el capital: ' + updateBudgetErr.message);
-                    }
-                }
+                 // 3. Actualizar el capital restando el costo del gasto (capital actual - valor gasto)
+                 if (currentBudgetRecordId) {
+                     const newBudgetVal = currentBudgetValue - costVal;
 
-                closeBillModalFn();
-                await loadBudget();
-                await loadBills();
-            } catch (err) {
-                console.error('Error al registrar el gasto:', err);
-                showBillAlert(err.message || 'Error al registrar el gasto. Intenta nuevamente.');
-            } finally {
-                btnSaveBill.disabled = false;
-                btnSaveBillText.style.display = 'inline';
-                btnSaveBillLoader.style.display = 'none';
-            }
-        });
+                     const { error: updateBudgetErr } = await supabase
+                         .from('budget')
+                         .update({ value: newBudgetVal })
+                         .eq('id', currentBudgetRecordId);
+
+                     if (updateBudgetErr) {
+                         throw new Error('El gasto se registró pero ocurrió un error al actualizar el capital: ' + updateBudgetErr.message);
+                     }
+                 }
+
+                 closeBillModalFn();
+                 await loadBudget();
+                 await loadBills();
+             } catch (err) {
+                 console.error('Error al registrar el gasto:', err);
+                 showBillAlert(err.message || 'Error al registrar el gasto. Intenta nuevamente.');
+             } finally {
+                 btnSaveBill.disabled = false;
+                 btnSaveBillText.style.display = 'inline';
+                 btnSaveBillLoader.style.display = 'none';
+             }
+         });
+
+         // Guardar Ganancia y sumar al capital (capital actual + valor ganancia)
+         gainForm.addEventListener('submit', async (e) => {
+             e.preventDefault();
+             hideGainAlert();
+
+             const referenceVal = gainReferenceInput.value.trim();
+             const amountVal = parsePrice(gainAmountInput.value);
+
+             if (!referenceVal) {
+                 showGainAlert('Ingresa el concepto de la ganancia.');
+                 return;
+             }
+
+             if (isNaN(amountVal) || amountVal <= 0) {
+                 showGainAlert('Ingresa un valor de ganancia válido mayor a 0.');
+                 return;
+             }
+
+             btnSaveGain.disabled = true;
+             btnSaveGainText.style.display = 'none';
+             btnSaveGainLoader.style.display = 'inline-flex';
+
+             try {
+                 const now = new Date().toISOString();
+
+                 // 1. Registrar la ganancia en la tabla bills
+                 const { error: insertBillErr } = await supabase
+                     .from('bills')
+                     .insert({
+                         reference: referenceVal,
+                         cost: amountVal,
+                         created_at: now
+                     });
+
+                 if (insertBillErr) {
+                     throw insertBillErr;
+                 }
+
+                 // 2. Guardar en movements con type "Ganancia" y datos en bill_data
+                 const { error: movementErr } = await supabase
+                     .from('movements')
+                     .insert({
+                         type: 'Ganancia',
+                         bill_data: {
+                             reference: referenceVal,
+                             amount: amountVal
+                         },
+                         created_at: now
+                     });
+
+                 if (movementErr) {
+                     console.error('Error saving movement:', movementErr);
+                 }
+
+                 // 3. Sumar la ganancia al capital (capital actual + valor ganancia)
+                 if (currentBudgetRecordId) {
+                     const newBudgetVal = currentBudgetValue + amountVal;
+
+                     const { error: updateBudgetErr } = await supabase
+                         .from('budget')
+                         .update({ value: newBudgetVal })
+                         .eq('id', currentBudgetRecordId);
+
+                     if (updateBudgetErr) {
+                         throw new Error('La ganancia se registró pero ocurrió un error al actualizar el capital: ' + updateBudgetErr.message);
+                     }
+                 }
+
+                 closeGainModalFn();
+                 await loadBudget();
+                 await loadBills();
+             } catch (err) {
+                 console.error('Error al registrar la ganancia:', err);
+                 showGainAlert(err.message || 'Error al registrar la ganancia. Intenta nuevamente.');
+             } finally {
+                 btnSaveGain.disabled = false;
+                 btnSaveGainText.style.display = 'inline';
+                 btnSaveGainLoader.style.display = 'none';
+             }
+         });
 
         btnBack.addEventListener('click', () => {
             window.location.href = 'dashboard.html';
@@ -1059,17 +1631,170 @@
         }
         loadWorkspaceUser();
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            const { data: { session } } = await supabase.auth.getSession();
+         document.addEventListener('DOMContentLoaded', async () => {
+             const { data: { session } } = await supabase.auth.getSession();
 
-            if (!session) {
-                window.location.href = 'index.html';
-                return;
-            }
+             if (!session) {
+                 window.location.href = 'index.html';
+                 return;
+             }
 
-            await loadBudget();
-            await loadBills();
-        });
+             await loadBudget();
+             await loadBills();
+             await loadMovements();
+             await loadProductsForReport();
+         });
+
+         async function loadProductsForReport() {
+             const { data, error } = await supabase
+                 .from('products')
+                 .select('reference, categorie')
+                 .order('reference', { ascending: true });
+
+             if (error) {
+                 console.error('Error cargando productos:', error);
+                 return;
+             }
+
+productsList = data || [];
+              categoriesList = [...new Set(data.map(p => p.categorie).filter(Boolean))].sort();
+
+              let catOpts = '<option value="">Todas las categorías</option>';
+              categoriesList.forEach(cat => {
+                  catOpts += `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`;
+              });
+              reporteGananciasFilterCategory.innerHTML = catOpts;
+
+              renderProductDropdown('');
+          }
+
+         function renderProductDropdown(text) {
+             const categoryFilter = reporteGananciasFilterCategory.value;
+             const searchText = text.trim().toLowerCase();
+
+             let filtered = productsList;
+             if (categoryFilter) {
+                 filtered = filtered.filter(p => p.categorie === categoryFilter);
+             }
+             if (searchText) {
+                 filtered = filtered.filter(p => p.reference.toLowerCase().includes(searchText));
+             }
+
+             if (filtered.length === 0) {
+                 reporteGananciasProductDropdown.innerHTML = '<div class="fin-product-combobox-option" style="cursor: default; color: var(--text-muted);">No se encontraron productos</div>';
+                 reporteGananciasProductDropdown.style.display = 'block';
+                 return;
+             }
+
+             reporteGananciasProductDropdown.innerHTML = filtered.map(prod =>
+                 `<div class="fin-product-combobox-option" data-value="${escapeHtml(prod.reference)}">${escapeHtml(prod.reference)}</div>`
+             ).join('');
+             reporteGananciasProductDropdown.style.display = 'block';
+
+             reporteGananciasProductDropdown.querySelectorAll('.fin-product-combobox-option').forEach(opt => {
+                 opt.addEventListener('mousedown', (e) => {
+                     e.preventDefault();
+                     selectProductOption(opt);
+                 });
+             });
+         }
+
+         async function loadSalesForReport() {
+             const { data, error } = await supabase
+                 .from('sales')
+                 .select('*')
+                 .order('created_at', { ascending: false });
+
+             if (error) {
+                 console.error('Error cargando sales:', error);
+                 return;
+             }
+
+             salesList = data || [];
+             renderReporteGanancias();
+         }
+
+         function filterReporteGanancias() {
+             renderReporteGanancias();
+         }
+
+         function renderReporteGanancias() {
+             const dateFilter = reporteGananciasFilterDate.value;
+             const categoryFilter = reporteGananciasFilterCategory.value;
+             const productFilter = reporteGananciasFilterProduct.value.trim().toLowerCase();
+
+             let filtered = salesList.filter(sale => {
+                 if (dateFilter) {
+                     const saleDate = sale.created_at ? sale.created_at.split('T')[0] : '';
+                     if (saleDate !== dateFilter) return false;
+                 }
+
+                 if (categoryFilter) {
+                     const items = getSaleItems(sale);
+                     const hasCategory = items.some(item => {
+                         const prod = productsList.find(p => p.reference === item.reference);
+                         return prod && prod.categorie === categoryFilter;
+                     });
+                     if (!hasCategory) return false;
+                 }
+
+                 if (productFilter) {
+                     const items = getSaleItems(sale);
+                     const hasProduct = items.some(item =>
+                         item.reference.toLowerCase().includes(productFilter)
+                     );
+                     if (!hasProduct) return false;
+                 }
+
+                 return true;
+             });
+
+             let totalEarnings = 0;
+             filtered.forEach(sale => {
+                 if (sale.earnings && typeof sale.earnings === 'object') {
+                     Object.values(sale.earnings).forEach(val => {
+                         totalEarnings += Number(val) || 0;
+                     });
+                 }
+             });
+
+             reporteGananciasTotal.textContent = formatCurrency(totalEarnings);
+
+             if (filtered.length === 0) {
+                 reporteGananciasContent.innerHTML = '<div class="bills-empty"><p>No hay ganancias registradas.</p></div>';
+                 return;
+             }
+
+             let html = `
+                 <table class="bills-table">
+                     <thead>
+                         <tr>
+                             <th>Fecha</th>
+                             <th>Producto</th>
+                             <th>Ganancia</th>
+                         </tr>
+                     </thead>
+                     <tbody>
+             `;
+
+             filtered.forEach(sale => {
+                 const date = formatDateOnly(sale.created_at);
+                 if (sale.earnings && typeof sale.earnings === 'object') {
+                     Object.entries(sale.earnings).forEach(([product, earn]) => {
+                         html += `
+                             <tr>
+                                 <td>${escapeHtml(date)}</td>
+                                 <td>${escapeHtml(product)}</td>
+                                 <td class="cost-cell">${formatCurrency(earn)}</td>
+                             </tr>
+                         `;
+                     });
+                 }
+             });
+
+             html += '</tbody></table>';
+             reporteGananciasContent.innerHTML = html;
+         }
     </script>
 </body>
 </html>

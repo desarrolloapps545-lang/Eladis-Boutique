@@ -527,47 +527,55 @@
             return `<span class="history-type-badge ${badgeClass}">${escapeHtml(label)}</span>`;
         }
 
-        function getMovementDetail(movement) {
-            const data = movement.sale_data || movement.movement_data || movement.purchase_data || movement.inventory_data || {};
-            const parts = [];
+         function getMovementDetail(movement) {
+             const data = movement.sale_data || movement.movement_data || movement.purchase_data || movement.inventory_data || movement.bill_data || {};
+             const parts = [];
 
-            if (data.items) {
-                const items = Array.isArray(data.items) ? data.items : [data.items];
-                items.forEach((item, i) => {
-                    if (i > 0) parts.push('<br>');
-                    let itemDetail = `<strong>${escapeHtml(item.reference || '—')}</strong> - Tall. ${escapeHtml(item.size || '—')} - ${item.amount || 0} x ${formatCurrency(item.price || 0)} = ${formatCurrency((item.price || 0) * (item.amount || 0))}`;
-                    parts.push(itemDetail);
-                });
-                if (data.total_sale) {
-                    parts.push(`<br><strong>Total:</strong> ${formatCurrency(data.total_sale)}`);
-                }
-                if (data.client_data && data.client_data.nombre) {
-                    parts.push(`<br><strong>Cliente:</strong> ${escapeHtml(data.client_data.nombre)}`);
-                }
-            } else if (data.reference) {
-                parts.push(`<strong>${escapeHtml(data.reference)}</strong> - Tall. ${escapeHtml(data.size || '—')} - ${data.amount || 0} uds`);
-                if (data.purchase_price) {
-                    parts.push(` x ${formatCurrency(data.purchase_price)}`);
-                }
-                if (data.total_purchase) {
-                    parts.push(` = <strong>${formatCurrency(data.total_purchase)}</strong>`);
-                } else if (data.total_sale) {
-                    parts.push(` = <strong>${formatCurrency(data.total_sale)}</strong>`);
-                }
-            } else if (data.entries) {
-                const entries = Array.isArray(data.entries) ? data.entries : [data.entries];
-                entries.forEach((entry, i) => {
-                    if (i > 0) parts.push('<br>');
-                    parts.push(`<strong>${escapeHtml(entry.reference || '—')}</strong> - Tall. ${escapeHtml(entry.size || '—')} - ${entry.amount || 0} uds`);
-                });
-            }
+             if (data.items) {
+                 const items = Array.isArray(data.items) ? data.items : [data.items];
+                 items.forEach((item, i) => {
+                     if (i > 0) parts.push('<br>');
+                     let itemDetail = `<strong>${escapeHtml(item.reference || '—')}</strong> - Tall. ${escapeHtml(item.size || '—')} - ${item.amount || 0} x ${formatCurrency(item.price || 0)} = ${formatCurrency((item.price || 0) * (item.amount || 0))}`;
+                     parts.push(itemDetail);
+                 });
+                 if (data.total_sale) {
+                     parts.push(`<br><strong>Total:</strong> ${formatCurrency(data.total_sale)}`);
+                 }
+                 if (data.client_data && data.client_data.nombre) {
+                     parts.push(`<br><strong>Cliente:</strong> ${escapeHtml(data.client_data.nombre)}`);
+                 }
+             } else if (data.reference) {
+                 parts.push(`<strong>${escapeHtml(data.reference)}</strong>`);
+                 if (data.size) {
+                     parts.push(` - Tall. ${escapeHtml(data.size)}`);
+                 }
+                 if (data.amount) {
+                     parts.push(` - ${data.amount} uds`);
+                 }
+                 if (data.purchase_price) {
+                     parts.push(` x ${formatCurrency(data.purchase_price)}`);
+                 }
+                 if (data.total_purchase) {
+                     parts.push(` = <strong>${formatCurrency(data.total_purchase)}</strong>`);
+                 } else if (data.total_sale) {
+                     parts.push(` = <strong>${formatCurrency(data.total_sale)}</strong>`);
+                 } else if (data.cost) {
+                     parts.push(` = <strong>${formatCurrency(data.cost)}</strong>`);
+                 }
+             } else if (data.entries) {
+                 const entries = Array.isArray(data.entries) ? data.entries : [data.entries];
+                 entries.forEach((entry, i) => {
+                     if (i > 0) parts.push('<br>');
+                     parts.push(`<strong>${escapeHtml(entry.reference || '—')}</strong> - Tall. ${escapeHtml(entry.size || '—')} - ${entry.amount || 0} uds`);
+                 });
+             }
 
-            if (data.observation) {
-                parts.push(`<br><strong>Observación:</strong> ${escapeHtml(data.observation)}`);
-            }
+             if (data.observation) {
+                 parts.push(`<br><strong>Observación:</strong> ${escapeHtml(data.observation)}`);
+             }
 
-            return parts.join('');
-        }
+             return parts.join('');
+         }
 
         async function loadMovements() {
             historyTableContent.innerHTML = `
@@ -649,14 +657,14 @@
             historyTableContent.innerHTML = html;
         }
 
-        function populateMovementTypes() {
-            const types = ['Entrada Inventario', 'Salida Inventario', 'Venta', 'Venta Editada', 'Venta Eliminada'];
-            let opts = '<option value="">Todos los tipos</option>';
-            types.forEach(t => {
-                opts += `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`;
-            });
-            movementTypeFilter.innerHTML = opts;
-        }
+         function populateMovementTypes() {
+             const types = ['Entrada Inventario', 'Salida Inventario', 'Venta', 'Venta Editada', 'Venta Eliminada', 'Gasto'];
+             let opts = '<option value="">Todos los tipos</option>';
+             types.forEach(t => {
+                 opts += `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`;
+             });
+             movementTypeFilter.innerHTML = opts;
+         }
 
         // Workspace Drawer
         const workspaceMenuBtn = document.getElementById('workspaceMenuBtn');
