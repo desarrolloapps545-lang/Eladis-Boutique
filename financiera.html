@@ -637,10 +637,10 @@
             <section class="financiera-section-header">
                 <div>
                     <h2>
-                        Gastos Operativos
+                        Movimientos financieros
                         <span class="bills-count" id="billsCount">0</span>
                     </h2>
-                    <p>Historial de gastos registrados en la tienda.</p>
+                    <p>Historial de ganancias y gastos registrados en la tienda.</p>
                 </div>
             </section>
 
@@ -648,7 +648,7 @@
                 <div id="tableContent">
                     <div class="loading-container">
                         <div class="spinner-lg"></div>
-                        <p style="color: var(--text-muted);">Cargando gastos...</p>
+                        <p style="color: var(--text-muted);">Cargando movimientos...</p>
                     </div>
                 </div>
             </div>
@@ -1040,18 +1040,18 @@ const btnBack = document.getElementById('btnBack');
             tableContent.innerHTML = `
                 <div class="loading-container">
                     <div class="spinner-lg"></div>
-                    <p style="color: var(--text-muted);">Cargando gastos...</p>
+                    <p style="color: var(--text-muted);">Cargando movimientos...</p>
                 </div>
             `;
 
             const { data, error } = await supabase
                 .from('bills')
-                .select('created_at, reference, cost')
+                .select('created_at, reference, cost, type')
                 .order('created_at', { ascending: false });
 
             if (error) {
                 console.error('Error al cargar bills:', error);
-                tableContent.innerHTML = `<div class="bills-empty"><p>Error al cargar los gastos. Intenta de nuevo.</p></div>`;
+                tableContent.innerHTML = `<div class="bills-empty"><p>Error al cargar los movimientos. Intenta de nuevo.</p></div>`;
                 return;
             }
 
@@ -1064,7 +1064,7 @@ const btnBack = document.getElementById('btnBack');
                             <line x1="12" y1="1" x2="12" y2="23"/>
                             <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                         </svg>
-                        <p>No hay gastos registrados.</p>
+                        <p>No hay movimientos registrados.</p>
                     </div>
                 `;
                 return;
@@ -1075,7 +1075,8 @@ const btnBack = document.getElementById('btnBack');
                     <thead>
                         <tr>
                             <th>Fecha</th>
-                            <th>Gasto</th>
+                            <th>Tipo</th>
+                            <th>Concepto</th>
                             <th>Valor</th>
                         </tr>
                     </thead>
@@ -1089,6 +1090,7 @@ const btnBack = document.getElementById('btnBack');
                 html += `
                     <tr>
                         <td>${escapeHtml(formattedDate)}</td>
+                        <td>${escapeHtml(item.type || '—')}</td>
                         <td>${escapeHtml(item.reference || '—')}</td>
                         <td class="cost-cell">${escapeHtml(formattedCost)}</td>
                     </tr>
@@ -1427,6 +1429,7 @@ document.addEventListener('keydown', (e) => {
                      .insert({
                          reference: referenceVal,
                          cost: costVal,
+                         type: 'Gasto',
                          created_at: now
                      });
 
@@ -1508,6 +1511,7 @@ document.addEventListener('keydown', (e) => {
                      .insert({
                          reference: referenceVal,
                          cost: amountVal,
+                         type: 'Ganancia',
                          created_at: now
                      });
 
