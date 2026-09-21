@@ -639,6 +639,7 @@
                     <input type="hidden" id="editPurchaseId">
                     <input type="hidden" id="editPurchaseIndex">
                     <input type="hidden" id="editPurchaseOriginalData">
+                    <input type="hidden" id="editPurchaseOriginalTotal">
 
                     <div class="purchase-products-section" style="margin-bottom: 20px; padding: 16px; background: var(--background); border-radius: var(--radius-md); border: 1px solid var(--border);">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -728,7 +729,8 @@
         const editPurchaseForm = document.getElementById('editPurchaseForm');
         const editPurchaseId = document.getElementById('editPurchaseId');
         const editPurchaseIndex = document.getElementById('editPurchaseIndex');
-        const editPurchaseOriginalData = document.getElementById('editPurchaseOriginalData');
+         const editPurchaseOriginalData = document.getElementById('editPurchaseOriginalData');
+         const editPurchaseOriginalTotal = document.getElementById('editPurchaseOriginalTotal');
         const editPurchaseProductRows = document.getElementById('editPurchaseProductRows');
         const btnAddEditPurchaseProductRow = document.getElementById('btnAddEditPurchaseProductRow');
         const noEditPurchaseProductsMessage = document.getElementById('noEditPurchaseProductsMessage');
@@ -856,8 +858,10 @@
             editPurchaseId.value = id || '';
             editPurchaseIndex.value = index;
 
-            // Obtener los ítems originales y almacenarlos como JSON en campo oculto
-            const originalItems = getPurchaseItems(purchase);
+             // Obtener los ítems originales y almacenarlos como JSON en campo oculto
+             const originalItems = getPurchaseItems(purchase);
+             const originalTotalPurchase = Number(purchase.total_purchase) || 0;
+             editPurchaseOriginalTotal.value = originalTotalPurchase;
             editPurchaseOriginalData.value = JSON.stringify(originalItems.map(item => ({
                 reference: item.reference,
                 size: item.size,
@@ -917,11 +921,24 @@
                         .eq('created_at', purchase.created_at);
                 }
 
-                const { error } = await query;
+                 const { error } = await query;
 
-                if (error) throw error;
+                 if (error) throw error;
 
-                // 1. Decrease inventory stock for each product (subtract purchased quantity)
+                 // Delete the associated movements
+                 const purchaseId = id || purchase.id;
+                 if (purchaseId) {
+                     const { error: movementDeleteError } = await supabase
+                         .from('movements')
+                         .delete()
+                         .eq('source_id', purchaseId)
+                         .eq('source_type', 'purchase');
+                     if (movementDeleteError) {
+                         console.error('Error deleting movement:', movementDeleteError);
+                     }
+                 }
+
+                 // 1. Decrease inventory stock for each product (subtract purchased quantity)
                 for (const item of items) {
                     const { data: invData, error: invError } = await supabase
                         .from('inventory')
@@ -968,25 +985,6 @@
                 }
 
                 await loadPurchases();
-
-                // Save to movements table for deleted purchase (one per item)
-                const movements = items.map(item => ({
-                    type: 'compra de producto eliminada',
-                    purchase_data: {
-                        reference: item.reference,
-                        size: item.size,
-                        purchase_price: item.purchase_price,
-                        amount: item.amount,
-                        total_purchase: item.purchase_price * item.amount
-                    },
-                    created_at: new Date().toISOString()
-                }));
-                const { error: movementError } = await supabase
-                    .from('movements')
-                    .insert(movements);
-                if (movementError) {
-                    console.error('Error saving movement:', movementError);
-                }
             } catch (err) {
                 console.error('Error deleting purchase:', err);
                 alert(err.message || 'Error al eliminar la compra');
@@ -1249,24 +1247,28 @@
                 closeEditPurchaseModalFn();
                 await loadPurchases();
 
-                // Save to movements table for edited purchase
-                const movementData = {
-                    type: 'compra de producto editada',
-                    purchase_data: {
-                        reference: reference,
-                        size: newSize,
-                        purchase_price: priceVal,
-                        amount: amountVal,
-                        total_purchase: totalVal
-                    },
-                    created_at: new Date().toISOString()
-                };
-                const { error: movementError } = await supabase
-                    .from('movements')
-                    .insert(movementData);
-                if (movementError) {
-                    console.error('Error saving movement:', movementError);
-                }
+                 // Update the existing movement for this purchase instead of creating a new one
+                 const movementData = {
+                     type: 'Compra',
+                     purchase_data: {
+                         reference: reference,
+                         size: newSize,
+                         purchase_price: priceVal,
+                         amount: amountVal,
+                         total_purchase: totalVal
+                     }
+                 };
+                 const purchaseId = id || purchasesList[index]?.id;
+                 if (purchaseId) {
+                     const { error: movementUpdateError } = await supabase
+                         .from('movements')
+                         .update(movementData)
+                         .eq('source_id', purchaseId)
+                         .eq('source_type', 'purchase');
+                     if (movementUpdateError) {
+                         console.error('Error updating movement:', movementUpdateError);
+                     }
+                 }
             } catch (err) {
                 console.error('Error updating purchase:', err);
                 editPurchaseModalAlert.className = 'modal-alert error';
@@ -1676,21 +1678,23 @@
                 const amounts = rows.map(r => r.amount);
                 const purchasePrices = rows.map(r => r.price);
 
-                // 1. Insertar una sola compra con todos los productos en un registro
-                const { error: insertError } = await supabase
-                    .from('purchases')
-                    .insert({
-                        reference: pgArrayLiteral(references),
-                        size: pgArrayLiteral(sizes),
-                        purchase_price: purchasePrices,
-                        amount: amounts,
-                        total_purchase: grandTotal,
-                        created_at: now
-                    });
+                 // 1. Insertar una sola compra con todos los productos en un registro
+                 const { data: insertedPurchase, error: insertError } = await supabase
+                     .from('purchases')
+                     .insert({
+                         reference: pgArrayLiteral(references),
+                         size: pgArrayLiteral(sizes),
+                         purchase_price: purchasePrices,
+                         amount: amounts,
+                         total_purchase: grandTotal,
+                         created_at: now
+                     })
+                     .select()
+                     .single();
 
-                if (insertError) {
-                    throw insertError;
-                }
+                 if (insertError) {
+                     throw insertError;
+                 }
 
                 // 2. Sumar la cantidad comprada al inventario para cada producto/talla
                 for (const item of rows) {
@@ -1778,17 +1782,20 @@
                 await loadPurchases();
 
                 // Guardar en la tabla movements (uno por producto)
-                const movements = rows.map(item => ({
-                    type: 'compra de producto',
-                    purchase_data: {
-                        reference: item.prod.reference,
-                        size: item.size,
-                        purchase_price: item.price,
-                        amount: item.amount,
-                        total_purchase: item.price * item.amount
-                    },
-                    created_at: new Date().toISOString()
-                }));
+                 const purchaseId = insertedPurchase?.id;
+                 const movements = rows.map(item => ({
+                     type: 'Compra',
+                     source_id: purchaseId || null,
+                     source_type: 'purchase',
+                     purchase_data: {
+                         reference: item.prod.reference,
+                         size: item.size,
+                         purchase_price: item.price,
+                         amount: item.amount,
+                         total_purchase: item.price * item.amount
+                     },
+                     created_at: new Date().toISOString()
+                 }));
                 const { error: movementError } = await supabase
                     .from('movements')
                     .insert(movements);
@@ -1890,10 +1897,10 @@
                 </div>
             `;
 
-            const { data, error } = await supabase
-                .from('purchases')
-                .select('created_at, reference, size, purchase_price, amount, total_purchase')
-                .order('created_at', { ascending: false });
+             const { data, error } = await supabase
+                 .from('purchases')
+                 .select('id, created_at, reference, size, purchase_price, amount, total_purchase')
+                 .order('created_at', { ascending: false });
 
             if (error) {
                 console.error('Error al cargar compras:', error);

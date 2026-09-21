@@ -230,10 +230,25 @@
             color: #4438ca;
         }
 
-        .history-type-badge.delete {
-            background: rgba(245, 101, 101, 0.15);
-            color: #742217;
-        }
+         .history-type-badge.delete {
+             background: rgba(245, 101, 101, 0.15);
+             color: #742217;
+         }
+
+         .history-type-badge.purchase {
+             background: rgba(237, 171, 79, 0.15);
+             color: #742217;
+         }
+
+         .history-type-badge.gasto {
+             background: rgba(245, 101, 101, 0.15);
+             color: #742217;
+         }
+
+         .history-type-badge.ganancia {
+             background: rgba(72, 187, 120, 0.15);
+             color: #22543d;
+         }
 
         .history-empty {
             text-align: center;
@@ -515,24 +530,30 @@
             return div.innerHTML;
         }
 
-        function getTypeBadge(type) {
-            let badgeClass = '';
-            let label = type || 'Desconocido';
+         function getTypeBadge(type) {
+             let badgeClass = '';
+             let label = type || 'Desconocido';
 
-            if (type.includes('Entrada')) {
-                badgeClass = 'entry';
-            } else if (type.includes('Salida')) {
-                badgeClass = 'exit';
-            } else if (type.includes('Venta')) {
-                badgeClass = 'sale';
-            } else if (type.includes('Editada')) {
-                badgeClass = 'edit';
-            } else if (type.includes('Eliminada')) {
-                badgeClass = 'delete';
-            }
+             if (type.includes('Entrada')) {
+                 badgeClass = 'entry';
+             } else if (type.includes('Salida')) {
+                 badgeClass = 'exit';
+             } else if (type.includes('Venta')) {
+                 badgeClass = 'sale';
+             } else if (type.includes('Compra')) {
+                 badgeClass = 'purchase';
+             } else if (type.includes('Gasto')) {
+                 badgeClass = 'gasto';
+             } else if (type.includes('Ganancia')) {
+                 badgeClass = 'ganancia';
+             } else if (type.includes('Editada')) {
+                 badgeClass = 'edit';
+             } else if (type.includes('Eliminada')) {
+                 badgeClass = 'delete';
+             }
 
-            return `<span class="history-type-badge ${badgeClass}">${escapeHtml(label)}</span>`;
-        }
+             return `<span class="history-type-badge ${badgeClass}">${escapeHtml(label)}</span>`;
+         }
 
          function getMovementDetail(movement) {
              const data = movement.sale_data || movement.movement_data || movement.purchase_data || movement.inventory_data || movement.bill_data || {};
@@ -599,7 +620,7 @@
 
             const typeFilter = movementTypeFilter.value;
             if (typeFilter) {
-                query = query.eq('type', typeFilter);
+                query = query.like('type', `${typeFilter}%`);
             }
 
             const dateFrom = dateFromFilter.value;
@@ -664,8 +685,8 @@
             historyTableContent.innerHTML = html;
         }
 
-         function populateMovementTypes() {
-             const types = ['Entrada Inventario', 'Salida Inventario', 'Venta', 'Venta Editada', 'Venta Eliminada', 'Gasto'];
+          function populateMovementTypes() {
+              const types = ['Entrada Inventario', 'Salida Inventario', 'Venta', 'Compra', 'Gasto', 'Ganancia'];
              let opts = '<option value="">Todos los tipos</option>';
              types.forEach(t => {
                  opts += `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`;

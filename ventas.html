@@ -1710,12 +1710,14 @@ const clientData = {
 
                 // Save to movements table
                 const movementData = {
-                    type: 'Venta de producto',
+                    type: 'Venta',
+                    sale_id: newSale?.id,
+                    source_id: newSale?.id || null,
+                    source_type: 'sale',
                     sale_data: {
                         items: saleItems,
                         total_sale: grandTotal,
-                        client_data: clientData,
-                        sale_id: newSale?.id
+                        client_data: clientData
                     },
                     created_at: new Date().toISOString()
                 };
@@ -2250,25 +2252,24 @@ editSaleForm.addEventListener('submit', async (e) => {
                     }
                 }
 
-                // Save to movements table for edited sale
-                const movementData = {
-                    type: 'Venta de producto editada',
-                    sale_data: {
-                        items: updatedItems,
-                        total_sale: grandTotal,
-                        sale_id: id
-                    },
-                    created_at: new Date().toISOString()
-                };
-                const { error: movementError } = await supabase
-                    .from('movements')
-                    .insert(movementData);
-                if (movementError) {
-                    console.error('Error saving movement:', movementError);
-                }
-
-                closeEditSaleModalFn();
-                await loadSales();
+                 // Update the existing movement for this sale instead of creating a new one
+                 const movementData = {
+                     type: 'Venta',
+                     sale_data: {
+                         items: updatedItems,
+                         total_sale: grandTotal,
+                         sale_id: id
+                     },
+                     created_at: new Date().toISOString()
+                 };
+                 const { error: movementUpdateError } = await supabase
+                     .from('movements')
+                     .update(movementData)
+                     .eq('source_id', id)
+                     .eq('source_type', 'sale');
+                 if (movementUpdateError) {
+                     console.error('Error updating movement:', movementUpdateError);
+                 }
             } catch (err) {
                 console.error('Error updating sale:', err);
                 editSaleModalAlert.className = 'modal-alert error';
@@ -2984,11 +2985,24 @@ async function openEditSaleModal(id, index) {
                         .eq('created_at', sale.created_at);
                 }
 
-                const { error } = await query;
+                 const { error } = await query;
 
-                if (error) throw error;
+                 if (error) throw error;
 
-                // Restore inventory stock for each product
+                 // Delete the associated movement
+                 const saleId = id || sale.id;
+                 if (saleId) {
+                     const { error: movementDeleteError } = await supabase
+                         .from('movements')
+                         .delete()
+                         .eq('source_id', saleId)
+                         .eq('source_type', 'sale');
+                     if (movementDeleteError) {
+                         console.error('Error deleting movement:', movementDeleteError);
+                     }
+                 }
+
+                 // Restore inventory stock for each product
                 for (const item of items) {
                     const { data: invData, error: invError } = await supabase
                         .from('inventory')
@@ -3040,23 +3054,6 @@ async function openEditSaleModal(id, index) {
 
                         if (budgetUpdateErr) throw budgetUpdateErr;
                     }
-                }
-
-                // Save to movements table for deleted sale
-                const movementData = {
-                    type: 'Venta Eliminada',
-                    sale_data: {
-                        items: items,
-                        total_sale: Number(sale.total_sale) || 0,
-                        sale_id: id
-                    },
-                    created_at: new Date().toISOString()
-                };
-                const { error: movementError } = await supabase
-                    .from('movements')
-                    .insert(movementData);
-                if (movementError) {
-                    console.error('Error saving movement:', movementError);
                 }
 
                 await loadSales();

@@ -1135,6 +1135,7 @@
 
             try {
                 // Check for existing inventory records and update or insert accordingly
+                let movementSourceId = null;
                 for (const entry of entries) {
                     const { data: existingRows, error: checkError } = await supabase
                         .from('inventory')
@@ -1151,6 +1152,7 @@
                             let updateQuery = supabase.from('inventory').update({ amount: newAmount });
                             if (existingRow.id) {
                                 updateQuery = updateQuery.eq('id', existingRow.id);
+                                movementSourceId = existingRow.id;
                             } else {
                                 updateQuery = updateQuery
                                     .eq('reference', entry.reference)
@@ -1161,19 +1163,26 @@
                         }
                     } else {
                         // Insert new record
-                        const { error: insertErr } = await supabase
+                        const { data: insertedData, error: insertErr } = await supabase
                             .from('inventory')
-                            .insert(entry);
+                            .insert(entry)
+                            .select();
                         if (insertErr) throw insertErr;
+                        if (insertedData && insertedData.length > 0 && insertedData[0].id) {
+                            movementSourceId = insertedData[0].id;
+                        }
                     }
                 }
 
                 // Save to movements table
                 const movementData = {
                     type: 'Entrada Inventario',
+                    source_type: 'inventory',
+                    source_id: movementSourceId,
                     inventory_data: {
                         entries: entries,
-                        observation: observation
+                        observation: observation,
+                        created_at: now
                     },
                     created_at: now
                 };
@@ -1549,6 +1558,7 @@
 
             try {
                 // Procesar cada entrada de salida
+                let outMovementSourceId = null;
                 for (const entry of entries) {
                     const { data: invRows, error: invFetchErr } = await supabase
                         .from('inventory')
@@ -1575,6 +1585,10 @@
                         const deductFromThisRow = Math.min(rowAmount, remainingToDeduct);
                         const newRowAmount = rowAmount - deductFromThisRow;
                         remainingToDeduct -= deductFromThisRow;
+
+                        if (outMovementSourceId === null && row.id !== undefined && row.id !== null) {
+                            outMovementSourceId = row.id;
+                        }
 
                         let updateQuery = supabase
                             .from('inventory')
@@ -1603,6 +1617,8 @@
                 // Save to movements table with negative amounts
                 const movementData = {
                     type: 'Salida Inventario',
+                    source_type: 'inventory',
+                    source_id: outMovementSourceId,
                     inventory_data: {
                         entries: entries.map(e => ({ ...e, amount: -e.amount })),
                         observation: observation
@@ -1735,7 +1751,7 @@
 
             let query = supabase
                 .from('inventory')
-                .select('reference, categorie, amount, size')
+                .select('id, reference, categorie, amount, size')
                 .order('reference', { ascending: true });
 
             if (categoryFilter) {
@@ -1873,6 +1889,7 @@
             const id = document.getElementById('editInvId').value;
             const amount = parseInt(document.getElementById('editInvAmount').value, 10);
             const reference = document.getElementById('editInvReference').value;
+            const size = document.getElementById('editInvSize').value;
 
             if (isNaN(amount) || amount < 0) {
                 alert('Ingresa una cantidad válida');
@@ -1881,12 +1898,62 @@
 
             try {
                 if (id) {
+                    const { data: oldInvData, error: oldInvErr } = await supabase
+                        .from('inventory')
+                        .select('amount')
+                        .eq('id', id)
+                        .single();
+                    if (oldInvErr) throw oldInvErr;
+
+                    const oldAmount = Number(oldInvData?.amount) || 0;
+
                     const { error } = await supabase
                         .from('inventory')
                         .update({ amount: amount })
                         .eq('id', id);
                     if (error) throw error;
-                }
+
+                    // Create or update the movement record for this inventory edit
+                    const movementData = {
+                        type: 'Entrada Inventario',
+                        source_id: id,
+                        source_type: 'inventory',
+                        inventory_data: {
+                            entries: [{ reference: reference, size: size, amount: amount, amount_old: oldAmount }],
+                            observation: 'Edición de inventario'
+                        },
+                        created_at: new Date().toISOString()
+                    };
+
+                    // Try to update an existing movement first; if none exists, insert a new one
+                    const { error: movementUpdateError } = await supabase
+                        .from('movements')
+                        .update(movementData)
+                        .eq('source_id', id)
+                        .eq('source_type', 'inventory');
+                    if (movementUpdateError) {
+                        console.error('Error updating movement:', movementUpdateError);
+                    }
+
+                    // Check if a movement exists for this inventory item; if not, insert one
+                    const { data: existingMovement, error: checkMovementError } = await supabase
+                        .from('movements')
+                        .select('id')
+                        .eq('source_id', id)
+                        .eq('source_type', 'inventory')
+                        .maybeSingle();
+                    if (checkMovementError) {
+                        console.error('Error checking movement:', checkMovementError);
+                    } else if (!existingMovement) {
+                        // No existing movement found — insert a new one
+                        const { error: movementInsertError } = await supabase
+                            .from('movements')
+                            .insert(movementData);
+                        if (movementInsertError) {
+                            console.error('Error creating movement:', movementInsertError);
+                        }
+                    }
+                 }
 
                 closeEditInventoryModalFn();
                 await loadInventory();
@@ -1899,24 +1966,36 @@
         async function deleteInventory(id, reference, size) {
             if (!confirm(`¿Eliminar la entrada de inventario "${reference}" (${size})?`)) return;
 
-            try {
-                let query = supabase.from('inventory').delete();
+             try {
+                 let query = supabase.from('inventory').delete();
 
-                if (id) {
-                    query = query.eq('id', id);
-                } else {
-                    query = query.eq('reference', reference).eq('size', size);
-                }
+                 if (id) {
+                     query = query.eq('id', id);
+                 } else {
+                     query = query.eq('reference', reference).eq('size', size);
+                 }
 
-                const { error } = await query;
+                 const { error } = await query;
 
-                if (error) throw error;
+                 if (error) throw error;
 
-                await loadInventory();
-            } catch (err) {
-                console.error('Error deleting inventory:', err);
-                alert(err.message || 'Error al eliminar la entrada de inventario');
-            }
+                 // Delete any associated movements
+                 if (id) {
+                     const { error: movementDeleteError } = await supabase
+                         .from('movements')
+                         .delete()
+                         .eq('source_id', id)
+                         .eq('source_type', 'inventory');
+                     if (movementDeleteError) {
+                         console.error('Error deleting movement:', movementDeleteError);
+                     }
+                 }
+
+                 await loadInventory();
+             } catch (err) {
+                 console.error('Error deleting inventory:', err);
+                 alert(err.message || 'Error al eliminar la entrada de inventario');
+             }
         }
 
         document.addEventListener('DOMContentLoaded', async () => {

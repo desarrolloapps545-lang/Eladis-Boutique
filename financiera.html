@@ -85,12 +85,12 @@
             box-shadow: var(--shadow-sm);
         }
 
-        .btn-action-budget:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-        }
+         .btn-action-budget:disabled {
+             opacity: 0.7;
+             cursor: not-allowed;
+          }
 
-        .btn-back-financiera {
+         .btn-back-financiera {
             padding: 10px 20px;
             background: transparent;
             border: 1px solid var(--border);
@@ -782,9 +782,54 @@
                 </form>
             </div>
         </div>
-    </div>
+     </div>
 
-    <!-- Modal Reporte de Ganancias -->
+     <!-- Modal Editar Bill (Gasto/Ganancia) -->
+     <div id="editBillModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="editBillModalTitle">
+         <div class="modal-overlay" id="editBillModalOverlay"></div>
+         <div class="modal-content bill-modal-content">
+             <div class="modal-header">
+                 <h2 id="editBillModalTitle">Editar movimiento</h2>
+                 <button type="button" class="modal-close" id="closeEditBillModal" aria-label="Cerrar">
+                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                         <line x1="18" y1="6" x2="6" y2="18"/>
+                         <line x1="6" y1="6" x2="18" y2="18"/>
+                     </svg>
+                 </button>
+             </div>
+             <div class="modal-body" style="padding: 24px; text-align: left;">
+                 <div id="editBillModalAlert" class="modal-alert"></div>
+                 <form id="editBillForm" novalidate>
+                     <input type="hidden" id="editBillIdInput">
+                     <input type="hidden" id="editBillTypeInput">
+                     <div class="modal-form-row">
+                         <div class="modal-form-group">
+                             <label for="editBillReferenceInput">Concepto</label>
+                             <input type="text" id="editBillReferenceInput" placeholder="Ej. Pago de alquiler" required>
+                         </div>
+                         <div class="modal-form-group">
+                             <label for="editBillCostInput">Valor</label>
+                             <input type="text" id="editBillCostInput" placeholder="Ej. 500000" inputmode="decimal" required class="price-input">
+                         </div>
+                     </div>
+                     <div class="modal-actions">
+                         <button type="button" class="btn-modal-cancel" id="cancelEditBillBtn">Cancelar</button>
+                         <button type="submit" class="btn-modal-submit" id="btnSaveEditBill">
+                             <span id="btnSaveEditBillText">Guardar cambios</span>
+                             <span id="btnSaveEditBillLoader" style="display:none;">
+                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;animation:spin 0.8s linear infinite;">
+                                     <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+                                     <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+                                 </svg>
+                             </span>
+                         </button>
+                     </div>
+                 </form>
+             </div>
+         </div>
+     </div>
+
+     <!-- Modal Reporte de Ganancias -->
     <div id="reporteGananciasModal" class="modal modal-lg" role="dialog" aria-modal="true" aria-labelledby="reporteGananciasTitle">
         <div class="modal-overlay" id="reporteGananciasOverlay"></div>
         <div class="modal-content" style="max-width: 900px; width: 95%;">
@@ -903,12 +948,13 @@ const btnBack = document.getElementById('btnBack');
          const reporteGananciasFilterProduct = document.getElementById('reporteGananciasFilterProduct');
          const reporteGananciasProductDropdown = document.querySelector('.fin-product-combobox-dropdown');
 
-         let currentBudgetRecordId = null;
-         let currentBudgetValue = 0;
-         let movementsList = [];
-         let salesList = [];
-         let productsList = [];
-         let categoriesList = [];
+          let currentBudgetRecordId = null;
+          let currentBudgetValue = 0;
+          let movementsList = [];
+          let salesList = [];
+          let productsList = [];
+          let categoriesList = [];
+          let billsList = [];
 
         function formatCurrency(value) {
             if (value === null || value === undefined || value === '') return '—';
@@ -976,25 +1022,32 @@ const btnBack = document.getElementById('btnBack');
              gainModalAlert.style.display = 'none';
          }
 
-        // Formateador de precios en vivo para inputs numéricos
-        document.querySelectorAll('.price-input').forEach(input => {
-            input.addEventListener('input', (e) => {
-                const target = e.target;
-                const cursor = target.selectionStart;
-                formatPrice(target);
-                const digitsBeforeCursor = target.value.substring(0, cursor).replace(/[^0-9]/g, '').length;
-                let digitCount = 0;
-                for (let i = 0; i < target.value.length; i++) {
-                    if (/[0-9]/.test(target.value[i])) {
-                        digitCount++;
-                        if (digitCount === digitsBeforeCursor) {
-                            target.setSelectionRange(i + 1, i + 1);
-                            break;
-                        }
-                    }
-                }
-            });
-        });
+         document.querySelectorAll('.price-input').forEach(input => {
+               input.addEventListener('input', (e) => {
+                   const target = e.target;
+                   const cursor = target.selectionStart;
+                   const digitsBeforeCursor = target.value.substring(0, cursor).replace(/[^0-9]/g, '').length;
+                   formatPrice(target);
+                   const raw = target.value.replace(/[^0-9]/g, '');
+                   if (raw.length === digitsBeforeCursor) {
+                       target.setSelectionRange(target.value.length, target.value.length);
+                   } else if (digitsBeforeCursor === 0) {
+                       target.setSelectionRange(0, 0);
+                   } else {
+                       let digitCount = 0;
+                       let newPos = 0;
+                       for (let i = 0; i < target.value.length; i++) {
+                           if (/[0-9]/.test(target.value[i])) {
+                               digitCount++;
+                               if (digitCount === digitsBeforeCursor) {
+                                   newPos = i + 1;
+                               }
+                           }
+                       }
+                       target.setSelectionRange(newPos, newPos);
+                   }
+               });
+           });
 
         function formatPrice(input) {
             const raw = input.value.replace(/[^0-9]/g, '');
@@ -1061,9 +1114,9 @@ const btnBack = document.getElementById('btnBack');
                 </div>
             `;
 
-            let billsQuery = supabase
-                .from('bills')
-                .select('created_at, reference, cost, type');
+             let billsQuery = supabase
+                 .from('bills')
+                 .select('id, created_at, reference, cost, type');
 
             if (isUserRole) {
                 billsQuery = billsQuery.eq('type', 'Ganancia');
@@ -1078,7 +1131,8 @@ const btnBack = document.getElementById('btnBack');
                 return;
             }
 
-            billsCount.textContent = data ? data.length : 0;
+             billsCount.textContent = data ? data.length : 0;
+             billsList = data || [];
 
             if (!data || data.length === 0) {
                 tableContent.innerHTML = `
@@ -1093,36 +1147,70 @@ const btnBack = document.getElementById('btnBack');
                 return;
             }
 
-            let html = `
-                <table class="bills-table">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Tipo</th>
-                            <th>Concepto</th>
-                            <th>Valor</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
+              let html = `
+                  <table class="bills-table">
+                      <thead>
+                          <tr>
+                              <th>Fecha</th>
+                              <th>Tipo</th>
+                              <th>Concepto</th>
+                              <th>Valor</th>`;
+              if (!isUserRole) {
+                  html += `<th>Acciones</th>`;
+              }
+              html += `
+                          </tr>
+                      </thead>
+                      <tbody>
+              `;
 
-            data.forEach(item => {
-                const formattedDate = formatDateOnly(item.created_at);
-                const formattedCost = formatCurrency(item.cost);
+             data.forEach(item => {
+                 const formattedDate = formatDateOnly(item.created_at);
+                 const formattedCost = formatCurrency(item.cost);
+                  const actionButtons = isUserRole ? '' : `
+                      <td class="cost-cell" style="text-align: center;">
+                          <button class="btn-action btn-edit" data-id="${item.id || ''}" data-type="${escapeHtml(item.type || '')}" data-reference="${escapeHtml(item.reference || '')}" data-cost="${item.cost || 0}" aria-label="Editar">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                              </svg>
+                          </button>
+                          <button class="btn-action btn-delete" data-id="${item.id || ''}" data-type="${escapeHtml(item.type || '')}" aria-label="Eliminar">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                  <polyline points="3 6 5 6 21 6"/>
+                                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                              </svg>
+                          </button>
+                      </td>`;
 
-                html += `
-                    <tr>
-                        <td>${escapeHtml(formattedDate)}</td>
-                        <td>${escapeHtml(item.type || '—')}</td>
-                        <td>${escapeHtml(item.reference || '—')}</td>
-                        <td class="cost-cell">${escapeHtml(formattedCost)}</td>
-                    </tr>
-                `;
-             });
+                 html += `
+                     <tr>
+                         <td>${escapeHtml(formattedDate)}</td>
+                         <td>${escapeHtml(item.type || '—')}</td>
+                         <td>${escapeHtml(item.reference || '—')}</td>
+                         <td class="cost-cell">${escapeHtml(formattedCost)}</td>
+                         ${actionButtons}
+                     </tr>
+                 `;
+              });
 
-             html += '</tbody></table>';
-             tableContent.innerHTML = html;
-         }
+              html += '</tbody></table>';
+              tableContent.innerHTML = html;
+
+              if (!isUserRole) {
+                  tableContent.querySelectorAll('.btn-edit').forEach(btn => {
+                      btn.addEventListener('click', () => openEditBillModal(
+                          btn.dataset.id,
+                          btn.dataset.type,
+                          btn.dataset.reference,
+                          btn.dataset.cost
+                      ));
+                  });
+                  tableContent.querySelectorAll('.btn-delete').forEach(btn => {
+                      btn.addEventListener('click', () => deleteBill(btn.dataset.id, btn.dataset.type));
+                  });
+              }
+          }
 
          async function loadMovements() {
              const { data, error } = await supabase
@@ -1359,22 +1447,26 @@ btnRegistrarGasto.addEventListener('click', openBillModal);
              }
          });
 
-document.addEventListener('keydown', (e) => {
-              if (e.key === 'Escape') {
-                  if (budgetModal.classList.contains('active')) {
-                      closeBudgetModalFn();
-                  }
-                  if (billModal.classList.contains('active')) {
-                      closeBillModalFn();
-                  }
-                  if (gainModal.classList.contains('active')) {
-                      closeGainModalFn();
-                  }
-                  if (reporteGananciasModal.classList.contains('active')) {
-                      closeReporteGananciasModalFn();
-                  }
-              }
-          });
+ document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    if (budgetModal.classList.contains('active')) {
+                        closeBudgetModalFn();
+                    }
+                    if (billModal.classList.contains('active')) {
+                        closeBillModalFn();
+                    }
+                    if (gainModal.classList.contains('active')) {
+                        closeGainModalFn();
+                    }
+                    if (reporteGananciasModal.classList.contains('active')) {
+                        closeReporteGananciasModalFn();
+                    }
+                    const _editBillModal = document.getElementById('editBillModal');
+                    if (_editBillModal && _editBillModal.classList.contains('active')) {
+                        if (typeof closeEditBillModalFn === 'function') closeEditBillModalFn();
+                    }
+                }
+            });
 
         // Guardar o Actualizar Capital
         budgetForm.addEventListener('submit', async (e) => {
@@ -1454,31 +1546,35 @@ document.addEventListener('keydown', (e) => {
             try {
                 const now = new Date().toISOString();
 
-                 // 1. Registrar el gasto en la tabla bills
-                 const { error: insertBillErr } = await supabase
-                     .from('bills')
-                     .insert({
-                         reference: referenceVal,
-                         cost: costVal,
-                         type: 'Gasto',
-                         created_at: now
-                     });
+                  // 1. Registrar el gasto en la tabla bills
+                  const { data: insertedBill, error: insertBillErr } = await supabase
+                      .from('bills')
+                      .insert({
+                          reference: referenceVal,
+                          cost: costVal,
+                          type: 'Gasto',
+                          created_at: now
+                      })
+                      .select()
+                      .single();
 
-                 if (insertBillErr) {
-                     throw insertBillErr;
-                 }
+                  if (insertBillErr) {
+                      throw insertBillErr;
+                  }
 
-                 // 2. Guardar en movements con type "Gasto" y datos en bill_data
-                 const { error: movementErr } = await supabase
-                     .from('movements')
-                     .insert({
-                         type: 'Gasto',
-                         bill_data: {
-                             reference: referenceVal,
-                             cost: costVal
-                         },
-                         created_at: now
-                     });
+                  // 2. Guardar en movements con type "Gasto" y datos en bill_data
+                  const { error: movementErr } = await supabase
+                      .from('movements')
+                      .insert({
+                          type: 'Gasto',
+                          source_id: insertedBill?.id || null,
+                          source_type: 'bill',
+                          bill_data: {
+                              reference: referenceVal,
+                              cost: costVal
+                          },
+                          created_at: now
+                      });
 
                  if (movementErr) {
                      console.error('Error saving movement:', movementErr);
@@ -1536,31 +1632,35 @@ document.addEventListener('keydown', (e) => {
              try {
                  const now = new Date().toISOString();
 
-                 // 1. Registrar la ganancia en la tabla bills
-                 const { error: insertBillErr } = await supabase
-                     .from('bills')
-                     .insert({
-                         reference: referenceVal,
-                         cost: amountVal,
-                         type: 'Ganancia',
-                         created_at: now
-                     });
+                  // 1. Registrar la ganancia en la tabla bills
+                  const { data: insertedBill, error: insertBillErr } = await supabase
+                      .from('bills')
+                      .insert({
+                          reference: referenceVal,
+                          cost: amountVal,
+                          type: 'Ganancia',
+                          created_at: now
+                      })
+                      .select()
+                      .single();
 
-                 if (insertBillErr) {
-                     throw insertBillErr;
-                 }
+                  if (insertBillErr) {
+                      throw insertBillErr;
+                  }
 
-                 // 2. Guardar en movements con type "Ganancia" y datos en bill_data
-                 const { error: movementErr } = await supabase
-                     .from('movements')
-                     .insert({
-                         type: 'Ganancia',
-                         bill_data: {
-                             reference: referenceVal,
-                             amount: amountVal
-                         },
-                         created_at: now
-                     });
+                  // 2. Guardar en movements con type "Ganancia" y datos en bill_data
+                  const { error: movementErr } = await supabase
+                      .from('movements')
+                      .insert({
+                          type: 'Ganancia',
+                          source_id: insertedBill?.id || null,
+                          source_type: 'bill',
+                          bill_data: {
+                              reference: referenceVal,
+                              cost: amountVal
+                          },
+                          created_at: now
+                      });
 
                  if (movementErr) {
                      console.error('Error saving movement:', movementErr);
@@ -1721,6 +1821,19 @@ productsList = data || [];
              const categoryFilter = reporteGananciasFilterCategory.value;
              const searchText = text.trim().toLowerCase();
 
+             // Special filter option: "Ganancias" shows only manually-entered Ganancia bills
+             if (searchText === 'ganancias' || searchText === 'g') {
+                 reporteGananciasProductDropdown.innerHTML = '<div class="fin-product-combobox-option" data-value="Ganancias">Ganancias</div>';
+                 reporteGananciasProductDropdown.style.display = 'block';
+                 reporteGananciasProductDropdown.querySelectorAll('.fin-product-combobox-option').forEach(opt => {
+                     opt.addEventListener('mousedown', (e) => {
+                         e.preventDefault();
+                         selectProductOption(opt);
+                     });
+                 });
+                 return;
+             }
+
              let filtered = productsList;
              if (categoryFilter) {
                  filtered = filtered.filter(p => p.categorie === categoryFilter);
@@ -1729,15 +1842,19 @@ productsList = data || [];
                  filtered = filtered.filter(p => p.reference.toLowerCase().includes(searchText));
              }
 
-             if (filtered.length === 0) {
+             // Always include "Ganancias" as the first option
+             const options = ['<div class="fin-product-combobox-option" data-value="Ganancias">Ganancias</div>'];
+             filtered.forEach(prod => {
+                 options.push(`<div class="fin-product-combobox-option" data-value="${escapeHtml(prod.reference)}">${escapeHtml(prod.reference)}</div>`);
+             });
+
+             if (options.length <= 1) {
                  reporteGananciasProductDropdown.innerHTML = '<div class="fin-product-combobox-option" style="cursor: default; color: var(--text-muted);">No se encontraron productos</div>';
                  reporteGananciasProductDropdown.style.display = 'block';
                  return;
              }
 
-             reporteGananciasProductDropdown.innerHTML = filtered.map(prod =>
-                 `<div class="fin-product-combobox-option" data-value="${escapeHtml(prod.reference)}">${escapeHtml(prod.reference)}</div>`
-             ).join('');
+             reporteGananciasProductDropdown.innerHTML = options.join('');
              reporteGananciasProductDropdown.style.display = 'block';
 
              reporteGananciasProductDropdown.querySelectorAll('.fin-product-combobox-option').forEach(opt => {
@@ -1760,6 +1877,24 @@ productsList = data || [];
              }
 
              salesList = data || [];
+
+             // Also load manual Ganancia bills and merge into the report as individual earnings entries
+             const { data: billData, error: billErr } = await supabase
+                 .from('bills')
+                 .select('id, reference, cost, created_at, type')
+                 .eq('type', 'Ganancia')
+                 .order('created_at', { ascending: false });
+
+             if (!billErr && billData) {
+                 billData.forEach(bill => {
+                     salesList.push({
+                         id: `bill_${bill.id}`,
+                         created_at: bill.created_at,
+                         earnings: { [bill.reference || 'Ganancia']: Number(bill.cost) || 0 },
+                         _isBill: true
+                     });
+                 });
+             }
              renderReporteGanancias();
          }
 
@@ -1788,11 +1923,16 @@ productsList = data || [];
                  }
 
                  if (productFilter) {
-                     const items = getSaleItems(sale);
-                     const hasProduct = items.some(item =>
-                         item.reference.toLowerCase().includes(productFilter)
-                     );
-                     if (!hasProduct) return false;
+                     if (productFilter === 'ganancias') {
+                         // Filter only manually-entered Ganancia bills
+                         if (!sale._isBill) return false;
+                     } else {
+                         const items = getSaleItems(sale);
+                         const hasProduct = items.some(item =>
+                             item.reference.toLowerCase().includes(productFilter)
+                         );
+                         if (!hasProduct) return false;
+                     }
                  }
 
                  return true;
@@ -1826,24 +1966,241 @@ productsList = data || [];
                      <tbody>
              `;
 
-             filtered.forEach(sale => {
-                 const date = formatDateOnly(sale.created_at);
-                 if (sale.earnings && typeof sale.earnings === 'object') {
-                     Object.entries(sale.earnings).forEach(([product, earn]) => {
-                         html += `
-                             <tr>
-                                 <td>${escapeHtml(date)}</td>
-                                 <td>${escapeHtml(product)}</td>
-                                 <td class="cost-cell">${formatCurrency(earn)}</td>
-                             </tr>
-                         `;
-                     });
-                 }
-             });
+              filtered.forEach(sale => {
+                  const date = formatDateOnly(sale.created_at);
+                  if (sale.earnings && typeof sale.earnings === 'object') {
+                      Object.entries(sale.earnings).forEach(([product, earn]) => {
+                          html += `
+                              <tr>
+                                  <td>${escapeHtml(date)}</td>
+                                  <td>${escapeHtml(product)}</td>
+                                  <td class="cost-cell">${formatCurrency(earn)}</td>
+                              </tr>
+                          `;
+                      });
+                  }
+              });
 
-             html += '</tbody></table>';
-             reporteGananciasContent.innerHTML = html;
-         }
-    </script>
+              html += '</tbody></table>';
+              reporteGananciasContent.innerHTML = html;
+           }
+
+          let currentEditBillOriginalCost = 0;
+
+          // Modal Editar Bill (Gasto/Ganancia)
+          const editBillModal = document.getElementById('editBillModal');
+          const editBillModalOverlay = document.getElementById('editBillModalOverlay');
+          const closeEditBillModal = document.getElementById('closeEditBillModal');
+          const cancelEditBillBtn = document.getElementById('cancelEditBillBtn');
+          const editBillForm = document.getElementById('editBillForm');
+          const editBillReferenceInput = document.getElementById('editBillReferenceInput');
+          const editBillCostInput = document.getElementById('editBillCostInput');
+          const editBillTypeInput = document.getElementById('editBillTypeInput');
+          const editBillIdInput = document.getElementById('editBillIdInput');
+          const editBillModalAlert = document.getElementById('editBillModalAlert');
+          const btnSaveEditBill = document.getElementById('btnSaveEditBill');
+          const btnSaveEditBillText = document.getElementById('btnSaveEditBillText');
+          const btnSaveEditBillLoader = document.getElementById('btnSaveEditBillLoader');
+
+          function openEditBillModal(id, type, reference, cost) {
+              if (isUserRole) return;
+
+              currentEditBillOriginalCost = parseFloat(cost) || 0;
+              editBillModalAlert.style.display = 'none';
+              editBillIdInput.value = id;
+              editBillTypeInput.value = type;
+              editBillReferenceInput.value = reference;
+              setTimeout(() => {
+                  const raw = String(parseInt(cost) || 0);
+                  let formatted = '';
+                  let count = 0;
+                  for (let i = raw.length - 1; i >= 0; i--) {
+                      if (count > 0 && count % 3 === 0) {
+                          formatted = '.' + formatted;
+                      }
+                      formatted = raw[i] + formatted;
+                      count++;
+                  }
+                  editBillCostInput.value = formatted;
+              }, 50);
+              editBillModal.classList.add('active');
+              editBillReferenceInput.focus();
+          }
+
+          function closeEditBillModalFn() {
+              editBillModal.classList.remove('active');
+              editBillModalAlert.style.display = 'none';
+              editBillForm.reset();
+          }
+
+          closeEditBillModal.addEventListener('click', closeEditBillModalFn);
+          cancelEditBillBtn.addEventListener('click', closeEditBillModalFn);
+          editBillModalOverlay.addEventListener('click', closeEditBillModalFn);
+          editBillModal.addEventListener('click', (e) => {
+              if (e.target === editBillModal) {
+                  closeEditBillModalFn();
+              }
+          });
+
+          editBillForm.addEventListener('submit', async (e) => {
+              e.preventDefault();
+              if (isUserRole) return;
+
+              hideEditBillAlert();
+
+              const billId = editBillIdInput.value;
+              const type = editBillTypeInput.value;
+              const referenceVal = editBillReferenceInput.value.trim();
+              const costVal = parsePrice(editBillCostInput.value);
+
+              if (!referenceVal) {
+                  showEditBillAlert('Ingresa la referencia o concepto.');
+                  return;
+              }
+
+              if (isNaN(costVal) || costVal <= 0) {
+                  showEditBillAlert('Ingresa un valor válido mayor a 0.');
+                  return;
+              }
+
+              btnSaveEditBill.disabled = true;
+              btnSaveEditBillText.style.display = 'none';
+              btnSaveEditBillLoader.style.display = 'inline-flex';
+
+              try {
+                  const { error: updateErr } = await supabase
+                      .from('bills')
+                      .update({ reference: referenceVal, cost: costVal })
+                      .eq('id', billId);
+
+                  if (updateErr) throw updateErr;
+
+                  // Update the associated movement
+                  const { error: movementUpdateErr } = await supabase
+                      .from('movements')
+                      .update({
+                          type: type,
+                          bill_data: {
+                              reference: referenceVal,
+                              cost: costVal
+                          }
+                      })
+                      .eq('source_id', billId)
+                      .eq('source_type', 'bill');
+
+                  if (movementUpdateErr) {
+                      console.error('Error updating movement:', movementUpdateErr);
+                  }
+
+                  // Update capital
+                  const originalCost = parseFloat(currentEditBillOriginalCost) || 0;
+                  const capitalDiff = costVal - originalCost;
+                  if (capitalDiff !== 0 && currentBudgetRecordId) {
+                      const { data: budgetRows, error: budgetFetchErr } = await supabase
+                          .from('budget')
+                          .select('id, value')
+                          .limit(1);
+
+                      if (budgetRows && budgetRows.length > 0) {
+                          const newCapital = (Number(budgetRows[0].value) || 0);
+                          if (type === 'Gasto') {
+                              // For Gasto: edit changes capital by the difference (new - old)
+                              await supabase
+                                  .from('budget')
+                                  .update({ value: newCapital - capitalDiff })
+                                  .eq('id', budgetRows[0].id);
+                          } else if (type === 'Ganancia') {
+                              // For Ganancia: edit changes capital by the difference (new - old)
+                              await supabase
+                                  .from('budget')
+                                  .update({ value: newCapital + capitalDiff })
+                                  .eq('id', budgetRows[0].id);
+                          }
+                      }
+                  }
+
+                  closeEditBillModalFn();
+                  await loadBills();
+              } catch (err) {
+                  console.error('Error editing bill:', err);
+                  showEditBillAlert(err.message || 'Error al editar el movimiento.');
+              } finally {
+                  btnSaveEditBill.disabled = false;
+                  btnSaveEditBillText.style.display = 'inline';
+                  btnSaveEditBillLoader.style.display = 'none';
+              }
+          });
+
+          function showEditBillAlert(msg) {
+              editBillModalAlert.textContent = msg;
+              editBillModalAlert.className = 'modal-alert error';
+              editBillModalAlert.style.display = 'block';
+          }
+
+          function hideEditBillAlert() {
+              editBillModalAlert.textContent = '';
+              editBillModalAlert.style.display = 'none';
+          }
+
+          async function deleteBill(id, type) {
+              if (isUserRole) return;
+              if (!confirm(`¿Eliminar este ${type.toLowerCase()}?`)) return;
+
+              try {
+                  const { error: deleteErr } = await supabase
+                      .from('bills')
+                      .delete()
+                      .eq('id', id);
+
+                  if (deleteErr) throw deleteErr;
+
+                  // Delete the associated movement
+                  const { error: movementDeleteError } = await supabase
+                      .from('movements')
+                      .delete()
+                      .eq('source_id', id)
+                      .eq('source_type', 'bill');
+                  if (movementDeleteError) {
+                      console.error('Error deleting movement:', movementDeleteError);
+                  }
+
+                  // Update capital
+                  if (currentBudgetRecordId) {
+                      const { data: budgetRows, error: budgetFetchErr } = await supabase
+                          .from('budget')
+                          .select('id, value')
+                          .limit(1);
+
+                      if (!budgetFetchErr && budgetRows && budgetRows.length > 0) {
+                          const deleteBillRow = billsList.find(b => b.id == id);
+                          const billCost = Number(deleteBillRow?.cost) || 0;
+                          if (billCost > 0) {
+                              const newCapital = (Number(budgetRows[0].value) || 0);
+                              if (type === 'Gasto') {
+                                  // Removing a Gasto adds back to capital
+                                  await supabase
+                                      .from('budget')
+                                      .update({ value: newCapital + billCost })
+                                      .eq('id', budgetRows[0].id);
+                              } else if (type === 'Ganancia') {
+                                  // Removing a Ganancia subtracts from capital
+                                  await supabase
+                                      .from('budget')
+                                      .update({ value: newCapital - billCost })
+                                      .eq('id', budgetRows[0].id);
+                              }
+                          }
+                      }
+                  }
+
+                  await loadBills();
+                  await loadBudget();
+              } catch (err) {
+                  console.error('Error deleting bill:', err);
+                  alert(err.message || 'Error al eliminar el movimiento');
+              }
+          }
+
+     </script>
 </body>
 </html>

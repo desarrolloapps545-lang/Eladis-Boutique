@@ -963,17 +963,25 @@
         function onPriceInput(e) {
             const input = e.target;
             const cursor = input.selectionStart;
-            formatPrice(input);
             const digitsBeforeCursor = input.value.substring(0, cursor).replace(/[^0-9]/g, '').length;
-            let digitCount = 0;
-            for (let i = 0; i < input.value.length; i++) {
-                if (/[0-9]/.test(input.value[i])) {
-                    digitCount++;
-                    if (digitCount === digitsBeforeCursor) {
-                        input.setSelectionRange(i + 1, i + 1);
-                        break;
+            formatPrice(input);
+            const raw = input.value.replace(/[^0-9]/g, '');
+            if (raw.length === digitsBeforeCursor) {
+                input.setSelectionRange(input.value.length, input.value.length);
+            } else if (digitsBeforeCursor === 0) {
+                input.setSelectionRange(0, 0);
+            } else {
+                let digitCount = 0;
+                let newPos = 0;
+                for (let i = 0; i < input.value.length; i++) {
+                    if (/[0-9]/.test(input.value[i])) {
+                        digitCount++;
+                        if (digitCount === digitsBeforeCursor) {
+                            newPos = i + 1;
+                        }
                     }
                 }
+                input.setSelectionRange(newPos, newPos);
             }
         }
 
