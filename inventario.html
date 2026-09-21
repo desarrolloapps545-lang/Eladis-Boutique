@@ -701,6 +701,10 @@
                             Agregar entrada de inventario
                         </button>
                     </div>
+                    <div class="modal-form-group" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);">
+                        <label for="inventoryObservation">Observación (opcional)</label>
+                        <textarea id="inventoryObservation" rows="3" placeholder="Notas sobre esta entrada de inventario..." style="width: 100%; padding: 12px 14px; border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 14px; color: var(--text-primary); background: var(--card-bg); resize: vertical; box-sizing: border-box; font-family: inherit;"></textarea>
+                    </div>
                     <div class="modal-actions">
                         <button type="button" class="btn-modal-cancel" id="cancelInventoryBtn">Cancelar</button>
                         <button type="submit" class="btn-modal-save" id="btnSaveInventory">
@@ -731,7 +735,7 @@
                     </svg>
                 </button>
             </div>
-            <div class="modal-body" style="padding: 24px; text-align: left;">
+<div class="modal-body" style="padding: 24px; text-align: left;">
                 <div id="outInvModalAlert" class="modal-alert"></div>
                 <form id="outInventoryForm" novalidate>
                     <div class="sale-form-group" style="display:flex; flex-direction:column; gap:6px; text-align:left;">
@@ -753,6 +757,10 @@
                             <span id="outStockMessage">Consultando disponibilidad...</span>
                         </div>
                     </div>
+                    <div class="modal-form-group" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);">
+                        <label for="outInventoryObservation">Observación (opcional)</label>
+                        <textarea id="outInventoryObservation" rows="3" placeholder="Notas sobre esta salida de inventario..." style="width: 100%; padding: 12px 14px; border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 14px; color: var(--text-primary); background: var(--card-bg); resize: vertical; box-sizing: border-box; font-family: inherit;"></textarea>
+                    </div>
                     <div class="modal-actions">
                         <button type="button" class="btn-modal-cancel" id="cancelOutInventoryBtn">Cancelar</button>
                         <button type="submit" class="btn-modal-save" id="btnSaveOutInventory" disabled>
@@ -766,7 +774,7 @@
                         </button>
                     </div>
                 </form>
-</div>
+            </div>
     </div>
 </div>
 
@@ -1069,6 +1077,7 @@
             let errorMsg = '';
 
             const now = new Date().toISOString();
+            const observation = document.getElementById('inventoryObservation').value.trim();
 
             rows.forEach((row, i) => {
                 if (hasError) return;
@@ -1130,6 +1139,25 @@
 
                 if (insertError) {
                     throw insertError;
+                }
+
+                // Save to movements table
+                const movementData = {
+                    type: 'Entrada Inventario',
+                    inventory_data: {
+                        entries: entries,
+                        observation: observation
+                    },
+                    created_at: now
+                };
+
+                const { error: movementError } = await supabase
+                    .from('movements')
+                    .insert(movementData);
+
+                if (movementError) {
+                    console.error('Error saving movement:', movementError);
+                    // Don't throw, just log - inventory was saved successfully
                 }
 
                 closeInventoryModalFn();
@@ -1406,6 +1434,7 @@
             const ref = productsList[selectedIndex].reference;
             const sizeVal = outSize.value.trim();
             let amountVal = parseInt(outAmount.value, 10);
+            const observation = document.getElementById('outInventoryObservation').value.trim();
 
             if (!sizeVal) {
                 showOutInvAlert('Selecciona una talla.');
@@ -1416,6 +1445,8 @@
                 showOutInvAlert('Ingresa una cantidad válida mayor a 0.');
                 return;
             }
+
+            const now = new Date().toISOString();
 
             btnSaveOutInventory.disabled = true;
             btnSaveOutText.style.display = 'none';
@@ -1472,6 +1503,27 @@
                         console.error('Error al descontar inventario:', updateErr);
                         throw new Error('Ocurrió un error al descontar del inventario: ' + updateErr.message);
                     }
+                }
+
+                // Save to movements table
+                const movementData = {
+                    type: 'Salida Inventario',
+                    inventory_data: {
+                        reference: ref,
+                        size: sizeVal,
+                        amount: amountVal,
+                        observation: observation
+                    },
+                    created_at: now
+                };
+
+                const { error: movementError } = await supabase
+                    .from('movements')
+                    .insert(movementData);
+
+                if (movementError) {
+                    console.error('Error saving movement:', movementError);
+                    // Don't throw, just log - inventory was saved successfully
                 }
 
                 closeOutInventoryModalFn();
