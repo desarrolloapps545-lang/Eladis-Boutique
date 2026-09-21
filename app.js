@@ -47,6 +47,72 @@ export async function getCurrentUserProfile() {
     };
 }
 
+const PAGE_LOADING_DURATION = 1200;
+let pageLoadingStartedAt = 0;
+let pageLoadingHideTimer = null;
+
+export function showPageLoading() {
+    if (!document.body) return;
+
+    let screen = document.querySelector('.page-loading-screen');
+    if (!screen) {
+        screen = document.createElement('div');
+        screen.className = 'page-loading-screen';
+        screen.setAttribute('role', 'status');
+        screen.setAttribute('aria-live', 'polite');
+
+        const content = document.createElement('div');
+        content.className = 'page-loading-content';
+
+        const logo = document.createElement('img');
+        logo.className = 'page-loading-logo';
+        logo.src = 'img/logo_eladis_boutique.png';
+        logo.alt = 'Eladis Boutique';
+
+        const spinner = document.createElement('div');
+        spinner.className = 'page-loading-spinner';
+
+        content.append(logo, spinner);
+        screen.append(content);
+        document.body.append(screen);
+    }
+
+    if (pageLoadingHideTimer) {
+        clearTimeout(pageLoadingHideTimer);
+        pageLoadingHideTimer = null;
+    }
+    pageLoadingStartedAt = Date.now();
+    screen.hidden = false;
+    document.body.classList.add('page-loading');
+    document.body.setAttribute('aria-busy', 'true');
+}
+
+export function hidePageLoading() {
+    const elapsed = Date.now() - pageLoadingStartedAt;
+    const remaining = Math.max(0, PAGE_LOADING_DURATION - elapsed);
+
+    if (pageLoadingHideTimer) {
+        clearTimeout(pageLoadingHideTimer);
+        pageLoadingHideTimer = null;
+    }
+
+    if (remaining > 0) {
+        pageLoadingHideTimer = setTimeout(() => {
+            const screen = document.querySelector('.page-loading-screen');
+            if (screen) screen.remove();
+            document.body?.classList.remove('page-loading');
+            document.body?.setAttribute('aria-busy', 'false');
+            pageLoadingHideTimer = null;
+        }, remaining);
+        return;
+    }
+
+    const screen = document.querySelector('.page-loading-screen');
+    if (screen) screen.remove();
+    document.body?.classList.remove('page-loading');
+    document.body?.setAttribute('aria-busy', 'false');
+}
+
 // Protects a page: redirects to login when there is no session, and
 // redirects to the dashboard when the user lacks full access.
 export async function guardPage({ requireFullAccess = false } = {}) {

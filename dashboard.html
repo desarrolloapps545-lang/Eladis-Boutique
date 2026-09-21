@@ -217,7 +217,13 @@
         }
     </style>
 </head>
-<body>
+<body class="page-loading">
+    <div class="page-loading-screen" role="status" aria-live="polite">
+        <div class="page-loading-content">
+            <img class="page-loading-logo" src="img/logo_eladis_boutique.png" alt="Eladis Boutique">
+            <div class="page-loading-spinner"></div>
+        </div>
+    </div>
     <div class="dashboard-container">
         <header class="dashboard-header">
             <div class="dashboard-logo">
@@ -291,7 +297,7 @@
                     <h3>Compras</h3>
                 </article>
 
-                <article class="module-card" onclick="window.location.href='historial.html'">
+                <article class="module-card" data-module="historial" onclick="window.location.href='historial.html'">
                     <div class="module-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="10" stroke-width="2"/>
@@ -316,6 +322,7 @@
 
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+        import { showPageLoading, hidePageLoading } from './app.js';
 
         const SUPABASE_URL = 'https://qsrksmofmzgumypmsaob.supabase.co';
         const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_eDa8I1-LttvCUy2nCHBreA_0WCdzvqx';
@@ -330,7 +337,7 @@
         }
 
         // Módulos que el rol Usuario no puede ver (el resto sí)
-        const RESTRICTED_MODULES = ['usuarios', 'productos', 'compras'];
+        const RESTRICTED_MODULES = ['usuarios', 'productos', 'compras', 'historial'];
 
         const userName = document.getElementById('userName');
         const logoutBtn = document.getElementById('logoutBtn');
@@ -346,9 +353,11 @@
         }
 
         async function initDashboard() {
+            showPageLoading();
             const { data: { session } } = await supabase.auth.getSession();
 
             if (!session) {
+                hidePageLoading();
                 window.location.href = 'index.html';
                 return;
             }
@@ -356,6 +365,7 @@
             const { data: { user } } = await supabase.auth.getUser();
 
             if (!user) {
+                hidePageLoading();
                 window.location.href = 'index.html';
                 return;
             }
@@ -378,6 +388,7 @@
             const firstName = (name || 'Usuario').split(' ')[0];
             userName.textContent = 'En sesión: ' + firstName;
             applyModuleAccess(role);
+            hidePageLoading();
         }
 
         logoutBtn.addEventListener('click', async () => {

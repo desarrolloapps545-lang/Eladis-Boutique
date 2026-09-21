@@ -502,7 +502,13 @@
         }
     </style>
 </head>
-<body>
+<body class="page-loading">
+    <div class="page-loading-screen" role="status" aria-live="polite">
+        <div class="page-loading-content">
+            <img class="page-loading-logo" src="img/logo_eladis_boutique.png" alt="Eladis Boutique">
+            <div class="page-loading-spinner"></div>
+        </div>
+    </div>
     <div class="inventory-container">
         <header class="inventory-header">
             <!-- Workspace Menu Button (far left) -->
@@ -822,7 +828,9 @@
     </div>
 
     <script type="module">
-        import { supabase } from './app.js';
+        import { supabase, showPageLoading, hidePageLoading } from './app.js';
+
+        showPageLoading();
 
         const btnIngresarInventario = document.getElementById('btnIngresarInventario');
         const btnBack = document.getElementById('btnBack');
@@ -1685,7 +1693,10 @@
         // Load user profile and apply role-based restrictions
         async function loadWorkspaceUser() {
             const { data: { session } } = await supabase.auth.getSession();
-            if (!session?.user) return;
+            if (!session?.user) {
+                hidePageLoading();
+                return;
+            }
 
             const { data: profile, error } = await supabase
                 .from('users')
@@ -1703,13 +1714,14 @@
 
             // Apply role-based restrictions (hide for 'usuario' role)
             const isUserRole = String(role || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === 'usuario';
-            const restrictedModules = ['usuarios', 'productos', 'compras'];
+            const restrictedModules = ['usuarios', 'productos', 'compras', 'historial'];
             if (isUserRole) {
                 restrictedModules.forEach(module => {
                     const item = document.querySelector(`.workspace-drawer-item[href="${module}.html"]`);
                     if (item) item.style.display = 'none';
                 });
             }
+            hidePageLoading();
         }
         loadWorkspaceUser();
 
