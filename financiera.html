@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eladis Boutique - Gestión Financiera</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .financiera-container {
+            min-height: 100vh;
+            background: var(--background);
+        }
+
+        .financiera-header {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .financiera-header .dashboard-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .financiera-header .dashboard-logo svg {
+            width: 40px;
+            height: 40px;
+            color: var(--primary);
+        }
+
+        .financiera-header .dashboard-logo h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .budget-status-box {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: var(--background);
+            padding: 8px 16px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .budget-info {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .budget-value {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 16px;
+        }
+
+        .btn-action-budget {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-action-budget:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-action-budget:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .btn-back-financiera {
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-back-financiera:hover {
+            background: var(--background);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .financiera-main {
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .financiera-section-header {
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .financiera-section-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .financiera-section-header p {
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        .bills-count {
+            display: inline-block;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-left: 8px;
+        }
+
+        .bills-table-wrapper {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .bills-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 700px;
+        }
+
+        .bills-table thead th {
+            background: var(--background);
+            padding: 16px 24px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .bills-table tbody td {
+            padding: 16px 24px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .bills-table tbody td.cost-cell {
+            font-weight: 700;
+            color: var(--error);
+        }
+
+        .bills-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .bills-table tbody tr:hover {
+            background: var(--background);
+        }
+
+        .bills-empty {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--text-muted);
+        }
+
+        .bills-empty svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+
+        .bills-empty p {
+            font-size: 15px;
+        }
+
+        .loading-container {
+            text-align: center;
+            padding: 60px 24px;
+        }
+
+        .spinner-lg {
+            width: 36px;
+            height: 36px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Modal Styles */
+        .budget-modal-content,
+        .bill-modal-content {
+            max-width: 440px;
+            width: 90%;
+        }
+
+        .bill-modal-content {
+            max-width: 580px;
+        }
+
+        .modal-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+            text-align: left;
+            flex: 1;
+        }
+
+        .modal-form-row {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .modal-form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .modal-form-group input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            color: var(--text-primary);
+            background: var(--card-bg);
+            transition: var(--transition);
+            box-sizing: border-box;
+        }
+
+        .modal-form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(45, 55, 72, 0.15);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+
+        .btn-modal-cancel {
+            padding: 12px 20px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-modal-cancel:hover {
+            background: var(--background);
+            border-color: var(--text-secondary);
+        }
+
+        .btn-modal-submit {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: var(--transition);
+            min-width: 140px;
+        }
+
+        .btn-modal-submit:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .modal-alert {
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: none;
+            line-height: 1.4;
+        }
+
+        .modal-alert.error {
+            display: block;
+            background: var(--error-bg);
+            color: var(--error);
+            border: 1px solid var(--error);
+        }
+
+        @media (max-width: 768px) {
+            .financiera-header {
+                padding: 16px 20px;
+            }
+
+            .financiera-main {
+                padding: 20px;
+            }
+
+            .modal-form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .financiera-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .budget-status-box {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="financiera-container">
+        <header class="financiera-header">
+            <!-- Workspace Menu Button (far left) -->
+            <button type="button" class="workspace-menu-btn" id="workspaceMenuBtn" aria-label="Abrir menú de espacios de trabajo" aria-expanded="false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/>
+                    <rect x="14" y="3" width="7" height="7" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1"/>
+                    <rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+            </button>
+            <div class="dashboard-logo">
+                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="45" stroke="#2D3748" stroke-width="3"/>
+                    <path d="M30 50 L45 65 L70 35" stroke="#2D3748" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <h1>Eladis Boutique</h1>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <div class="budget-status-box" id="budgetStatusBox">
+                    <span class="budget-info">Capital actual: <strong class="budget-value" id="budgetValueDisplay">Cargando...</strong></span>
+                    <button class="btn-action-budget" id="btnRegistrarCapital" style="display: none;">Registrar capital actual</button>
+                </div>
+                <button class="btn-action-budget" id="btnRegistrarGasto">Registrar gasto</button>
+                <button class="btn-back-financiera" id="btnBack">← Regresar</button>
+            </div>
+        </header>
+
+        <!-- Workspace Drawer -->
+        <div class="workspace-drawer" id="workspaceDrawer" role="navigation" aria-label="Espacios de trabajo">
+            <div class="workspace-drawer-header">
+                <h3>Eladis Boutique</h3>
+                <button type="button" class="workspace-drawer-close" id="workspaceDrawerClose" aria-label="Cerrar menú">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="workspace-drawer-content">
+                <div class="workspace-drawer-section">
+                    <div class="workspace-drawer-section-title">Navegación</div>
+                    <a href="dashboard.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7" rx="1"/>
+                            <rect x="14" y="3" width="7" height="7" rx="1"/>
+                            <rect x="3" y="14" width="7" height="7" rx="1"/>
+                            <rect x="14" y="14" width="7" height="7" rx="1"/>
+                        </svg>
+                        Dashboard
+                    </a>
+                    <a href="productos.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                            <line x1="7" y1="7" x2="7.01" y2="7"/>
+                        </svg>
+                        Productos
+                    </a>
+                    <a href="inventario.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                            <line x1="7" y1="7" x2="7.01" y2="7"/>
+                        </svg>
+                        Inventario
+                    </a>
+                    <a href="ventas.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="9" cy="21" r="1"/>
+                            <circle cx="20" cy="21" r="1"/>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 1-2 1.61H9.72a2 2 0 0 1-2-1.61L23 6H6"/>
+                        </svg>
+                        Ventas
+                    </a>
+                    <a href="compras.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <path d="M16 10a4 4 0 0 1-8 0"/>
+                        </svg>
+                        Compras
+                    </a>
+                    <a href="financiera.html" class="workspace-drawer-item active-workspace" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                        Gestión Financiera
+                    </a>
+                    <a href="usuarios.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        Usuarios
+                    </a>
+                </div>
+            </div>
+            <div class="workspace-drawer-footer">
+                <div class="workspace-drawer-user">
+                    <div class="workspace-drawer-user-avatar" id="workspaceUserAvatar">EB</div>
+                    <div class="workspace-drawer-user-info">
+                        <div class="workspace-drawer-user-name" id="workspaceUserName">Usuario</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="workspace-drawer-overlay" id="workspaceDrawerOverlay"></div>
+
+        <main class="financiera-main">
+            <section class="financiera-section-header">
+                <div>
+                    <h2>
+                        Gastos Operativos
+                        <span class="bills-count" id="billsCount">0</span>
+                    </h2>
+                    <p>Historial de gastos registrados en la tienda.</p>
+                </div>
+            </section>
+
+            <div class="bills-table-wrapper">
+                <div id="tableContent">
+                    <div class="loading-container">
+                        <div class="spinner-lg"></div>
+                        <p style="color: var(--text-muted);">Cargando gastos...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Registrar Capital -->
+    <div id="budgetModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="budgetModalTitle">
+        <div class="modal-overlay" id="budgetModalOverlay"></div>
+        <div class="modal-content budget-modal-content">
+            <div class="modal-header">
+                <h2 id="budgetModalTitle">Registrar capital actual</h2>
+                <button type="button" class="modal-close" id="closeBudgetModal" aria-label="Cerrar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 24px; text-align: left;">
+                <div id="budgetModalAlert" class="modal-alert"></div>
+                <form id="budgetForm" novalidate>
+                    <div class="modal-form-group">
+                        <label for="budgetInputValue">Valor del capital</label>
+                        <input type="text" id="budgetInputValue" placeholder="Ej. 5000000" inputmode="decimal" required class="price-input">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-modal-cancel" id="cancelBudgetBtn">Cancelar</button>
+                        <button type="submit" class="btn-modal-submit" id="btnSaveBudget">
+                            <span id="btnSaveBudgetText">Guardar</span>
+                            <span id="btnSaveBudgetLoader" style="display:none;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;animation:spin 0.8s linear infinite;">
+                                    <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+                                    <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Registrar Gasto -->
+    <div id="billModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="billModalTitle">
+        <div class="modal-overlay" id="billModalOverlay"></div>
+        <div class="modal-content bill-modal-content">
+            <div class="modal-header">
+                <h2 id="billModalTitle">Registrar gasto</h2>
+                <button type="button" class="modal-close" id="closeBillModal" aria-label="Cerrar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 24px; text-align: left;">
+                <div id="billModalAlert" class="modal-alert"></div>
+                <form id="billForm" novalidate>
+                    <div class="modal-form-row">
+                        <div class="modal-form-group">
+                            <label for="billReferenceInput">Gasto (Referencia)</label>
+                            <input type="text" id="billReferenceInput" placeholder="Ej. Pago de alquiler" required>
+                        </div>
+                        <div class="modal-form-group">
+                            <label for="billCostInput">Valor (Costo)</label>
+                            <input type="text" id="billCostInput" placeholder="Ej. 500000" inputmode="decimal" required class="price-input">
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-modal-cancel" id="cancelBillBtn">Cancelar</button>
+                        <button type="submit" class="btn-modal-submit" id="btnSaveBill">
+                            <span id="btnSaveBillText">Registrar Gasto</span>
+                            <span id="btnSaveBillLoader" style="display:none;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;animation:spin 0.8s linear infinite;">
+                                    <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+                                    <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase } from './app.js';
+
+        const btnBack = document.getElementById('btnBack');
+        const btnRegistrarCapital = document.getElementById('btnRegistrarCapital');
+        const btnRegistrarGasto = document.getElementById('btnRegistrarGasto');
+        const budgetValueDisplay = document.getElementById('budgetValueDisplay');
+        const tableContent = document.getElementById('tableContent');
+        const billsCount = document.getElementById('billsCount');
+
+        // Modal Budget
+        const budgetModal = document.getElementById('budgetModal');
+        const budgetModalOverlay = document.getElementById('budgetModalOverlay');
+        const closeBudgetModal = document.getElementById('closeBudgetModal');
+        const cancelBudgetBtn = document.getElementById('cancelBudgetBtn');
+        const budgetForm = document.getElementById('budgetForm');
+        const budgetInputvalue = document.getElementById('budgetInputValue');
+        const budgetModalAlert = document.getElementById('budgetModalAlert');
+        const btnSaveBudget = document.getElementById('btnSaveBudget');
+        const btnSaveBudgetText = document.getElementById('btnSaveBudgetText');
+        const btnSaveBudgetLoader = document.getElementById('btnSaveBudgetLoader');
+
+        // Modal Bill (Gasto)
+        const billModal = document.getElementById('billModal');
+        const billModalOverlay = document.getElementById('billModalOverlay');
+        const closeBillModal = document.getElementById('closeBillModal');
+        const cancelBillBtn = document.getElementById('cancelBillBtn');
+        const billForm = document.getElementById('billForm');
+        const billReferenceInput = document.getElementById('billReferenceInput');
+        const billCostInput = document.getElementById('billCostInput');
+        const billModalAlert = document.getElementById('billModalAlert');
+        const btnSaveBill = document.getElementById('btnSaveBill');
+        const btnSaveBillText = document.getElementById('btnSaveBillText');
+        const btnSaveBillLoader = document.getElementById('btnSaveBillLoader');
+
+        let currentBudgetRecordId = null;
+        let currentBudgetValue = 0;
+
+        function formatCurrency(value) {
+            if (value === null || value === undefined || value === '') return '—';
+            const num = typeof value === 'string' ? parseFloat(value.replace(/[^0-9.-]/g, '')) : Number(value);
+            if (isNaN(num)) return '—';
+            return '$ ' + num.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+        }
+
+        function formatDateOnly(timestamp) {
+            if (!timestamp) return '—';
+            try {
+                if (typeof timestamp === 'string' && timestamp.includes('T')) {
+                    const datePart = timestamp.split('T')[0];
+                    const [year, month, day] = datePart.split('-');
+                    if (year && month && day) {
+                        return `${day}/${month}/${year}`;
+                    }
+                }
+                const dateObj = new Date(timestamp);
+                if (isNaN(dateObj.getTime())) return timestamp;
+                return dateObj.toLocaleDateString('es-CO', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+            } catch {
+                return String(timestamp).split('T')[0] || timestamp;
+            }
+        }
+
+        function escapeHtml(text) {
+            if (text === null || text === undefined) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showBudgetAlert(msg) {
+            budgetModalAlert.textContent = msg;
+            budgetModalAlert.style.display = 'block';
+        }
+
+        function hideBudgetAlert() {
+            budgetModalAlert.textContent = '';
+            budgetModalAlert.style.display = 'none';
+        }
+
+        function showBillAlert(msg) {
+            billModalAlert.textContent = msg;
+            billModalAlert.style.display = 'block';
+        }
+
+        function hideBillAlert() {
+            billModalAlert.textContent = '';
+            billModalAlert.style.display = 'none';
+        }
+
+        // Formateador de precios en vivo para inputs numéricos
+        document.querySelectorAll('.price-input').forEach(input => {
+            input.addEventListener('input', (e) => {
+                const target = e.target;
+                const cursor = target.selectionStart;
+                formatPrice(target);
+                const digitsBeforeCursor = target.value.substring(0, cursor).replace(/[^0-9]/g, '').length;
+                let digitCount = 0;
+                for (let i = 0; i < target.value.length; i++) {
+                    if (/[0-9]/.test(target.value[i])) {
+                        digitCount++;
+                        if (digitCount === digitsBeforeCursor) {
+                            target.setSelectionRange(i + 1, i + 1);
+                            break;
+                        }
+                    }
+                }
+            });
+        });
+
+        function formatPrice(input) {
+            const raw = input.value.replace(/[^0-9]/g, '');
+            if (raw === '') {
+                input.value = '';
+                return;
+            }
+            let formatted = '';
+            let count = 0;
+            for (let i = raw.length - 1; i >= 0; i--) {
+                if (count > 0 && count % 3 === 0) {
+                    formatted = '.' + formatted;
+                }
+                formatted = raw[i] + formatted;
+                count++;
+            }
+            input.value = formatted;
+        }
+
+        function parsePrice(raw) {
+            return parseFloat(raw.replace(/\./g, '')) || 0;
+        }
+
+        async function loadBudget() {
+            budgetValueDisplay.textContent = 'Cargando...';
+            btnRegistrarCapital.style.display = 'none';
+
+            const { data, error } = await supabase
+                .from('budget')
+                .select('id, value')
+                .limit(1);
+
+            if (error) {
+                console.error('Error al cargar budget:', error);
+                budgetValueDisplay.textContent = 'Error';
+                return;
+            }
+
+            if (data && data.length > 0) {
+                const record = data[0];
+                currentBudgetRecordId = record.id;
+                currentBudgetValue = Number(record.value) || 0;
+                budgetValueDisplay.textContent = formatCurrency(currentBudgetValue);
+                btnRegistrarCapital.style.display = 'none';
+            } else {
+                currentBudgetRecordId = null;
+                currentBudgetValue = 0;
+                budgetValueDisplay.textContent = 'No registrado';
+                btnRegistrarCapital.style.display = 'inline-flex';
+            }
+        }
+
+        async function loadBills() {
+            tableContent.innerHTML = `
+                <div class="loading-container">
+                    <div class="spinner-lg"></div>
+                    <p style="color: var(--text-muted);">Cargando gastos...</p>
+                </div>
+            `;
+
+            const { data, error } = await supabase
+                .from('bills')
+                .select('created_at, reference, cost')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Error al cargar bills:', error);
+                tableContent.innerHTML = `<div class="bills-empty"><p>Error al cargar los gastos. Intenta de nuevo.</p></div>`;
+                return;
+            }
+
+            billsCount.textContent = data ? data.length : 0;
+
+            if (!data || data.length === 0) {
+                tableContent.innerHTML = `
+                    <div class="bills-empty">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <line x1="12" y1="1" x2="12" y2="23"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                        <p>No hay gastos registrados.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <table class="bills-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Gasto</th>
+                            <th>Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            data.forEach(item => {
+                const formattedDate = formatDateOnly(item.created_at);
+                const formattedCost = formatCurrency(item.cost);
+
+                html += `
+                    <tr>
+                        <td>${escapeHtml(formattedDate)}</td>
+                        <td>${escapeHtml(item.reference || '—')}</td>
+                        <td class="cost-cell">${escapeHtml(formattedCost)}</td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            tableContent.innerHTML = html;
+        }
+
+        // Modal Capital
+        function openBudgetModal() {
+            hideBudgetAlert();
+            budgetForm.reset();
+            budgetModal.classList.add('active');
+            budgetInputvalue.focus();
+        }
+
+        function closeBudgetModalFn() {
+            budgetModal.classList.remove('active');
+            hideBudgetAlert();
+            budgetForm.reset();
+        }
+
+        btnRegistrarCapital.addEventListener('click', openBudgetModal);
+        closeBudgetModal.addEventListener('click', closeBudgetModalFn);
+        cancelBudgetBtn.addEventListener('click', closeBudgetModalFn);
+        budgetModalOverlay.addEventListener('click', closeBudgetModalFn);
+
+        // Modal Gasto (Bill)
+        function openBillModal() {
+            hideBillAlert();
+            billForm.reset();
+            billModal.classList.add('active');
+            billReferenceInput.focus();
+        }
+
+        function closeBillModalFn() {
+            billModal.classList.remove('active');
+            hideBillAlert();
+            billForm.reset();
+        }
+
+        btnRegistrarGasto.addEventListener('click', openBillModal);
+        closeBillModal.addEventListener('click', closeBillModalFn);
+        cancelBillBtn.addEventListener('click', closeBillModalFn);
+        billModalOverlay.addEventListener('click', closeBillModalFn);
+
+        budgetModal.addEventListener('click', (e) => {
+            if (e.target === budgetModal) {
+                closeBudgetModalFn();
+            }
+        });
+
+        billModal.addEventListener('click', (e) => {
+            if (e.target === billModal) {
+                closeBillModalFn();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (budgetModal.classList.contains('active')) {
+                    closeBudgetModalFn();
+                }
+                if (billModal.classList.contains('active')) {
+                    closeBillModalFn();
+                }
+            }
+        });
+
+        // Guardar o Actualizar Capital
+        budgetForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideBudgetAlert();
+
+            const rawVal = budgetInputvalue.value;
+            const valNum = parsePrice(rawVal);
+
+            if (isNaN(valNum) || valNum <= 0) {
+                showBudgetAlert('Ingresa un valor de capital válido mayor a 0.');
+                return;
+            }
+
+            btnSaveBudget.disabled = true;
+            btnSaveBudgetText.style.display = 'none';
+            btnSaveBudgetLoader.style.display = 'inline-flex';
+
+            try {
+                let error = null;
+
+                if (currentBudgetRecordId) {
+                    const { error: updateErr } = await supabase
+                        .from('budget')
+                        .update({ value: valNum })
+                        .eq('id', currentBudgetRecordId);
+                    error = updateErr;
+                } else {
+                    const { error: insertErr } = await supabase
+                        .from('budget')
+                        .insert({ value: valNum });
+                    error = insertErr;
+                }
+
+                if (error) {
+                    throw error;
+                }
+
+                closeBudgetModalFn();
+                await loadBudget();
+            } catch (err) {
+                console.error('Error al guardar el capital:', err);
+                showBudgetAlert(err.message || 'Error al guardar el capital. Intenta nuevamente.');
+            } finally {
+                btnSaveBudget.disabled = false;
+                btnSaveBudgetText.style.display = 'inline';
+                btnSaveBudgetLoader.style.display = 'none';
+            }
+        });
+
+        // Guardar Gasto y restar al capital (capital actual - valor gasto)
+        billForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideBillAlert();
+
+            const referenceVal = billReferenceInput.value.trim();
+            const costVal = parsePrice(billCostInput.value);
+
+            if (!referenceVal) {
+                showBillAlert('Ingresa la referencia o concepto del gasto.');
+                return;
+            }
+
+            if (isNaN(costVal) || costVal <= 0) {
+                showBillAlert('Ingresa un valor de costo válido mayor a 0.');
+                return;
+            }
+
+            btnSaveBill.disabled = true;
+            btnSaveBillText.style.display = 'none';
+            btnSaveBillLoader.style.display = 'inline-flex';
+
+            try {
+                const now = new Date().toISOString();
+
+                // 1. Registrar el gasto en la tabla bills
+                const { error: insertBillErr } = await supabase
+                    .from('bills')
+                    .insert({
+                        reference: referenceVal,
+                        cost: costVal,
+                        created_at: now
+                    });
+
+                if (insertBillErr) {
+                    throw insertBillErr;
+                }
+
+                // 2. Actualizar el capital restando el costo del gasto (capital actual - valor gasto)
+                if (currentBudgetRecordId) {
+                    const newBudgetVal = currentBudgetValue - costVal;
+
+                    const { error: updateBudgetErr } = await supabase
+                        .from('budget')
+                        .update({ value: newBudgetVal })
+                        .eq('id', currentBudgetRecordId);
+
+                    if (updateBudgetErr) {
+                        throw new Error('El gasto se registró pero ocurrió un error al actualizar el capital: ' + updateBudgetErr.message);
+                    }
+                }
+
+                closeBillModalFn();
+                await loadBudget();
+                await loadBills();
+            } catch (err) {
+                console.error('Error al registrar el gasto:', err);
+                showBillAlert(err.message || 'Error al registrar el gasto. Intenta nuevamente.');
+            } finally {
+                btnSaveBill.disabled = false;
+                btnSaveBillText.style.display = 'inline';
+                btnSaveBillLoader.style.display = 'none';
+            }
+        });
+
+        btnBack.addEventListener('click', () => {
+            window.location.href = 'dashboard.html';
+        });
+
+        // Workspace Drawer
+        const workspaceMenuBtn = document.getElementById('workspaceMenuBtn');
+        const workspaceDrawer = document.getElementById('workspaceDrawer');
+        const workspaceDrawerOverlay = document.getElementById('workspaceDrawerOverlay');
+        const workspaceDrawerClose = document.getElementById('workspaceDrawerClose');
+
+        function openWorkspaceDrawer() {
+            workspaceDrawer.classList.add('active');
+            workspaceDrawerOverlay.classList.add('active');
+            workspaceMenuBtn.setAttribute('aria-expanded', 'true');
+        }
+
+        function closeWorkspaceDrawer() {
+            workspaceDrawer.classList.remove('active');
+            workspaceDrawerOverlay.classList.remove('active');
+            workspaceMenuBtn.setAttribute('aria-expanded', 'false');
+        }
+
+        workspaceMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (workspaceDrawer.classList.contains('active')) {
+                closeWorkspaceDrawer();
+            } else {
+                openWorkspaceDrawer();
+            }
+        });
+
+        workspaceDrawerClose.addEventListener('click', closeWorkspaceDrawer);
+        workspaceDrawerOverlay.addEventListener('click', closeWorkspaceDrawer);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && workspaceDrawer.classList.contains('active')) {
+                closeWorkspaceDrawer();
+                workspaceMenuBtn.focus();
+            }
+        });
+
+        // Load user profile and apply role-based restrictions
+        async function loadWorkspaceUser() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session?.user) return;
+
+            const { data: profile, error } = await supabase
+                .from('users')
+                .select('name, role')
+                .eq('user_id', session.user.id)
+                .maybeSingle();
+
+            const name = profile?.name || session.user.user_metadata?.name || 'Usuario';
+            const role = profile?.role || null;
+
+            const avatar = document.getElementById('workspaceUserAvatar');
+            const nameEl = document.getElementById('workspaceUserName');
+            if (avatar) avatar.textContent = name.charAt(0).toUpperCase();
+            if (nameEl) nameEl.textContent = name;
+
+            // Apply role-based restrictions (hide for 'usuario' role)
+            const isUserRole = String(role || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === 'usuario';
+            const restrictedModules = ['usuarios', 'productos', 'financiera', 'compras'];
+            if (isUserRole) {
+                restrictedModules.forEach(module => {
+                    const item = document.querySelector(`.workspace-drawer-item[href="${module}.html"]`);
+                    if (item) item.style.display = 'none';
+                });
+            }
+        }
+        loadWorkspaceUser();
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (!session) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            await loadBudget();
+            await loadBills();
+        });
+    </script>
+</body>
+</html>

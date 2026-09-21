@@ -1,0 +1,2493 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eladis Boutique - Ventas</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .sales-container {
+            min-height: 100vh;
+            background: var(--background);
+        }
+
+        .sales-header {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .sales-header .dashboard-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sales-header .dashboard-logo svg {
+            width: 40px;
+            height: 40px;
+            color: var(--primary);
+        }
+
+        .sales-header .dashboard-logo h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .btn-add-sales {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-add-sales:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-add-sales:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .btn-add-sales svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .btn-back-sales {
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-back-sales:hover {
+            background: var(--background);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .sales-main {
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .sales-section-header {
+            margin-bottom: 24px;
+        }
+
+        .sales-section-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .sales-section-header p {
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        .sales-count {
+            display: inline-block;
+            background: var(--background);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-left: 8px;
+        }
+
+        .sales-table-wrapper {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .sales-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 850px;
+        }
+
+        .sales-table thead th {
+            background: var(--background);
+            padding: 16px 20px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .sales-table tbody td {
+            padding: 16px 20px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .sales-table tbody td.price-cell {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .sales-table tbody td.total-cell {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .sales-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .sales-table tbody tr:hover {
+            background: var(--background);
+        }
+
+        /* Eye Icon Button */
+        .btn-eye {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: rgba(45, 55, 72, 0.07);
+            color: var(--primary);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .btn-eye:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .btn-eye svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .sales-empty {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--text-muted);
+        }
+
+        .sales-empty svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+
+        .sales-empty p {
+            font-size: 15px;
+        }
+
+        .loading-container {
+            text-align: center;
+            padding: 60px 24px;
+        }
+
+        .spinner-lg {
+            width: 36px;
+            height: 36px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Modal Styles */
+        .sale-modal-content {
+            max-width: 620px;
+            width: 92%;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            overflow: visible;
+        }
+
+        .sale-modal-content .modal-header {
+            flex-shrink: 0;
+        }
+
+        .sale-modal-content .modal-body {
+            overflow-y: auto;
+            flex: 1 1 auto;
+            min-height: 0;
+            max-height: calc(85vh - 80px);
+            scrollbar-gutter: stable;
+        }
+
+        .sale-modal-content .modal-body::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sale-modal-content .modal-body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sale-modal-content .modal-body::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        .sale-modal-content .modal-body::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        .client-modal-content {
+            max-width: 520px;
+            width: 90%;
+        }
+
+        .step-indicators {
+            display: flex;
+            align-items: center;
+            margin-bottom: 24px;
+            gap: 12px;
+        }
+
+        .step-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: var(--transition);
+        }
+
+        .step-badge.active {
+            color: var(--primary);
+        }
+
+        .step-badge-num {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--border);
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .step-badge.active .step-badge-num {
+            background: var(--primary);
+            color: white;
+        }
+
+        .step-divider {
+            flex: 1;
+            height: 2px;
+            background: var(--border);
+        }
+
+        .sale-step {
+            display: none;
+        }
+
+        .sale-step.active {
+            display: block;
+        }
+
+        .sale-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .sale-form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .sale-form-group input,
+        .sale-form-group select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            color: var(--text-primary);
+            background: var(--card-bg);
+            transition: var(--transition);
+            box-sizing: border-box;
+        }
+
+        .sale-form-group input:focus,
+        .sale-form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(45, 55, 72, 0.15);
+        }
+
+        .sale-form-group select:disabled,
+        .sale-form-group input:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: var(--background);
+        }
+
+        /* Price & Total Boxes */
+        .price-display-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            margin-bottom: 16px;
+        }
+
+        .price-display-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .price-display-val {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .total-display-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: rgba(45, 55, 72, 0.05);
+            border: 2px solid var(--primary);
+            border-radius: var(--radius-md);
+            margin-top: 12px;
+        }
+
+        .total-display-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .total-display-val {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        /* Stock info box */
+        .stock-info-box {
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            margin-top: 6px;
+            background: var(--background);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            transition: var(--transition);
+        }
+
+        .stock-info-box.in-stock {
+            border-color: #48bb78;
+            background: rgba(72, 187, 120, 0.1);
+            color: #22543d;
+        }
+
+        .stock-info-box.out-stock {
+            border-color: var(--error);
+            background: var(--error-bg);
+            color: var(--error);
+        }
+
+        .sale-summary-box {
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 16px;
+            font-size: 13px;
+        }
+
+        .sale-summary-item {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .sale-summary-label {
+            color: var(--text-muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .sale-summary-value {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+
+        .btn-modal-back {
+            padding: 12px 20px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-modal-back:hover {
+            background: var(--background);
+            border-color: var(--text-secondary);
+        }
+
+        .btn-modal-next,
+        .btn-modal-submit {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: var(--transition);
+            min-width: 130px;
+        }
+
+        .btn-modal-next:hover:not(:disabled),
+        .btn-modal-submit:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-modal-next:disabled,
+        .btn-modal-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .modal-alert {
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: none;
+            line-height: 1.4;
+        }
+
+        .modal-alert.error {
+            display: block;
+            background: var(--error-bg);
+            color: var(--error);
+            border: 1px solid var(--error);
+        }
+
+        .modal-alert.success {
+            display: block;
+            background: var(--success-bg);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        /* Client Details Modal */
+        .client-data-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            text-align: left;
+        }
+
+        .client-data-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 10px 14px;
+            background: var(--background);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+        }
+
+        .client-data-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .client-data-value {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+
+        .client-empty {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .btn-modal-close-footer {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+        }
+
+        .btn-modal-close-footer:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        @media (max-width: 768px) {
+            .sales-header {
+                padding: 16px 20px;
+            }
+
+            .sales-main {
+                padding: 20px;
+            }
+
+            .sales-table thead th,
+            .sales-table tbody td {
+                padding: 12px 14px;
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .sales-header {
+                flex-direction: column;
+            }
+
+            .step-indicators {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .step-divider {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sales-container">
+        <header class="sales-header">
+            <!-- Workspace Menu Button (far left) -->
+            <button type="button" class="workspace-menu-btn" id="workspaceMenuBtn" aria-label="Abrir menú de espacios de trabajo" aria-expanded="false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/>
+                    <rect x="14" y="3" width="7" height="7" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1"/>
+                    <rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+            </button>
+            <div class="dashboard-logo">
+                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="45" stroke="#2D3748" stroke-width="3"/>
+                    <path d="M30 50 L45 65 L70 35" stroke="#2D3748" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <h1>Eladis Boutique</h1>
+            </div>
+            <div style="display:flex; gap:12px; align-items:center;">
+                <button class="btn-add-sales" id="btnRegistrarVenta">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Registrar venta
+                </button>
+                <button class="btn-back-sales" id="btnBack">← Regresar</button>
+            </div>
+        </header>
+
+        <!-- Workspace Drawer -->
+        <div class="workspace-drawer" id="workspaceDrawer" role="navigation" aria-label="Espacios de trabajo">
+            <div class="workspace-drawer-header">
+                <h3>Eladis Boutique</h3>
+                <button type="button" class="workspace-drawer-close" id="workspaceDrawerClose" aria-label="Cerrar menú">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="workspace-drawer-content">
+                <div class="workspace-drawer-section">
+                    <div class="workspace-drawer-section-title">Navegación</div>
+                    <a href="dashboard.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7" rx="1"/>
+                            <rect x="14" y="3" width="7" height="7" rx="1"/>
+                            <rect x="3" y="14" width="7" height="7" rx="1"/>
+                            <rect x="14" y="14" width="7" height="7" rx="1"/>
+                        </svg>
+                        Dashboard
+                    </a>
+                    <a href="productos.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                            <line x1="7" y1="7" x2="7.01" y2="7"/>
+                        </svg>
+                        Productos
+                    </a>
+                    <a href="inventario.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                            <line x1="7" y1="7" x2="7.01" y2="7"/>
+                        </svg>
+                        Inventario
+                    </a>
+                    <a href="ventas.html" class="workspace-drawer-item active-workspace" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="9" cy="21" r="1"/>
+                            <circle cx="20" cy="21" r="1"/>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 1-2 1.61H9.72a2 2 0 0 1-2-1.61L23 6H6"/>
+                        </svg>
+                        Ventas
+                    </a>
+                    <a href="compras.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <path d="M16 10a4 4 0 0 1-8 0"/>
+                        </svg>
+                        Compras
+                    </a>
+                    <a href="financiera.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                        Gestión Financiera
+                    </a>
+                    <a href="usuarios.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        Usuarios
+                    </a>
+                </div>
+            </div>
+            <div class="workspace-drawer-footer">
+                <div class="workspace-drawer-user">
+                    <div class="workspace-drawer-user-avatar" id="workspaceUserAvatar">EB</div>
+                    <div class="workspace-drawer-user-info">
+                        <div class="workspace-drawer-user-name" id="workspaceUserName">Usuario</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="workspace-drawer-overlay" id="workspaceDrawerOverlay"></div>
+
+        <main class="sales-main">
+            <section class="sales-section-header">
+                <h2>
+                    Ventas
+                    <span class="sales-count" id="salesCount">0</span>
+                </h2>
+                <p>Consulta el historial y registro de ventas realizadas.</p>
+            </section>
+
+            <div class="sales-table-wrapper">
+                <div id="tableContent">
+                    <div class="loading-container">
+                        <div class="spinner-lg"></div>
+                        <p style="color: var(--text-muted);">Cargando ventas...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Registrar Venta - 2 Pasos -->
+    <div id="createSaleModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="createSaleModalTitle">
+        <div class="modal-overlay" id="createSaleModalOverlay"></div>
+        <div class="modal-content sale-modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2 id="createSaleModalTitle">Registrar venta</h2>
+                <button type="button" class="modal-close" id="closeCreateSaleModal" aria-label="Cerrar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 24px; text-align: left;">
+                <div id="saleModalAlert" class="modal-alert"></div>
+
+                <div class="step-indicators" style="display: flex; justify-content: center; margin-bottom: 20px;">
+                    <div class="step-badge active" id="stepBadge1" style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                        <span class="step-badge-num" style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600;">1</span>
+                        <span style="font-size: 12px; font-weight: 500; color: var(--text-primary);">Productos</span>
+                    </div>
+                    <div class="step-divider" style="width: 80px; height: 2px; background: var(--border); margin-top: 15px;"></div>
+                    <div class="step-badge" id="stepBadge2" style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                        <span class="step-badge-num" style="width: 32px; height: 32px; border-radius: 50%; background: var(--background); color: var(--text-muted); display: flex; align-items: center; justify-content: center; font-weight: 600; border: 2px solid var(--border);">2</span>
+                        <span style="font-size: 12px; font-weight: 500; color: var(--text-muted);">Cliente</span>
+                    </div>
+                </div>
+
+                <form id="createSaleForm" novalidate>
+                    <!-- Paso 1: Productos -->
+                    <div class="sale-step active" id="saleStep1">
+                        <fieldset style="margin-bottom: 20px; padding: 16px; background: var(--background); border-radius: var(--radius-md); border: 1px solid var(--border);">
+                            <legend style="font-weight: 600; color: var(--text-primary); margin-bottom: 12px; font-size: 14px;">Productos de la Venta</legend>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <button type="button" class="btn-add-row" id="btnAddSaleProductRow" style="padding: 8px 12px; font-size: 13px;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;">
+                                        <line x1="12" y1="5" x2="12" y2="19"/>
+                                        <line x1="5" y1="12" x2="19" y2="12"/>
+                                    </svg>
+                                    Agregar producto
+                                </button>
+                            </div>
+                            
+                            <!-- Table header for product rows -->
+                            <div class="sale-products-header" style="display: grid; grid-template-columns: 2.5fr 1fr 1fr 1fr 1fr 60px; gap: 8px; padding: 8px 12px; background: var(--card-bg); border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
+                                <div>Producto</div>
+                                <div>Talla</div>
+                                <div>Precio Unit.</div>
+                                <div>Cantidad</div>
+                                <div>Subtotal</div>
+                                <div></div>
+                            </div>
+                            
+                            <div id="saleProductRows"></div>
+                            
+                            <div id="noProductsMessage" style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 14px; display: none;">
+                                No hay productos agregados. Haz clic en "Agregar producto" para comenzar.
+                            </div>
+                        </fieldset>
+
+                        <!-- Total General -->
+                        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 16px; padding: 16px; background: var(--card-bg); border-radius: var(--radius-md); border: 1px solid var(--border);">
+                            <div style="font-size: 14px; color: var(--text-secondary);">
+                                Total a cobrar:
+                            </div>
+                            <div id="grandTotalDisplay" style="font-size: 22px; font-weight: 700; color: var(--primary);">
+                                $ 0
+                            </div>
+                        </div>
+
+                        <div class="modal-actions" style="margin-top: 20px;">
+                            <button type="button" class="btn-modal-back" id="cancelSaleBtn">Cancelar</button>
+                            <button type="button" class="btn-modal-next" id="btnNextToClient" disabled style="background: var(--primary); color: white;">Continuar →</button>
+                        </div>
+                    </div>
+
+                    <!-- Paso 2: Datos del Cliente -->
+                    <div class="sale-step" id="saleStep2" style="display: none;">
+                        <div style="margin-bottom: 20px; padding: 16px; background: var(--background); border-radius: var(--radius-md); border: 1px solid var(--border);">
+                            <legend style="font-weight: 600; color: var(--text-primary); margin-bottom: 12px; font-size: 14px; display: block;">Resumen de la Venta</legend>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
+                                <div style="padding: 12px; background: var(--card-bg); border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                                    <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Productos</div>
+                                    <div id="summaryProductCount" style="font-weight: 600; color: var(--primary); font-size: 18px;">0</div>
+                                </div>
+                                <div style="padding: 12px; background: var(--card-bg); border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                                    <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Total a cobrar</div>
+                                    <div id="summaryGrandTotal" style="font-weight: 700; color: var(--primary); font-size: 18px;">$ 0</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <fieldset style="margin-bottom: 20px; padding: 16px; background: var(--background); border-radius: var(--radius-md); border: 1px solid var(--border);">
+                            <legend style="font-weight: 600; color: var(--text-primary); margin-bottom: 12px; font-size: 14px;">Datos del Cliente</legend>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                                <div class="sale-form-group">
+                                    <label for="clientFullName">Nombre completo *</label>
+                                    <input type="text" id="clientFullName" placeholder="Nombre completo del cliente" required>
+                                </div>
+                                <div class="sale-form-group">
+                                    <label for="clientPhoneInput">Celular *</label>
+                                    <input type="tel" id="clientPhoneInput" placeholder="Ej. 3001234567 (solo números)" inputmode="numeric" required>
+                                </div>
+                                <div class="sale-form-group">
+                                    <label for="clientAddressInput">Dirección *</label>
+                                    <input type="text" id="clientAddressInput" placeholder="Dirección de entrega o residencia" required>
+                                </div>
+                                <div class="sale-form-group">
+                                    <label for="clientPaymentSelect">Tipo de pago *</label>
+                                    <select id="clientPaymentSelect" required>
+                                        <option value="">Selecciona tipo de pago...</option>
+                                        <option value="Contra entrega">Contra entrega</option>
+                                        <option value="Transferencia">Transferencia</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <div class="modal-actions" style="margin-top: 20px;">
+                            <button type="button" class="btn-modal-back" id="btnBackToStep1">← Volver</button>
+                            <button type="submit" class="btn-modal-submit" id="btnSubmitSale">
+                                <span id="btnSubmitSaleText">Confirmar Venta</span>
+                                <span id="btnSubmitSaleLoader" style="display:none;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;animation:spin 0.8s linear infinite;">
+                                        <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+                                        <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+                                    </svg>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Datos del Cliente (Visor de JSONB) -->
+    <div id="clientModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="clientModalTitle">
+        <div class="modal-overlay" id="clientModalOverlay"></div>
+        <div class="modal-content client-modal-content">
+            <div class="modal-header">
+                <h2 id="clientModalTitle">Datos del Cliente</h2>
+                <button type="button" class="modal-close" id="closeClientModal" aria-label="Cerrar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 24px; text-align: left;">
+                <div id="clientModalContent"></div>
+            </div>
+            <div class="modal-footer" style="padding: 0 24px 24px;">
+                <button type="button" class="btn-modal-close-footer" id="btnCloseClientModalFooter">Cerrar</button>
+</div>
+    </div>
+</div>
+
+    <!-- Modal Editar Venta -->
+    <div id="editSaleModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="editSaleTitle">
+        <div class="modal-overlay" id="editSaleModalOverlay"></div>
+        <div class="modal-content sale-modal-content" style="max-width: 520px;">
+            <div class="modal-header">
+                <h2 id="editSaleTitle">Editar venta</h2>
+                <button type="button" class="modal-close" id="closeEditSaleModal" aria-label="Cerrar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 24px; text-align: left;">
+                <div id="editSaleModalAlert" class="modal-alert"></div>
+                <form id="editSaleForm" novalidate>
+                    <input type="hidden" id="editSaleId">
+                    <input type="hidden" id="editSaleIndex">
+                    <input type="hidden" id="editSaleOriginalSize">
+                    <input type="hidden" id="editSaleOriginalAmount">
+                    <input type="hidden" id="editSaleOriginalTotal">
+                    <div class="sale-form-group">
+                        <label for="editSaleReference">Referencia</label>
+                        <input type="text" id="editSaleReference" required disabled>
+                    </div>
+                    <div class="sale-form-group">
+                        <label for="editSaleSize">Talla</label>
+                        <select id="editSaleSize" required>
+                            <option value="">Cargando tallas...</option>
+                        </select>
+                    </div>
+                    <div class="sale-form-group">
+                        <label for="editSalePrice">Precio unitario</label>
+                        <input type="text" id="editSalePrice" required disabled>
+                    </div>
+                    <div class="sale-form-group">
+                        <label for="editSaleAmount">Cantidad</label>
+                        <input type="number" id="editSaleAmount" min="1" step="1" placeholder="Ej. 1" required>
+                        <div id="editStockInfoBox" class="stock-info-box" style="display: none;"></div>
+                    </div>
+                    <div class="sale-form-group">
+                        <label for="editSaleTotal">Total venta</label>
+                        <input type="text" id="editSaleTotal" required disabled>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-modal-back" id="cancelEditSaleBtn">Cancelar</button>
+                        <button type="submit" class="btn-modal-submit" id="btnSaveEditSale">
+                            <span id="btnSaveEditSaleText">Guardar cambios</span>
+                            <span id="btnSaveEditSaleLoader" style="display:none;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;animation:spin 0.8s linear infinite;">
+                                    <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+                                    <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase } from './app.js';
+
+        const btnRegistrarVenta = document.getElementById('btnRegistrarVenta');
+        const btnBack = document.getElementById('btnBack');
+        const tableContent = document.getElementById('tableContent');
+        const salesCount = document.getElementById('salesCount');
+
+        // Modal Registrar Venta
+        const createSaleModal = document.getElementById('createSaleModal');
+        const createSaleModalOverlay = document.getElementById('createSaleModalOverlay');
+        const closeCreateSaleModal = document.getElementById('closeCreateSaleModal');
+        const cancelSaleBtn = document.getElementById('cancelSaleBtn');
+        const createSaleForm = document.getElementById('createSaleForm');
+        const saleModalAlert = document.getElementById('saleModalAlert');
+
+        const stepBadge1 = document.getElementById('stepBadge1');
+        const stepBadge2 = document.getElementById('stepBadge2');
+        const saleStep1 = document.getElementById('saleStep1');
+        const saleStep2 = document.getElementById('saleStep2');
+
+        const btnSubmitSale = document.getElementById('btnSubmitSale');
+        const btnSubmitSaleText = document.getElementById('btnSubmitSaleText');
+        const btnSubmitSaleLoader = document.getElementById('btnSubmitSaleLoader');
+        const saleProductRows = document.getElementById('saleProductRows');
+        const grandTotalDisplay = document.getElementById('grandTotalDisplay');
+
+        // Modal Visor de Cliente
+        const clientModal = document.getElementById('clientModal');
+        const clientModalOverlay = document.getElementById('clientModalOverlay');
+        const closeClientModal = document.getElementById('closeClientModal');
+        const btnCloseClientModalFooter = document.getElementById('btnCloseClientModalFooter');
+        const clientModalContent = document.getElementById('clientModalContent');
+
+        // Edit Sale Modal Elements
+        const editSaleModal = document.getElementById('editSaleModal');
+        const editSaleModalOverlay = document.getElementById('editSaleModalOverlay');
+        const closeEditSaleModal = document.getElementById('closeEditSaleModal');
+        const cancelEditSaleBtn = document.getElementById('cancelEditSaleBtn');
+        const editSaleForm = document.getElementById('editSaleForm');
+        const editSaleId = document.getElementById('editSaleId');
+        const editSaleIndex = document.getElementById('editSaleIndex');
+        const editSaleReference = document.getElementById('editSaleReference');
+        const editSaleSize = document.getElementById('editSaleSize');
+        const editSalePrice = document.getElementById('editSalePrice');
+        const editSaleAmount = document.getElementById('editSaleAmount');
+        const editSaleTotal = document.getElementById('editSaleTotal');
+        const btnSaveEditSale = document.getElementById('btnSaveEditSale');
+        const btnSaveEditSaleText = document.getElementById('btnSaveEditSaleText');
+        const btnSaveEditSaleLoader = document.getElementById('btnSaveEditSaleLoader');
+        const editSaleModalAlert = document.getElementById('editSaleModalAlert');
+
+        let salesList = [];
+
+        function formatCurrency(value) {
+            if (value === null || value === undefined || value === '') return '—';
+            const num = typeof value === 'string' ? parseFloat(value.replace(/[^0-9.-]/g, '')) : Number(value);
+            if (isNaN(num)) return '—';
+            return '$ ' + num.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+        }
+
+        function showSaleAlert(msg, type = 'error') {
+            saleModalAlert.className = `modal-alert ${type}`;
+            saleModalAlert.textContent = msg;
+            saleModalAlert.style.display = 'block';
+        }
+
+        function hideSaleAlert() {
+            saleModalAlert.className = 'modal-alert';
+            saleModalAlert.textContent = '';
+            saleModalAlert.style.display = 'none';
+        }
+
+        // Product cache and state for multi-product sales
+        let productsCache = [];
+        let saleProductCounter = 0;
+
+        async function loadProductsForSale() {
+            const { data, error } = await supabase
+                .from('products')
+                .select('reference, size, sale_price, categorie')
+                .order('reference', { ascending: true });
+
+            if (error) {
+                console.error('Error cargando productos:', error);
+                return;
+            }
+
+            productsCache = data || [];
+        }
+
+        // Create a product row
+        function createProductRow(productData = null) {
+            const rowId = `saleRow_${++saleProductCounter}`;
+            const row = document.createElement('div');
+            row.className = 'sale-product-row';
+            row.dataset.rowId = rowId;
+            row.style.cssText = 'display: grid; grid-template-columns: 2.5fr 1fr 1fr 1fr 1fr 60px; gap: 8px; align-items: end; padding: 8px 12px; background: var(--card-bg); border-radius: var(--radius-sm); border: 1px solid var(--border);';
+
+            row.innerHTML = `
+                <!-- Category filter -->
+                <div class="sale-row-category" style="grid-column: 1 / -1; margin-bottom: 8px;">
+                    <select class="sale-row-category-select" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 12px; background: var(--background); color: var(--text-primary);" required>
+                        <option value="">Todas las categorías</option>
+                    </select>
+                </div>
+                
+                <!-- Product search -->
+                <div class="sale-row-product" style="position: relative;">
+                    <input type="text" class="sale-row-product-input" placeholder="Buscar producto..." style="width: 100%; padding: 10px 40px 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px; background: var(--background); color: var(--text-primary);" autocomplete="off" required>
+                    <svg style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-muted); pointer-events: none;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                    <div class="sale-row-product-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); max-height: 250px; overflow-y: auto; z-index: 50;"></div>
+                    <input type="hidden" class="sale-row-product-value" name="product[]" required>
+                </div>
+                <div class="sale-row-size">
+                    <select class="sale-row-size-select" disabled style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px; background: var(--background); color: var(--text-muted);" required>
+                        <option value="">Selecciona...</option>
+                    </select>
+                </div>
+                <div class="sale-row-price">
+                    <input type="text" class="sale-row-price-input" disabled style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px; background: var(--background); color: var(--text-primary); text-align: right;" value="$ 0">
+                </div>
+                <div class="sale-row-amount">
+                    <input type="number" class="sale-row-amount-input" min="1" step="1" placeholder="1" disabled style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px; text-align: center;" required>
+                </div>
+                <div class="sale-row-subtotal" style="font-weight: 600; color: var(--primary); text-align: right; padding: 10px 12px; font-size: 13px;">
+                    $ 0
+                </div>
+                <div class="sale-row-remove" style="display: flex; justify-content: center;">
+                    <button type="button" class="btn-remove-row" aria-label="Eliminar producto" style="width: 32px; height: 32px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; transition: var(--transition); opacity: 0.5; pointer-events: none;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+            `;
+
+            return row;
+        }
+
+        // Initialize product row events
+        function initProductRow(row, productData = null) {
+            const productInput = row.querySelector('.sale-row-product-input');
+            const productDropdown = row.querySelector('.sale-row-product-dropdown');
+            const productValue = row.querySelector('.sale-row-product-value');
+            const sizeSelect = row.querySelector('.sale-row-size-select');
+            const priceInput = row.querySelector('.sale-row-price-input');
+            const amountInput = row.querySelector('.sale-row-amount-input');
+            const subtotalEl = row.querySelector('.sale-row-subtotal');
+            const removeBtn = row.querySelector('.btn-remove-row');
+
+            // Populate dropdown
+            productDropdown.innerHTML = productsCache.map(p => 
+                `<div class="product-option" data-value="${escapeHtml(p.reference)}" style="padding: 10px 12px; cursor: pointer; font-size: 13px; color: var(--text-primary); border-bottom: 1px solid var(--border);">${escapeHtml(p.reference)}</div>`
+            ).join('');
+
+            // Product input focus
+            productInput.addEventListener('focus', () => {
+                productDropdown.style.display = 'block';
+            });
+
+            // Product input typing - filter
+            productInput.addEventListener('input', () => {
+                const search = productInput.value.toLowerCase();
+                productDropdown.querySelectorAll('.product-option').forEach(opt => {
+                    const text = opt.textContent.toLowerCase();
+                    opt.style.display = text.includes(search) ? 'block' : 'none';
+                });
+                productDropdown.style.display = 'block';
+            });
+
+            // Product option click
+            productDropdown.querySelectorAll('.product-option').forEach(opt => {
+                opt.addEventListener('click', () => {
+                    const ref = opt.dataset.value;
+                    productInput.value = ref;
+                    productValue.value = ref;
+                    productDropdown.style.display = 'none';
+                    updateRowSizes(row, ref);
+                    updateRowPrice(row, ref);
+                    calculateSubtotal(row);
+                    updateGrandTotal();
+                });
+                opt.addEventListener('mouseenter', () => opt.style.background = 'var(--background)');
+                opt.addEventListener('mouseleave', () => opt.style.background = '');
+            });
+
+            // Size change
+            sizeSelect.addEventListener('change', () => {
+                calculateSubtotal(row);
+                updateGrandTotal();
+            });
+
+            // Amount input
+            amountInput.addEventListener('input', () => {
+                calculateSubtotal(row);
+                updateGrandTotal();
+            });
+
+            // Remove button
+            removeBtn.addEventListener('click', () => {
+                row.remove();
+                updateGrandTotal();
+                checkEmptyProducts();
+            });
+
+            // Close dropdown on outside click
+            document.addEventListener('click', (e) => {
+                if (!row.contains(e.target)) {
+                    productDropdown.style.display = 'none';
+                }
+            });
+
+            // Initialize with product data if provided
+            if (productData) {
+                productInput.value = productData.reference;
+                productValue.value = productData.reference;
+                updateRowSizes(row, productData.reference);
+                updateRowPrice(row, productData.reference);
+                if (productData.size) {
+                    setTimeout(() => {
+                        sizeSelect.value = productData.size;
+                        sizeSelect.disabled = false;
+                    }, 0);
+                }
+                if (productData.amount) {
+                    amountInput.value = productData.amount;
+                    amountInput.disabled = false;
+                }
+                calculateSubtotal(row);
+            }
+        }
+
+        // Update sizes for a product
+        async function updateRowSizes(row, reference) {
+            const sizeSelect = row.querySelector('.sale-row-size-select');
+            const amountInput = row.querySelector('.sale-row-amount-input');
+            
+            const product = productsCache.find(p => p.reference === reference);
+            if (!product) return;
+
+            let sizes = [];
+            if (Array.isArray(product.size)) {
+                sizes = product.size;
+            } else if (typeof product.size === 'string' && product.size.trim()) {
+                try {
+                    const parsed = JSON.parse(product.size);
+                    sizes = Array.isArray(parsed) ? parsed : [product.size];
+                } catch {
+                    sizes = product.size.split(',').map(s => s.trim()).filter(Boolean);
+                }
+            }
+
+            if (sizes.length === 0) {
+                sizeSelect.innerHTML = '<option value="">Sin tallas</option>';
+                sizeSelect.disabled = true;
+                amountInput.disabled = true;
+            } else {
+                let opts = '<option value="">Seleccionar talla...</option>';
+                sizes.forEach(s => opts += `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`);
+                sizeSelect.innerHTML = opts;
+                sizeSelect.disabled = false;
+                amountInput.disabled = false;
+            }
+        }
+
+        // Update price for a product
+        function updateRowPrice(row, reference) {
+            const priceInput = row.querySelector('.sale-row-price-input');
+            const product = productsCache.find(p => p.reference === reference);
+            if (product) {
+                const price = Number(product.sale_price) || 0;
+                priceInput.value = formatCurrency(price);
+                priceInput.dataset.price = price;
+            }
+        }
+
+        // Calculate subtotal for a row
+        function calculateSubtotal(row) {
+            const priceInput = row.querySelector('.sale-row-price-input');
+            const amountInput = row.querySelector('.sale-row-amount-input');
+            const subtotalEl = row.querySelector('.sale-row-subtotal');
+            const sizeSelect = row.querySelector('.sale-row-size-select');
+
+            const price = Number(priceInput.dataset.price) || 0;
+            const amount = parseInt(amountInput.value, 10) || 0;
+            const size = sizeSelect.value;
+
+            if (price > 0 && amount > 0 && size) {
+                const subtotal = price * amount;
+                subtotalEl.textContent = formatCurrency(subtotal);
+            } else {
+                subtotalEl.textContent = '$ 0';
+            }
+        }
+
+        // Update grand total
+        function updateGrandTotal() {
+            const rows = document.querySelectorAll('.sale-product-row');
+            let total = 0;
+            rows.forEach(row => {
+                const priceInput = row.querySelector('.sale-row-price-input');
+                const amountInput = row.querySelector('.sale-row-amount-input');
+                const sizeSelect = row.querySelector('.sale-row-size-select');
+
+                const price = Number(priceInput.dataset.price) || 0;
+                const amount = parseInt(amountInput.value, 10) || 0;
+                const size = sizeSelect.value;
+
+                if (price > 0 && amount > 0 && size) {
+                    total += price * amount;
+                }
+            });
+            grandTotalDisplay.textContent = formatCurrency(total);
+        }
+
+        // Check if products list is empty
+        function checkEmptyProducts() {
+            const rows = document.querySelectorAll('.sale-product-row');
+            const noProductsMsg = document.getElementById('noProductsMessage');
+            if (rows.length === 0) {
+                noProductsMsg.style.display = 'block';
+            } else {
+                noProductsMsg.style.display = 'none';
+            }
+        }
+
+        // Add product row
+        function addProductRow(productData = null) {
+            const container = document.getElementById('saleProductRows');
+            const row = createProductRow(productData);
+            initProductRow(row, productData);
+            container.appendChild(row);
+            checkEmptyProducts();
+        }
+
+        async function openCreateSaleModal() {
+            hideSaleAlert();
+            document.getElementById('createSaleForm').reset();
+            
+            // Clear product rows
+            document.getElementById('saleProductRows').innerHTML = '';
+            saleProductCounter = 0;
+            
+            // Load products if not cached
+            if (productsCache.length === 0) {
+                await loadProductsForSale();
+            }
+            
+            // Add first empty row
+            addProductRow();
+            
+            createSaleModal.classList.add('active');
+            document.getElementById('clientFullName').focus();
+        }
+
+        function closeCreateSaleModalFn() {
+            createSaleModal.classList.remove('active');
+            hideSaleAlert();
+            document.getElementById('createSaleForm').reset();
+            document.getElementById('saleProductRows').innerHTML = '';
+            saleProductCounter = 0;
+        }
+
+        btnRegistrarVenta.addEventListener('click', openCreateSaleModal);
+        closeCreateSaleModal.addEventListener('click', closeCreateSaleModalFn);
+        cancelSaleBtn.addEventListener('click', closeCreateSaleModalFn);
+        createSaleModalOverlay.addEventListener('click', closeCreateSaleModalFn);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (createSaleModal.classList.contains('active')) {
+                    closeCreateSaleModalFn();
+                }
+                if (clientModal.classList.contains('active')) {
+                    closeClientModalFn();
+                }
+            }
+});
+
+// Add product row button
+        document.getElementById('btnAddSaleProductRow').addEventListener('click', () => addProductRow());
+
+        // Solo permitir números en el teléfono celular
+        clientPhoneInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\D/g, '');
+        });
+
+        // Enviar formulario de venta multi-producto
+        createSaleForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideSaleAlert();
+
+            // Validate client data
+            const fullName = document.getElementById('clientFullName').value.trim();
+            const phone = document.getElementById('clientPhoneInput').value.trim();
+            const address = document.getElementById('clientAddressInput').value.trim();
+            const paymentType = document.getElementById('clientPaymentSelect').value;
+
+            if (!fullName) {
+                showSaleAlert('Por favor ingresa el nombre completo del cliente.');
+                return;
+            }
+
+            if (!phone || phone.length < 7) {
+                showSaleAlert('Por favor ingresa un número de celular válido (solo números).');
+                return;
+            }
+
+            if (!address) {
+                showSaleAlert('Por favor ingresa la dirección de entrega o residencia.');
+                return;
+            }
+
+            if (!paymentType) {
+                showSaleAlert('Por favor selecciona el tipo de pago.');
+                return;
+            }
+
+            // Validate product rows
+            const rows = document.querySelectorAll('.sale-product-row');
+            if (rows.length === 0) {
+                showSaleAlert('Debe agregar al menos un producto a la venta.');
+                return;
+            }
+
+            const saleItems = [];
+            let hasErrors = false;
+
+            for (const row of rows) {
+                const productInput = row.querySelector('.sale-row-product-value');
+                const sizeSelect = row.querySelector('.sale-row-size-select');
+                const priceInput = row.querySelector('.sale-row-price-input');
+                const amountInput = row.querySelector('.sale-row-amount-input');
+                const subtotalEl = row.querySelector('.sale-row-subtotal');
+
+                const reference = productInput.value;
+                const size = sizeSelect.value;
+                const price = Number(priceInput.dataset.price) || 0;
+                const amount = parseInt(amountInput.value, 10) || 0;
+                const subtotal = Number(subtotalEl.textContent.replace(/[^0-9.-]/g, '')) || 0;
+
+                if (!reference || !size || price <= 0 || amount <= 0) {
+                    showSaleAlert('Todos los productos deben tener referencia, talla, precio y cantidad válidos.');
+                    hasErrors = true;
+                    break;
+                }
+
+                saleItems.push({ reference, size, price, amount, subtotal });
+            }
+
+            if (hasErrors) return;
+
+            const clientData = {
+                nombre: document.getElementById('clientFullName').value.trim(),
+                celular: document.getElementById('clientPhoneInput').value.trim(),
+                direccion: document.getElementById('clientAddressInput').value.trim(),
+                tipo_pago: document.getElementById('clientPaymentSelect').value
+            };
+
+            const now = new Date().toISOString();
+
+            btnSubmitSale.disabled = true;
+            btnSubmitSaleText.style.display = 'none';
+            btnSubmitSaleLoader.style.display = 'inline-flex';
+
+            try {
+                let grandTotal = 0;
+
+                // Process each sale item
+                for (const item of saleItems) {
+                    // Verify stock
+                    const { data: invRows, error: invFetchErr } = await supabase
+                        .from('inventory')
+                        .select('*')
+                        .eq('reference', item.reference)
+                        .eq('size', item.size);
+
+                    if (invFetchErr) {
+                        throw new Error('Error al consultar inventario: ' + invFetchErr.message);
+                    }
+
+                    const totalAvailableNow = (invRows || []).reduce((acc, row) => acc + (Number(row.amount) || 0), 0);
+
+                    if (totalAvailableNow < item.amount) {
+                        throw new Error(`Stock insuficiente para ${item.reference} (${item.size}). Disponible: ${totalAvailableNow}`);
+                    }
+
+                    // Insert sale record
+                    const { data: newSale, error: insertSaleError } = await supabase
+                        .from('sales')
+                        .insert({
+                            reference: item.reference,
+                            size: item.size,
+                            price: item.price,
+                            amount: item.amount,
+                            total_sale: item.subtotal,
+                            client_data: clientData,
+                            created_at: new Date().toISOString()
+                        })
+                        .select('id')
+                        .single();
+
+                    if (insertSaleError) {
+                        throw insertSaleError;
+                    }
+
+                    const newSaleId = newSale?.id;
+
+                    // Deduct from inventory
+                    let remainingToDeduct = item.amount;
+                    for (const invRow of invRows) {
+                        if (remainingToDeduct <= 0) break;
+                        const rowAmount = Number(invRow.amount) || 0;
+                        if (rowAmount <= 0) continue;
+
+                        const deductFromThisRow = Math.min(rowAmount, remainingToDeduct);
+                        const newRowAmount = rowAmount - deductFromThisRow;
+                        remainingToDeduct -= deductFromThisRow;
+
+                        let updateQuery = supabase
+                            .from('inventory')
+                            .update({ amount: newRowAmount });
+
+                        if (invRow.id !== undefined && invRow.id !== null) {
+                            updateQuery = updateQuery.eq('id', invRow.id);
+                        } else if (invRow.created_at) {
+                            updateQuery = updateQuery
+                                .eq('reference', item.reference)
+                                .eq('size', item.size)
+                                .eq('created_at', invRow.created_at);
+                        } else {
+                            updateQuery = updateQuery
+                                .eq('reference', item.reference)
+                                .eq('size', item.size);
+                        }
+
+                        const { error: updateErr } = await updateQuery;
+                        if (updateErr) {
+                            throw new Error('Error al descontar inventario: ' + updateErr.message);
+                        }
+                    }
+
+                    grandTotal += item.subtotal;
+                }
+
+                // Update capital
+                const { data: budgetRows, error: budgetFetchErr } = await supabase
+                    .from('budget')
+                    .select('id, value')
+                    .limit(1);
+
+                if (!budgetFetchErr && budgetRows && budgetRows.length > 0) {
+                    const budgetRecord = budgetRows[0];
+                    const newCapital = (Number(budgetRecord.value) || 0) + grandTotal;
+
+                    await supabase
+                        .from('budget')
+                        .update({ value: newCapital })
+                        .eq('id', budgetRecord.id);
+                }
+
+                closeCreateSaleModalFn();
+                await loadSales();
+            } catch (err) {
+                console.error('Error al registrar la venta:', err);
+                showSaleAlert(err.message || 'Error al registrar la venta. Intenta nuevamente.');
+            } finally {
+                btnSubmitSale.disabled = false;
+                btnSubmitSaleText.style.display = 'inline';
+                btnSubmitSaleLoader.style.display = 'none';
+            }
+        });
+
+        // Step navigation functions
+        function goToStep(step) {
+            hideSaleAlert();
+            const step1 = document.getElementById('saleStep1');
+            const step2 = document.getElementById('saleStep2');
+            const badge1 = document.getElementById('stepBadge1');
+            const badge2 = document.getElementById('stepBadge2');
+
+            if (step === 1) {
+                step1.style.display = 'block';
+                step2.style.display = 'none';
+                badge1.classList.add('active');
+                badge1.querySelector('.step-badge-num').style.background = 'var(--primary)';
+                badge1.querySelector('.step-badge-num').style.color = 'white';
+                badge2.classList.remove('active');
+                badge2.querySelector('.step-badge-num').style.background = 'var(--background)';
+                badge2.querySelector('.step-badge-num').style.color = 'var(--text-muted)';
+                badge2.querySelector('.step-badge-num').style.border = '2px solid var(--border)';
+            } else if (step === 2) {
+                step1.style.display = 'none';
+                step2.style.display = 'block';
+                badge2.classList.add('active');
+                badge2.querySelector('.step-badge-num').style.background = 'var(--primary)';
+                badge2.querySelector('.step-badge-num').style.color = 'white';
+                badge2.querySelector('.step-badge-num').style.border = 'none';
+                badge1.classList.remove('active');
+                badge1.querySelector('.step-badge-num').style.background = 'var(--background)';
+                badge1.querySelector('.step-badge-num').style.color = 'var(--text-muted)';
+                badge1.querySelector('.step-badge-num').style.border = '2px solid var(--border)';
+                
+                // Update summary
+                updateStep2Summary();
+            }
+        }
+
+        function updateStep2Summary() {
+            const rows = document.querySelectorAll('.sale-product-row');
+            let count = 0;
+            let total = 0;
+            rows.forEach(row => {
+                const priceInput = row.querySelector('.sale-row-price-input');
+                const amountInput = row.querySelector('.sale-row-amount-input');
+                const sizeSelect = row.querySelector('.sale-row-size-select');
+
+                const price = Number(priceInput.dataset.price) || 0;
+                const amount = parseInt(amountInput.value, 10) || 0;
+                const size = sizeSelect.value;
+
+                if (price > 0 && amount > 0 && size) {
+                    count++;
+                    total += price * amount;
+                }
+            });
+            document.getElementById('summaryProductCount').textContent = count;
+            document.getElementById('summaryGrandTotal').textContent = formatCurrency(total);
+        }
+
+        // Step navigation event listeners
+        document.getElementById('btnNextToClient').addEventListener('click', () => {
+            const rows = document.querySelectorAll('.sale-product-row');
+            let validRows = 0;
+            rows.forEach(row => {
+                const priceInput = row.querySelector('.sale-row-price-input');
+                const amountInput = row.querySelector('.sale-row-amount-input');
+                const sizeSelect = row.querySelector('.sale-row-size-select');
+                const price = Number(priceInput.dataset.price) || 0;
+                const amount = parseInt(amountInput.value, 10) || 0;
+                const size = sizeSelect.value;
+                if (price > 0 && amount > 0 && size) validRows++;
+            });
+
+            if (validRows === 0) {
+                showSaleAlert('Debe agregar al menos un producto con talla y cantidad válidas.');
+                return;
+            }
+
+            goToStep(2);
+        });
+
+        document.getElementById('btnBackToStep1').addEventListener('click', () => {
+            goToStep(1);
+        });
+
+        btnBack.addEventListener('click', () => {
+            window.location.href = 'dashboard.html';
+        });
+
+        // Workspace Drawer
+        const workspaceMenuBtn = document.getElementById('workspaceMenuBtn');
+        const workspaceDrawer = document.getElementById('workspaceDrawer');
+        const workspaceDrawerOverlay = document.getElementById('workspaceDrawerOverlay');
+        const workspaceDrawerClose = document.getElementById('workspaceDrawerClose');
+
+        function openWorkspaceDrawer() {
+            workspaceDrawer.classList.add('active');
+            workspaceDrawerOverlay.classList.add('active');
+            workspaceMenuBtn.setAttribute('aria-expanded', 'true');
+        }
+
+        function closeWorkspaceDrawer() {
+            workspaceDrawer.classList.remove('active');
+            workspaceDrawerOverlay.classList.remove('active');
+            workspaceMenuBtn.setAttribute('aria-expanded', 'false');
+        }
+
+        workspaceMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (workspaceDrawer.classList.contains('active')) {
+                closeWorkspaceDrawer();
+            } else {
+                openWorkspaceDrawer();
+            }
+        });
+
+        workspaceDrawerClose.addEventListener('click', closeWorkspaceDrawer);
+        workspaceDrawerOverlay.addEventListener('click', closeWorkspaceDrawer);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && workspaceDrawer.classList.contains('active')) {
+                closeWorkspaceDrawer();
+                workspaceMenuBtn.focus();
+            }
+        });
+
+        // Load user profile and apply role-based restrictions
+        async function loadWorkspaceUser() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session?.user) return;
+
+            const { data: profile, error } = await supabase
+                .from('users')
+                .select('name, role')
+                .eq('user_id', session.user.id)
+                .maybeSingle();
+
+            const name = profile?.name || session.user.user_metadata?.name || 'Usuario';
+            const role = profile?.role || null;
+
+            const avatar = document.getElementById('workspaceUserAvatar');
+            const nameEl = document.getElementById('workspaceUserName');
+            if (avatar) avatar.textContent = name.charAt(0).toUpperCase();
+            if (nameEl) nameEl.textContent = name;
+
+            // Apply role-based restrictions (hide for 'usuario' role)
+            const isUserRole = String(role || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === 'usuario';
+            const restrictedModules = ['usuarios', 'productos', 'financiera', 'compras'];
+            if (isUserRole) {
+                restrictedModules.forEach(module => {
+                    const item = document.querySelector(`.workspace-drawer-item[href="${module}.html"]`);
+                    if (item) item.style.display = 'none';
+                });
+            }
+        }
+        loadWorkspaceUser();
+
+        // Visor de Cliente
+        function openClientModal(clientData) {
+            clientModalContent.innerHTML = renderClientData(clientData);
+            clientModal.classList.add('active');
+        }
+
+        function closeClientModalFn() {
+            clientModal.classList.remove('active');
+        }
+
+        closeClientModal.addEventListener('click', closeClientModalFn);
+        btnCloseClientModalFooter.addEventListener('click', closeClientModalFn);
+        clientModalOverlay.addEventListener('click', closeClientModalFn);
+
+        clientModal.addEventListener('click', (e) => {
+            if (e.target === clientModal) {
+                closeClientModalFn();
+            }
+        });
+
+        // Edit Sale Modal Event Listeners
+        closeEditSaleModal.addEventListener('click', closeEditSaleModalFn);
+        cancelEditSaleBtn.addEventListener('click', closeEditSaleModalFn);
+        editSaleModalOverlay.addEventListener('click', closeEditSaleModalFn);
+        editSaleModal.addEventListener('click', (e) => {
+            if (e.target === editSaleModal) {
+                closeEditSaleModalFn();
+            }
+        });
+
+        // Handle size change in edit sale modal
+        editSaleSize.addEventListener('change', async () => {
+            const reference = editSaleReference.value;
+            const size = editSaleSize.value;
+            await fetchEditSaleStock(reference, size);
+        });
+
+        // Calculate total in real-time for edit sale modal
+        editSaleAmount.addEventListener('input', () => {
+            editSaleAmount.value = editSaleAmount.value.replace(/\D/g, '');
+            updateEditSaleTotal();
+        });
+
+        editSaleForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            editSaleModalAlert.style.display = 'none';
+
+            const id = editSaleId.value;
+            const index = parseInt(editSaleIndex.value, 10);
+            const amountVal = parseInt(editSaleAmount.value, 10);
+            // Remove $, spaces, and dots (thousands separators) before parsing
+            const priceVal = parseFloat(editSalePrice.value.replace(/[^0-9.-]/g, '').replace(/\./g, '')) || 0;
+            const originalSize = editSaleOriginalSize.value;
+            const newSize = editSaleSize.value;
+            const originalAmount = parseInt(editSaleOriginalAmount.value, 10) || 0;
+
+            if (isNaN(amountVal) || amountVal <= 0) {
+                editSaleModalAlert.className = 'modal-alert error';
+                editSaleModalAlert.textContent = 'La cantidad debe ser un número entero mayor a 0.';
+                editSaleModalAlert.style.display = 'block';
+                return;
+            }
+
+            const reference = editSaleReference.value;
+            const totalVal = priceVal * amountVal;
+
+            btnSaveEditSale.disabled = true;
+            btnSaveEditSaleText.style.display = 'none';
+            btnSaveEditSaleLoader.style.display = 'inline-flex';
+
+            try {
+                // 1. Update the sale record
+                let query = supabase
+                    .from('sales')
+                    .update({ amount: amountVal, size: newSize, total_sale: totalVal });
+
+                if (id) {
+                    query = query.eq('id', id);
+                } else if (salesList[index]) {
+                    const sale = salesList[index];
+                    query = query
+                        .eq('reference', sale.reference)
+                        .eq('size', sale.size)
+                        .eq('created_at', sale.created_at);
+                } else {
+                    throw new Error('No se pudo identificar la venta a editar');
+                }
+
+                const { error } = await query;
+                if (error) throw error;
+
+                // 2. Handle inventory changes
+                if (newSize !== originalSize) {
+                    // Size changed: add original amount back to old size, subtract new amount from new size
+                    // Add back to original size
+                    const { data: oldInvData, error: oldInvError } = await supabase
+                        .from('inventory')
+                        .select('*')
+                        .eq('reference', reference)
+                        .eq('size', originalSize)
+                        .single();
+
+                    if (!oldInvError && oldInvData) {
+                        const newOldAmount = (Number(oldInvData.amount) || 0) + originalAmount;
+                        let oldUpdateQuery = supabase.from('inventory').update({ amount: newOldAmount });
+                        if (oldInvData.id) {
+                            oldUpdateQuery = oldUpdateQuery.eq('id', oldInvData.id);
+                        } else {
+                            oldUpdateQuery = oldUpdateQuery.eq('reference', reference).eq('size', originalSize);
+                        }
+                        const { error: oldUpdateErr } = await oldUpdateQuery;
+                        if (oldUpdateErr) throw oldUpdateErr;
+                    } else if (oldInvError && oldInvError.code === 'PGRST116') {
+                        // No existing record for old size, create it
+                        const { error: createErr } = await supabase
+                            .from('inventory')
+                            .insert({ reference, size: originalSize, amount: originalAmount, categorie: null });
+                        if (createErr) throw createErr;
+                    }
+
+                    // Subtract from new size
+                    const { data: newInvData, error: newInvError } = await supabase
+                        .from('inventory')
+                        .select('*')
+                        .eq('reference', reference)
+                        .eq('size', newSize)
+                        .single();
+
+                    if (!newInvError && newInvData) {
+                        const newNewAmount = (Number(newInvData.amount) || 0) - amountVal;
+                        if (newNewAmount < 0) throw new Error(`Stock insuficiente en talla ${newSize}. Solo hay ${Number(newInvData.amount) || 0} unidades disponibles.`);
+                        let newUpdateQuery = supabase.from('inventory').update({ amount: newNewAmount });
+                        if (newInvData.id) {
+                            newUpdateQuery = newUpdateQuery.eq('id', newInvData.id);
+                        } else {
+                            newUpdateQuery = newUpdateQuery.eq('reference', reference).eq('size', newSize);
+                        }
+                        const { error: newUpdateErr } = await newUpdateQuery;
+                        if (newUpdateErr) throw newUpdateErr;
+                    } else if (newInvError && newInvError.code === 'PGRST116') {
+                        throw new Error(`No hay stock en talla ${newSize}.`);
+                    } else {
+                        throw newInvError;
+                    }
+                } else {
+                    // Same size: adjust by difference
+                    const diff = amountVal - originalAmount;
+                    if (diff !== 0) {
+                        const { data: invData, error: invError } = await supabase
+                            .from('inventory')
+                            .select('*')
+                            .eq('reference', reference)
+                            .eq('size', originalSize)
+                            .single();
+
+                        if (!invError && invData) {
+                            const newAmount = (Number(invData.amount) || 0) - diff;
+                            if (newAmount < 0) throw new Error(`Stock insuficiente. Solo hay ${Number(invData.amount) || 0 + diff} unidades disponibles.`);
+                            let updateQuery = supabase.from('inventory').update({ amount: newAmount });
+                            if (invData.id) {
+                                updateQuery = updateQuery.eq('id', invData.id);
+                            } else {
+                                updateQuery = updateQuery.eq('reference', reference).eq('size', originalSize);
+                            }
+                            const { error: updateErr } = await updateQuery;
+                            if (updateErr) throw updateErr;
+                        } else if (invError && invError.code === 'PGRST116') {
+                            throw new Error(`No hay stock en talla ${originalSize}.`);
+} else {
+                    throw invError;
+                }
+            }
+        }
+
+        // 3. Update capital (budget)
+        const originalTotal = parseFloat(editSaleOriginalTotal.value) || 0;
+        const capitalDiff = totalVal - originalTotal;
+        if (capitalDiff !== 0) {
+            const { data: budgetRows, error: budgetFetchErr } = await supabase
+                .from('budget')
+                .select('id, value')
+                .limit(1);
+
+            if (budgetFetchErr) {
+                console.error('Error al consultar el capital:', budgetFetchErr);
+                throw new Error('La venta se actualizó pero ocurrió un error al consultar el capital: ' + budgetFetchErr.message);
+            }
+
+            if (budgetRows && budgetRows.length > 0) {
+                const budgetRecord = budgetRows[0];
+                const newCapital = (Number(budgetRecord.value) || 0) + capitalDiff;
+
+                const { error: budgetUpdateErr } = await supabase
+                    .from('budget')
+                    .update({ value: newCapital })
+                    .eq('id', budgetRecord.id);
+
+                if (budgetUpdateErr) {
+                    console.error('Error al actualizar el capital:', budgetUpdateErr);
+                    throw new Error('La venta se actualizó pero ocurrió un error al actualizar el capital: ' + budgetUpdateErr.message);
+                }
+            }
+        }
+
+        closeEditSaleModalFn();
+                await loadSales();
+            } catch (err) {
+                console.error('Error updating sale:', err);
+                editSaleModalAlert.className = 'modal-alert error';
+                editSaleModalAlert.textContent = err.message || 'Error al actualizar la venta';
+                editSaleModalAlert.style.display = 'block';
+            } finally {
+                btnSaveEditSale.disabled = false;
+                btnSaveEditSaleText.style.display = 'inline';
+                btnSaveEditSaleLoader.style.display = 'none';
+            }
+        });
+
+        function formatClientKey(key) {
+            const dictionary = {
+                'nombre': 'Nombre completo',
+                'name': 'Nombre',
+                'apellido': 'Apellido',
+                'documento': 'Documento / Cédula',
+                'cedula': 'Cédula',
+                'identification': 'Identificación',
+                'telefono': 'Teléfono',
+                'phone': 'Teléfono',
+                'celular': 'Celular',
+                'email': 'Correo electrónico',
+                'correo': 'Correo electrónico',
+                'direccion': 'Dirección',
+                'address': 'Dirección',
+                'ciudad': 'Ciudad',
+                'city': 'Ciudad',
+                'barrio': 'Barrio',
+                'tipo_pago': 'Tipo de pago',
+                'payment': 'Tipo de pago',
+                'notas': 'Notas'
+            };
+
+            const lower = key.toLowerCase();
+            if (dictionary[lower]) return dictionary[lower];
+
+            return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        }
+
+        function renderClientData(data) {
+            if (!data) {
+                return '<div class="client-empty"><p>No hay datos del cliente disponibles para esta venta.</p></div>';
+            }
+
+            let obj = data;
+            if (typeof data === 'string') {
+                try {
+                    obj = JSON.parse(data);
+                } catch {
+                    return `<div class="client-data-grid"><div class="client-data-item"><span class="client-data-label">Datos</span><span class="client-data-value">${escapeHtml(data)}</span></div></div>`;
+                }
+            }
+
+            if (typeof obj !== 'object' || Object.keys(obj).length === 0) {
+                return '<div class="client-empty"><p>No hay datos del cliente disponibles para esta venta.</p></div>';
+            }
+
+            let html = '<div class="client-data-grid">';
+            for (const [key, value] of Object.entries(obj)) {
+                let displayVal = value;
+                if (value === null || value === undefined || value === '') {
+                    displayVal = '—';
+                } else if (typeof value === 'object') {
+                    displayVal = JSON.stringify(value);
+                } else {
+                    displayVal = String(value);
+                }
+
+                html += `
+                    <div class="client-data-item">
+                        <span class="client-data-label">${escapeHtml(formatClientKey(key))}</span>
+                        <span class="client-data-value">${escapeHtml(displayVal)}</span>
+                    </div>
+                `;
+            }
+            html += '</div>';
+            return html;
+        }
+
+        // Formatear solo fecha sin hora (created_at)
+        function formatDate(dateStr) {
+            if (!dateStr) return '—';
+            try {
+                const d = new Date(dateStr);
+                if (isNaN(d.getTime())) {
+                    return dateStr.substring(0, 10);
+                }
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const year = d.getFullYear();
+                return `${day}/${month}/${year}`;
+            } catch {
+                return dateStr.substring(0, 10);
+            }
+        }
+
+        async function loadSales() {
+            tableContent.innerHTML = `
+                <div class="loading-container">
+                    <div class="spinner-lg"></div>
+                    <p style="color: var(--text-muted);">Cargando ventas...</p>
+                </div>
+            `;
+
+            const { data, error } = await supabase
+                .from('sales')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                tableContent.innerHTML = `<div class="sales-empty"><p>Error al cargar las ventas. Intenta de nuevo.</p></div>`;
+                console.error('Error loading sales:', error);
+                return;
+            }
+
+            salesList = data || [];
+            salesCount.textContent = salesList.length;
+
+            if (salesList.length === 0) {
+                tableContent.innerHTML = `
+                    <div class="sales-empty">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="9" cy="21" r="1"/>
+                            <circle cx="20" cy="21" r="1"/>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 1-2 1.61H9.72a2 2 0 0 1-2-1.61L23 6H6"/>
+                        </svg>
+                        <p>No hay ventas registradas.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <table class="sales-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Referencia</th>
+                            <th>Talla</th>
+                            <th>Precio</th>
+                            <th>Cantidad</th>
+                            <th>Total</th>
+                            <th>Cliente</th>
+                            <th class="actions-cell">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            salesList.forEach((sale, index) => {
+                html += `
+                    <tr>
+                        <td>${escapeHtml(formatDate(sale.created_at))}</td>
+                        <td>${escapeHtml(sale.reference || '—')}</td>
+                        <td>${escapeHtml(sale.size || '—')}</td>
+                        <td class="price-cell">${formatCurrency(sale.price)}</td>
+                        <td>${sale.amount !== null && sale.amount !== undefined ? sale.amount : '—'}</td>
+                        <td class="total-cell">${formatCurrency(sale.total_sale)}</td>
+                        <td>
+                            <button type="button" class="btn-eye" data-index="${index}" title="Ver datos del cliente" aria-label="Ver datos del cliente">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                            </button>
+                        </td>
+                        <td class="actions-cell">
+                            <button class="btn-action btn-download" data-id="${sale.id || ''}" data-index="${index}" aria-label="Descargar mini factura" title="Descargar mini factura">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="7 10 12 15 17 10"/>
+                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>
+                            </button>
+                            <button class="btn-action btn-edit" data-id="${sale.id || ''}" data-index="${index}" aria-label="Editar venta">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                            </button>
+                            <button class="btn-action btn-delete" data-id="${sale.id || ''}" data-index="${index}" aria-label="Eliminar venta">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3 6 5 6 21 6"/>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                </svg>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            tableContent.innerHTML = html;
+
+            // Event listeners para los botones de ver cliente
+            const eyeButtons = tableContent.querySelectorAll('.btn-eye');
+            eyeButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const idx = btn.getAttribute('data-index');
+                    if (idx !== null && salesList[idx]) {
+                        openClientModal(salesList[idx].client_data);
+                    }
+                });
+            });
+
+            // Event listeners para botones de editar/eliminar/descargar ventas
+            tableContent.querySelectorAll('.btn-edit').forEach(btn => {
+                btn.addEventListener('click', () => openEditSaleModal(btn.dataset.id, parseInt(btn.dataset.index, 10)));
+            });
+            tableContent.querySelectorAll('.btn-delete').forEach(btn => {
+                btn.addEventListener('click', () => deleteSale(btn.dataset.id, parseInt(btn.dataset.index, 10)));
+            });
+            tableContent.querySelectorAll('.btn-download').forEach(btn => {
+                btn.addEventListener('click', () => downloadMiniInvoice(btn.dataset.id, parseInt(btn.dataset.index, 10)));
+            });
+        }
+
+        function escapeHtml(text) {
+            if (text === null || text === undefined) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Generar y descargar mini factura como JPG
+        async function downloadMiniInvoice(saleId, index) {
+            const sale = salesList[index];
+            if (!sale) return;
+
+            // Obtener datos del producto
+            const { data: productData, error: productError } = await supabase
+                .from('products')
+                .select('reference, categorie')
+                .eq('reference', sale.reference)
+                .maybeSingle();
+
+            if (productError) {
+                console.warn('Error fetching product:', productError);
+            }
+
+            const productName = productData?.reference || sale.reference;
+            const productCategory = productData?.categorie || '—';
+            const client = sale.client_data || {};
+
+            // Generar imagen directamente en canvas
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const scale = 2; // 2x para mejor calidad
+            const width = 400;
+            const padding = 24;
+            
+            // Canvas inicial alto para asegurar espacio (se recortará al final)
+            const initialHeight = 800;
+            
+            canvas.width = width * scale;
+            canvas.height = initialHeight * scale;
+            ctx.scale(scale, scale);
+
+            // Fondo blanco
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, width, initialHeight);
+
+            let y = padding;
+
+            // Funciones helper para dibujar
+            const drawText = (text, x, y, options = {}) => {
+                ctx.font = `${options.weight || '400'} ${options.size || 13}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+                ctx.fillStyle = options.color || '#1a1a2e';
+                ctx.textAlign = options.align || 'left';
+                ctx.fillText(text, x, y);
+            };
+
+            const drawSectionHeader = (text, y) => {
+                drawText(text, padding, y, { size: 12, weight: '600', color: '#374151' });
+                return y + 20;
+            };
+
+            const drawRow = (label, value, y) => {
+                drawText(label, padding, y, { size: 13, color: '#6b7280' });
+                drawText(value, width - padding, y, { 
+                    size: 13, weight: '500', color: '#1a1a2e', align: 'right' 
+                });
+                return y + 22;
+            };
+
+            const drawDivider = (y) => {
+                ctx.strokeStyle = '#e5e7eb';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(width - padding, y);
+                ctx.stroke();
+                return y + 12;
+            };
+
+            const formatDate = (iso) => {
+                if (!iso) return '—';
+                const d = new Date(iso);
+                return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            };
+
+            // Header: Empresa
+            drawText('Eladis Boutique', width / 2, y, { size: 22, weight: '700', color: '#1a1a2e', align: 'center' });
+            y += 28;
+            // (sin subtítulo "Mini Factura de Venta")
+            y = drawDivider(y + 12);
+
+            // Sección: Información de la Venta
+            y = drawSectionHeader('INFORMACIÓN DE LA VENTA', y);
+            y = drawRow('Fecha:', formatDate(sale.created_at), y);
+            y = drawRow('Referencia:', sale.reference || '—', y);
+            y = drawRow('Cantidad:', sale.amount !== null && sale.amount !== undefined ? String(sale.amount) : '—', y);
+            y = drawDivider(y + 8);
+
+            // Sección: Producto
+            y = drawSectionHeader('PRODUCTO', y);
+            y = drawRow('Nombre:', productName, y);
+            y = drawRow('Talla:', sale.size || '—', y);
+            y = drawDivider(y + 8);
+
+            // Sección: Cliente
+            y = drawSectionHeader('CLIENTE', y);
+            y = drawRow('Nombre:', client.nombre || '—', y);
+            y = drawRow('Celular:', client.celular || '—', y);
+            y = drawRow('Dirección:', client.direccion || '—', y);
+            y = drawRow('Tipo de Pago:', client.tipo_pago || '—', y);
+            y = drawDivider(y + 8);
+
+            // Footer
+            // (sin texto de generado automáticamente)
+
+            // Recortar canvas a la altura real usada (el canvas origen está en 2x, así que multiplicamos por scale)
+            const finalHeight = y + 30;
+            const finalCanvas = document.createElement('canvas');
+            const finalCtx = finalCanvas.getContext('2d');
+            finalCanvas.width = width * scale;
+            finalCanvas.height = finalHeight * scale;
+            // Copiar píxeles exactos del canvas origen (que está en 2x) al canvas final (también 2x)
+            finalCtx.drawImage(canvas, 0, 0, width * scale, finalHeight * scale, 0, 0, width * scale, finalHeight * scale);
+
+            // Descargar como JPG
+            const link = document.createElement('a');
+            const safeRef = (sale.reference || 'venta').replace(/[^a-zA-Z0-9]/g, '_');
+            link.download = `mini-factura-${safeRef}-${Date.now()}.jpg`;
+            link.href = finalCanvas.toDataURL('image/jpeg', 0.95);
+            link.click();
+        }
+
+        let currentEditSaleId = null;
+        let currentEditSaleIndex = null;
+        let currentEditSaleAvailableStock = 0;
+
+        async function openEditSaleModal(id, index) {
+            const sale = salesList[index];
+            if (!sale) return;
+
+            currentEditSaleId = id;
+            currentEditSaleIndex = index;
+
+            editSaleId.value = id || '';
+            editSaleIndex.value = index;
+            editSaleReference.value = sale.reference || '';
+            editSaleOriginalSize.value = sale.size || '';
+            editSaleOriginalAmount.value = sale.amount || '';
+            editSaleOriginalTotal.value = sale.total_sale || 0;
+            editSalePrice.value = formatCurrency(sale.price);
+            editSaleAmount.value = sale.amount || '';
+            editSaleTotal.value = formatCurrency(sale.total_sale);
+
+            // Fetch available sizes for this product
+            const { data: productData, error: productError } = await supabase
+                .from('products')
+                .select('size')
+                .eq('reference', sale.reference)
+                .single();
+
+            if (productError || !productData) {
+                editSaleSize.innerHTML = `<option value="${escapeHtml(sale.size)}">${escapeHtml(sale.size)}</option>`;
+            } else {
+                let sizes = [];
+                if (Array.isArray(productData.size)) {
+                    sizes = productData.size;
+                } else if (typeof productData.size === 'string' && productData.size.trim()) {
+                    try {
+                        const parsed = JSON.parse(productData.size);
+                        sizes = Array.isArray(parsed) ? parsed : [productData.size];
+                    } catch {
+                        sizes = productData.size.split(',').map(s => s.trim()).filter(Boolean);
+                    }
+                }
+
+                let sizeOpts = '';
+                sizes.forEach(s => {
+                    const selected = s === sale.size ? 'selected' : '';
+                    sizeOpts += `<option value="${escapeHtml(s)}" ${selected}>${escapeHtml(s)}</option>`;
+                });
+                editSaleSize.innerHTML = sizeOpts;
+            }
+
+            // Fetch inventory for the original size
+            await fetchEditSaleStock(sale.reference, sale.size);
+
+            editSaleModalAlert.style.display = 'none';
+            editSaleModal.classList.add('active');
+        }
+
+        async function fetchEditSaleStock(reference, size) {
+            const editStockInfoBox = document.getElementById('editStockInfoBox');
+            editStockInfoBox.style.display = 'none';
+            currentEditSaleAvailableStock = 0;
+
+            const { data, error } = await supabase
+                .from('inventory')
+                .select('amount')
+                .eq('reference', reference)
+                .eq('size', size);
+
+            if (error) {
+                console.error('Error consultando stock:', error);
+                return;
+            }
+
+            currentEditSaleAvailableStock = (data || []).reduce((acc, row) => acc + (Number(row.amount) || 0), 0);
+
+            editStockInfoBox.style.display = 'flex';
+            editStockInfoBox.className = 'stock-info-box in-stock';
+            editStockInfoBox.innerHTML = `Disponibles en inventario: <strong>${currentEditSaleAvailableStock}</strong> uds`;
+
+            editSaleAmount.min = 1;
+            editSaleAmount.max = currentEditSaleAvailableStock;
+            editSaleAmount.placeholder = `Máx. ${currentEditSaleAvailableStock}`;
+
+            updateEditSaleTotal();
+        }
+
+        function updateEditSaleTotal() {
+            const amountVal = parseInt(editSaleAmount.value, 10);
+            // Remove $, spaces, and dots (thousands separators) before parsing
+            const priceVal = parseFloat(editSalePrice.value.replace(/[^0-9.-]/g, '').replace(/\./g, '')) || 0;
+
+            if (!isNaN(amountVal) && amountVal > 0 && priceVal > 0) {
+                const total = priceVal * amountVal;
+                editSaleTotal.value = formatCurrency(total);
+            } else {
+                editSaleTotal.value = formatCurrency(0);
+            }
+        }
+
+        function closeEditSaleModalFn() {
+            editSaleModal.classList.remove('active');
+            currentEditSaleId = null;
+            currentEditSaleIndex = null;
+            editSaleForm.reset();
+            editSaleSize.innerHTML = '<option value="">Cargando tallas...</option>';
+        }
+
+        async function deleteSale(id, index) {
+            const sale = salesList[index];
+            if (!sale) return;
+
+            if (!confirm(`¿Eliminar la venta de "${sale.reference}" (${sale.size})?`)) return;
+
+            try {
+                let query = supabase.from('sales').delete();
+
+                if (id) {
+                    query = query.eq('id', id);
+                } else {
+                    query = query
+                        .eq('reference', sale.reference)
+                        .eq('size', sale.size)
+                        .eq('created_at', sale.created_at);
+                }
+
+                const { error } = await query;
+
+                if (error) throw error;
+
+                // 1. Restore inventory stock (add sold quantity back)
+                const { data: invData, error: invError } = await supabase
+                    .from('inventory')
+                    .select('*')
+                    .eq('reference', sale.reference)
+                    .eq('size', sale.size)
+                    .single();
+
+                if (!invError && invData) {
+                    const newAmount = (Number(invData.amount) || 0) + (Number(sale.amount) || 0);
+                    let updateQuery = supabase.from('inventory').update({ amount: newAmount });
+                    if (invData.id) {
+                        updateQuery = updateQuery.eq('id', invData.id);
+                    } else {
+                        updateQuery = updateQuery.eq('reference', sale.reference).eq('size', sale.size);
+                    }
+                    const { error: updateErr } = await updateQuery;
+                    if (updateErr) throw updateErr;
+                } else if (invError && invError.code === 'PGRST116') {
+                    // Create new inventory entry
+                    const { error: createErr } = await supabase
+                        .from('inventory')
+                        .insert({ 
+                            reference: sale.reference, 
+                            size: sale.size, 
+                            amount: sale.amount || 0, 
+                            categorie: null 
+                        });
+                    if (createErr) throw createErr;
+                }
+
+                // 2. Decrease capital (subtract sale total from capital since revenue is removed)
+                const saleTotal = Number(sale.total_sale) || 0;
+                if (saleTotal > 0) {
+                    const { data: budgetRows, error: budgetFetchErr } = await supabase
+                        .from('budget')
+                        .select('id, value')
+                        .limit(1);
+
+                    if (!budgetFetchErr && budgetRows && budgetRows.length > 0) {
+                        const budgetRecord = budgetRows[0];
+                        const newCapital = (Number(budgetRecord.value) || 0) - saleTotal;
+
+                        const { error: budgetUpdateErr } = await supabase
+                            .from('budget')
+                            .update({ value: newCapital })
+                            .eq('id', budgetRecord.id);
+
+                        if (budgetUpdateErr) throw budgetUpdateErr;
+                    }
+                }
+
+                await loadSales();
+            } catch (err) {
+                console.error('Error deleting sale:', err);
+                alert(err.message || 'Error al eliminar la venta');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (!session) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            await loadSales();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1758 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eladis Boutique - Inventario</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .inventory-container {
+            min-height: 100vh;
+            background: var(--background);
+        }
+
+        .inventory-header {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .inventory-header .dashboard-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .inventory-header .dashboard-logo svg {
+            width: 40px;
+            height: 40px;
+            color: var(--primary);
+        }
+
+        .inventory-header .dashboard-logo h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .btn-add-inventory {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-add-inventory:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-add-inventory:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .btn-add-inventory svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .btn-remove-inventory {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #e53e3e 0%, #fc8181 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-remove-inventory:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-remove-inventory:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .btn-remove-inventory svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .btn-back-inventory {
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-back-inventory:hover {
+            background: var(--background);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .inventory-main {
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .inventory-section-header {
+            margin-bottom: 24px;
+        }
+
+        .inventory-section-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .inventory-section-header p {
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        .inventory-table-wrapper {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .inventory-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 500px;
+        }
+
+        .inventory-table thead th {
+            background: var(--background);
+            padding: 16px 24px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .inventory-table tbody td {
+            padding: 16px 24px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .inventory-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .inventory-table tbody tr:hover {
+            background: var(--background);
+        }
+
+        .inventory-empty {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--text-muted);
+        }
+
+        .inventory-empty svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+
+        .inventory-empty p {
+            font-size: 15px;
+        }
+
+        .inventory-count {
+            display: inline-block;
+            background: var(--background);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-left: 8px;
+        }
+
+        .loading-container {
+            text-align: center;
+            padding: 60px 24px;
+        }
+
+        .spinner-lg {
+            width: 36px;
+            height: 36px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .inventory-header {
+                padding: 16px 20px;
+            }
+
+            .inventory-main {
+                padding: 20px;
+            }
+
+            .inventory-table thead th,
+            .inventory-table tbody td {
+                padding: 12px 16px;
+                font-size: 13px;
+            }
+        }
+
+        /* Inventory Modal Styles */
+        .inventory-modal-content {
+            max-width: 820px;
+            width: 95%;
+        }
+
+        .modal-body-scroll {
+            max-height: 60vh;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .modal-body-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .modal-body-scroll::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        .inventory-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 16px;
+            align-items: end;
+            padding: 16px;
+            background: var(--background);
+            border-radius: var(--radius-md);
+            margin-bottom: 12px;
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .inventory-row.multiple {
+            padding-right: 48px;
+        }
+
+        .inventory-row .remove-row {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: var(--error-bg);
+            color: var(--error);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            transition: var(--transition);
+            line-height: 1;
+        }
+
+        .inventory-row .remove-row:hover {
+            background: var(--error);
+            color: white;
+        }
+
+        .inventory-row .remove-row.hide {
+            display: none;
+        }
+
+        .btn-add-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 8px;
+            margin-bottom: 8px;
+        }
+
+        .btn-add-row:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(45, 55, 72, 0.03);
+        }
+
+        .btn-add-row svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .btn-clear-filter:hover {
+            background: var(--background) !important;
+            border-color: var(--primary) !important;
+            color: var(--primary) !important;
+        }
+
+        .modal-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            text-align: left;
+        }
+
+        .modal-form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .modal-form-group input,
+        .modal-form-group select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            color: var(--text-primary);
+            background: var(--card-bg);
+            transition: var(--transition);
+            box-sizing: border-box;
+        }
+
+        .modal-form-group input:focus,
+        .modal-form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(45, 55, 72, 0.15);
+        }
+
+        .modal-form-group select:disabled,
+        .modal-form-group input:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: var(--background);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+
+        .btn-modal-cancel {
+            padding: 12px 20px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-modal-cancel:hover {
+            background: var(--background);
+            border-color: var(--text-secondary);
+        }
+
+        .btn-modal-save {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: var(--transition);
+            min-width: 150px;
+        }
+
+        .btn-modal-save:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-modal-save:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .modal-alert {
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: none;
+            line-height: 1.4;
+        }
+
+        .modal-alert.error {
+            display: block;
+            background: var(--error-bg);
+            color: var(--error);
+            border: 1px solid var(--error);
+        }
+
+        .modal-alert.success {
+            display: block;
+            background: var(--success-bg);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .stock-info-box {
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            margin-top: 6px;
+            background: var(--background);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            transition: var(--transition);
+        }
+
+        .stock-info-box.in-stock {
+            border-color: #48bb78;
+            background: rgba(72, 187, 120, 0.1);
+            color: #22543d;
+        }
+
+        .stock-info-box.out-stock {
+            border-color: var(--error);
+            background: var(--error-bg);
+            color: var(--error);
+        }
+
+        @media (max-width: 600px) {
+            .inventory-header {
+                flex-direction: column;
+            }
+
+            .inventory-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="inventory-container">
+        <header class="inventory-header">
+            <!-- Workspace Menu Button (far left) -->
+            <button type="button" class="workspace-menu-btn" id="workspaceMenuBtn" aria-label="Abrir menú de espacios de trabajo" aria-expanded="false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/>
+                    <rect x="14" y="3" width="7" height="7" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1"/>
+                    <rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+            </button>
+            <div class="dashboard-logo">
+                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="45" stroke="#2D3748" stroke-width="3"/>
+                    <path d="M30 50 L45 65 L70 35" stroke="#2D3748" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <h1>Eladis Boutique</h1>
+            </div>
+            <div style="display:flex; gap:12px; align-items:center;">
+                <button class="btn-add-inventory" id="btnIngresarInventario">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                    Ingresar inventario
+                </button>
+                <button class="btn-remove-inventory" id="btnSalidaInventario">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                    Salida de inventario
+                </button>
+                <button class="btn-back-inventory" id="btnBack">← Regresar</button>
+            </div>
+        </header>
+
+        <!-- Workspace Drawer -->
+        <div class="workspace-drawer" id="workspaceDrawer" role="navigation" aria-label="Espacios de trabajo">
+            <div class="workspace-drawer-header">
+                <h3>Eladis Boutique</h3>
+                <button type="button" class="workspace-drawer-close" id="workspaceDrawerClose" aria-label="Cerrar menú">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="workspace-drawer-content">
+                <div class="workspace-drawer-section">
+                    <div class="workspace-drawer-section-title">Navegación</div>
+                    <a href="dashboard.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7" rx="1"/>
+                            <rect x="14" y="3" width="7" height="7" rx="1"/>
+                            <rect x="3" y="14" width="7" height="7" rx="1"/>
+                            <rect x="14" y="14" width="7" height="7" rx="1"/>
+                        </svg>
+                        Dashboard
+                    </a>
+                    <a href="productos.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                            <line x1="7" y1="7" x2="7.01" y2="7"/>
+                        </svg>
+                        Productos
+                    </a>
+                    <a href="inventario.html" class="workspace-drawer-item active-workspace" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                            <line x1="7" y1="7" x2="7.01" y2="7"/>
+                        </svg>
+                        Inventario
+                    </a>
+                    <a href="ventas.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="9" cy="21" r="1"/>
+                            <circle cx="20" cy="21" r="1"/>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 1-2 1.61H9.72a2 2 0 0 1-2-1.61L23 6H6"/>
+                        </svg>
+                        Ventas
+                    </a>
+                    <a href="compras.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <path d="M16 10a4 4 0 0 1-8 0"/>
+                        </svg>
+                        Compras
+                    </a>
+                    <a href="financiera.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                        Gestión Financiera
+                    </a>
+                    <a href="usuarios.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        Usuarios
+                    </a>
+                </div>
+            </div>
+            <div class="workspace-drawer-footer">
+                <div class="workspace-drawer-user">
+                    <div class="workspace-drawer-user-avatar" id="workspaceUserAvatar">EB</div>
+                    <div class="workspace-drawer-user-info">
+                        <div class="workspace-drawer-user-name" id="workspaceUserName">Usuario</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="workspace-drawer-overlay" id="workspaceDrawerOverlay"></div>
+
+        <main class="inventory-main">
+            <section class="inventory-section-header">
+                <h2>
+                    Inventario
+                    <span class="inventory-count" id="inventoryCount">0</span>
+                </h2>
+                <p>Consulta el stock disponible de productos.</p>
+            </section>
+
+            <!-- Category Filter -->
+            <div class="inventory-filter-bar" style="display: flex; gap: 12px; align-items: center; padding: 16px 40px; background: var(--card-bg); border-bottom: 1px solid var(--border); flex-wrap: wrap;">
+                <div class="filter-group" style="flex: 1; max-width: 400px;">
+                    <label for="categoryFilter" style="font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; display: block;">Filtrar por Categoría</label>
+                    <div style="position: relative; width: 100%;">
+                        <select id="categoryFilter" style="width: 100%; padding: 10px 40px 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 14px; background: var(--background); color: var(--text-primary); appearance: none; cursor: pointer;">
+                            <option value="">Todas las categorías</option>
+                        </select>
+                        <svg style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-muted); pointer-events: none;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </div>
+                </div>
+                <button class="btn-clear-filter" id="btnClearCategoryFilter" style="padding: 10px 16px; background: transparent; border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; height: 44px;" title="Limpiar filtro">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                    Limpiar
+                </button>
+            </div>
+
+            <div class="inventory-table-wrapper">
+                <div id="tableContent">
+                    <div class="loading-container">
+                        <div class="spinner-lg"></div>
+                        <p style="color: var(--text-muted);">Cargando inventario...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Ingresar Inventario -->
+    <div id="inventoryModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="inventoryModalTitle">
+        <div class="modal-overlay" id="inventoryModalOverlay"></div>
+        <div class="modal-content inventory-modal-content">
+            <div class="modal-header">
+                <h2 id="inventoryModalTitle">Ingresar inventario</h2>
+                <button type="button" class="modal-close" id="closeInventoryModal" aria-label="Cerrar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 24px; text-align: left;">
+                <div id="invModalAlert" class="modal-alert"></div>
+                <form id="inventoryForm" novalidate>
+                    <div class="modal-body-scroll">
+                        <div id="inventoryRows"></div>
+                        <button type="button" class="btn-add-row" id="btnAddInventoryRow">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            Agregar entrada de inventario
+                        </button>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-modal-cancel" id="cancelInventoryBtn">Cancelar</button>
+                        <button type="submit" class="btn-modal-save" id="btnSaveInventory">
+                            <span id="btnSaveText">Guardar inventario</span>
+                            <span id="btnSaveLoader" style="display:none;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;animation:spin 0.8s linear infinite;">
+                                    <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+                                    <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Salida Inventario -->
+    <div id="outInventoryModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="outInventoryModalTitle">
+        <div class="modal-overlay" id="outInventoryModalOverlay"></div>
+        <div class="modal-content inventory-modal-content">
+            <div class="modal-header">
+                <h2 id="outInventoryModalTitle">Salida de inventario</h2>
+                <button type="button" class="modal-close" id="closeOutInventoryModal" aria-label="Cerrar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 24px; text-align: left;">
+                <div id="outInvModalAlert" class="modal-alert"></div>
+                <form id="outInventoryForm" novalidate>
+                    <div class="sale-form-group" style="display:flex; flex-direction:column; gap:6px; text-align:left;">
+                        <label for="outProduct">Producto</label>
+                        <select id="outProduct" required>
+                            <option value="">Seleccionar producto...</option>
+                        </select>
+                    </div>
+                    <div class="sale-form-group" style="display:flex; flex-direction:column; gap:6px; text-align:left;">
+                        <label for="outSize">Talla</label>
+                        <select id="outSize" required disabled>
+                            <option value="">Selecciona un producto primero...</option>
+                        </select>
+                    </div>
+                    <div class="sale-form-group" style="display:flex; flex-direction:column; gap:6px; text-align:left;">
+                        <label for="outAmount">Cantidad a retirar</label>
+                        <input type="number" id="outAmount" min="1" step="1" placeholder="Ej. 1" required disabled>
+                        <div id="outStockInfoBox" class="stock-info-box" style="display:none;">
+                            <span id="outStockMessage">Consultando disponibilidad...</span>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-modal-cancel" id="cancelOutInventoryBtn">Cancelar</button>
+                        <button type="submit" class="btn-modal-save" id="btnSaveOutInventory" disabled>
+                            <span id="btnSaveOutText">Guardar salida</span>
+                            <span id="btnSaveOutLoader" style="display:none;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;animation:spin 0.8s linear infinite;">
+                                    <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+                                    <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                </form>
+</div>
+    </div>
+</div>
+
+    <!-- Modal Editar Inventario -->
+    <div id="editInventoryModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="editInventoryTitle">
+        <div class="modal-overlay" id="editInventoryModalOverlay"></div>
+        <div class="modal-content inventory-modal-content">
+            <div class="modal-header">
+                <h2 id="editInventoryTitle">Editar entrada de inventario</h2>
+                <button type="button" class="modal-close" id="closeEditInventoryModal" aria-label="Cerrar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 24px; text-align: left;">
+                <div id="editInvModalAlert" class="modal-alert"></div>
+                <form id="editInventoryForm" novalidate>
+                    <input type="hidden" id="editInvId">
+                    <div class="modal-form-group">
+                        <label for="editInvReference">Referencia</label>
+                        <input type="text" id="editInvReference" required disabled>
+                    </div>
+                    <div class="modal-form-group">
+                        <label for="editInvSize">Talla</label>
+                        <input type="text" id="editInvSize" required disabled>
+                    </div>
+                    <div class="modal-form-group">
+                        <label for="editInvAmount">Cantidad</label>
+                        <input type="number" id="editInvAmount" min="1" step="1" placeholder="Ej. 10" required>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-modal-cancel" id="cancelEditInventoryBtn">Cancelar</button>
+                        <button type="submit" class="btn-modal-save" id="btnSaveEditInventory">
+                            <span id="btnSaveEditInventoryText">Guardar cambios</span>
+                            <span id="btnSaveEditInventoryLoader" style="display:none;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;animation:spin 0.8s linear infinite;">
+                                    <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+                                    <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase } from './app.js';
+
+        const btnIngresarInventario = document.getElementById('btnIngresarInventario');
+        const btnBack = document.getElementById('btnBack');
+        const tableContent = document.getElementById('tableContent');
+        const inventoryCount = document.getElementById('inventoryCount');
+
+        const inventoryModal = document.getElementById('inventoryModal');
+        const inventoryModalOverlay = document.getElementById('inventoryModalOverlay');
+        const closeInventoryModal = document.getElementById('closeInventoryModal');
+        const cancelInventoryBtn = document.getElementById('cancelInventoryBtn');
+        const inventoryForm = document.getElementById('inventoryForm');
+        const inventoryRows = document.getElementById('inventoryRows');
+        const btnAddInventoryRow = document.getElementById('btnAddInventoryRow');
+        const btnSaveInventory = document.getElementById('btnSaveInventory');
+        const btnSaveText = document.getElementById('btnSaveText');
+        const btnSaveLoader = document.getElementById('btnSaveLoader');
+        const invModalAlert = document.getElementById('invModalAlert');
+
+        // Edit Inventory Modal Elements
+        const editInventoryModal = document.getElementById('editInventoryModal');
+        const editInventoryModalOverlay = document.getElementById('editInventoryModalOverlay');
+        const closeEditInventoryModal = document.getElementById('closeEditInventoryModal');
+        const cancelEditInventoryBtn = document.getElementById('cancelEditInventoryBtn');
+        const editInventoryForm = document.getElementById('editInventoryForm');
+        const editInvId = document.getElementById('editInvId');
+        const editInvReference = document.getElementById('editInvReference');
+        const editInvSize = document.getElementById('editInvSize');
+        const editInvAmount = document.getElementById('editInvAmount');
+        const btnSaveEditInventory = document.getElementById('btnSaveEditInventory');
+        const btnSaveEditInventoryText = document.getElementById('btnSaveEditInventoryText');
+        const btnSaveEditInventoryLoader = document.getElementById('btnSaveEditInventoryLoader');
+        const editInvModalAlert = document.getElementById('editInvModalAlert');
+
+        // Modal Salida Inventario
+        const btnSalidaInventario = document.getElementById('btnSalidaInventario');
+        const outInventoryModal = document.getElementById('outInventoryModal');
+        const outInventoryModalOverlay = document.getElementById('outInventoryModalOverlay');
+        const closeOutInventoryModal = document.getElementById('closeOutInventoryModal');
+        const cancelOutInventoryBtn = document.getElementById('cancelOutInventoryBtn');
+        const outInventoryForm = document.getElementById('outInventoryForm');
+        const outInvModalAlert = document.getElementById('outInvModalAlert');
+        const outProduct = document.getElementById('outProduct');
+        const outSize = document.getElementById('outSize');
+        const outAmount = document.getElementById('outAmount');
+        const outStockInfoBox = document.getElementById('outStockInfoBox');
+        const outStockMessage = document.getElementById('outStockMessage');
+        const btnSaveOutInventory = document.getElementById('btnSaveOutInventory');
+        const btnSaveOutText = document.getElementById('btnSaveOutText');
+        const btnSaveOutLoader = document.getElementById('btnSaveOutLoader');
+
+        let productsList = [];
+        let inventoryRowCount = 0;
+        let outCurrentAvailableStock = 0;
+
+        function showInvAlert(message, type = 'error') {
+            invModalAlert.className = `modal-alert ${type}`;
+            invModalAlert.textContent = message;
+            invModalAlert.style.display = 'block';
+        }
+
+        function hideInvAlert() {
+            invModalAlert.className = 'modal-alert';
+            invModalAlert.textContent = '';
+            invModalAlert.style.display = 'none';
+        }
+
+        async function loadProductsForSelect() {
+            const { data, error } = await supabase
+                .from('products')
+                .select('reference, categorie, size')
+                .order('reference', { ascending: true });
+
+            if (error) {
+                console.error('Error loading products for inventory:', error);
+                return;
+            }
+
+            productsList = data || [];
+        }
+
+        function buildProductOptionsHTML() {
+            if (!productsList.length) {
+                return '<option value="">No hay productos disponibles</option>';
+            }
+            let options = '<option value="">Seleccionar producto...</option>';
+            productsList.forEach((prod, index) => {
+                options += `<option value="${index}">${escapeHtml(prod.reference)}</option>`;
+            });
+            return options;
+        }
+
+        function createInventoryRowHTML(index) {
+            const prodOptions = buildProductOptionsHTML();
+            return `
+                <div class="inventory-row" data-index="${index}">
+                    <div class="modal-form-group">
+                        <label for="invProduct_${index}">Producto</label>
+                        <select id="invProduct_${index}" class="inv-product-select" required>
+                            ${prodOptions}
+                        </select>
+                    </div>
+                    <div class="modal-form-group">
+                        <label for="invAmount_${index}">Cantidad</label>
+                        <input type="number" id="invAmount_${index}" class="inv-amount-input" min="1" step="1" placeholder="Ej. 10" required>
+                    </div>
+                    <div class="modal-form-group">
+                        <label for="invSize_${index}">Talla</label>
+                        <select id="invSize_${index}" class="inv-size-select" required disabled>
+                            <option value="">Selecciona un producto primero...</option>
+                        </select>
+                    </div>
+                    <button type="button" class="remove-row hide" aria-label="Eliminar fila">×</button>
+                </div>
+            `;
+        }
+
+        function updateInventoryRemoveButtons() {
+            const rows = inventoryRows.querySelectorAll('.inventory-row');
+            const hasMultiple = rows.length > 1;
+            rows.forEach(row => {
+                const removeBtn = row.querySelector('.remove-row');
+                if (removeBtn) {
+                    if (hasMultiple) {
+                        removeBtn.classList.remove('hide');
+                        row.classList.add('multiple');
+                    } else {
+                        removeBtn.classList.add('hide');
+                        row.classList.remove('multiple');
+                    }
+                }
+            });
+        }
+
+        async function openInventoryModal() {
+            hideInvAlert();
+            inventoryForm.reset();
+            inventoryRows.innerHTML = '';
+            inventoryRowCount = 0;
+
+            if (productsList.length === 0) {
+                await loadProductsForSelect();
+            }
+
+            inventoryRows.insertAdjacentHTML('beforeend', createInventoryRowHTML(inventoryRowCount++));
+            updateInventoryRemoveButtons();
+            inventoryModal.classList.add('active');
+        }
+
+        function closeInventoryModalFn() {
+            inventoryModal.classList.remove('active');
+            hideInvAlert();
+            inventoryForm.reset();
+            inventoryRows.innerHTML = '';
+            inventoryRowCount = 0;
+        }
+
+        btnAddInventoryRow.addEventListener('click', () => {
+            inventoryRows.insertAdjacentHTML('beforeend', createInventoryRowHTML(inventoryRowCount++));
+            updateInventoryRemoveButtons();
+            const lastRow = inventoryRows.lastElementChild;
+            if (lastRow) {
+                lastRow.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }
+        });
+
+        inventoryRows.addEventListener('click', (e) => {
+            if (e.target.classList.contains('remove-row')) {
+                const row = e.target.closest('.inventory-row');
+                if (inventoryRows.children.length > 1) {
+                    row.remove();
+                    updateInventoryRemoveButtons();
+                } else {
+                    const prodSelect = row.querySelector('.inv-product-select');
+                    const amountInput = row.querySelector('.inv-amount-input');
+                    const sizeSelect = row.querySelector('.inv-size-select');
+                    if (prodSelect) prodSelect.value = '';
+                    if (amountInput) amountInput.value = '';
+                    if (sizeSelect) {
+                        sizeSelect.innerHTML = '<option value="">Selecciona un producto primero...</option>';
+                        sizeSelect.disabled = true;
+                    }
+                }
+            }
+        });
+
+        inventoryRows.addEventListener('change', (e) => {
+            if (e.target.classList.contains('inv-product-select')) {
+                const row = e.target.closest('.inventory-row');
+                const sizeSelect = row.querySelector('.inv-size-select');
+                const selectedIndex = e.target.value;
+
+                if (selectedIndex !== '' && productsList[selectedIndex]) {
+                    const selectedProd = productsList[selectedIndex];
+
+                    let sizes = [];
+                    if (Array.isArray(selectedProd.size)) {
+                        sizes = selectedProd.size;
+                    } else if (typeof selectedProd.size === 'string' && selectedProd.size.trim()) {
+                        try {
+                            const parsed = JSON.parse(selectedProd.size);
+                            sizes = Array.isArray(parsed) ? parsed : [selectedProd.size];
+                        } catch {
+                            sizes = selectedProd.size.split(',').map(s => s.trim()).filter(Boolean);
+                        }
+                    }
+
+                    if (sizes.length === 0) {
+                        sizeSelect.innerHTML = '<option value="">Sin tallas registradas</option>';
+                        sizeSelect.disabled = true;
+                    } else {
+                        let sizeOpts = '<option value="">Seleccionar talla...</option>';
+                        sizes.forEach(s => {
+                            sizeOpts += `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`;
+                        });
+                        sizeSelect.innerHTML = sizeOpts;
+                        sizeSelect.disabled = false;
+                    }
+                } else {
+                    sizeSelect.innerHTML = '<option value="">Selecciona un producto primero...</option>';
+                    sizeSelect.disabled = true;
+                }
+            }
+        });
+
+        btnIngresarInventario.addEventListener('click', openInventoryModal);
+        closeInventoryModal.addEventListener('click', closeInventoryModalFn);
+        cancelInventoryBtn.addEventListener('click', closeInventoryModalFn);
+        inventoryModalOverlay.addEventListener('click', closeInventoryModalFn);
+
+        inventoryModal.addEventListener('click', (e) => {
+            if (e.target === inventoryModal) {
+                closeInventoryModalFn();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && inventoryModal.classList.contains('active')) {
+                closeInventoryModalFn();
+            }
+        });
+
+        inventoryForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideInvAlert();
+
+            const rows = inventoryRows.querySelectorAll('.inventory-row');
+            const entries = [];
+            let hasError = false;
+            let errorMsg = '';
+
+            const now = new Date().toISOString();
+
+            rows.forEach((row, i) => {
+                if (hasError) return;
+
+                const prodSelect = row.querySelector('.inv-product-select');
+                const amountInput = row.querySelector('.inv-amount-input');
+                const sizeSelect = row.querySelector('.inv-size-select');
+
+                const selectedIndex = prodSelect.value;
+                if (selectedIndex === '' || !productsList[selectedIndex]) {
+                    hasError = true;
+                    errorMsg = `Fila ${i + 1}: Selecciona un producto válido.`;
+                    return;
+                }
+
+                const selectedProd = productsList[selectedIndex];
+                const amountVal = parseInt(amountInput.value, 10);
+                const sizeVal = sizeSelect.value ? sizeSelect.value.trim() : '';
+
+                if (isNaN(amountVal) || amountVal <= 0) {
+                    hasError = true;
+                    errorMsg = `Fila ${i + 1}: La cantidad debe ser un número entero mayor a 0.`;
+                    return;
+                }
+
+                if (!sizeVal) {
+                    hasError = true;
+                    errorMsg = `Fila ${i + 1}: Selecciona una talla del desplegable.`;
+                    return;
+                }
+
+                entries.push({
+                    reference: selectedProd.reference,
+                    amount: amountVal,
+                    size: sizeVal,
+                    categorie: selectedProd.categorie,
+                    created_at: now
+                });
+            });
+
+            if (hasError) {
+                showInvAlert(errorMsg, 'error');
+                return;
+            }
+
+            if (entries.length === 0) {
+                showInvAlert('Agrega al menos una entrada de inventario.', 'error');
+                return;
+            }
+
+            btnSaveInventory.disabled = true;
+            btnSaveText.style.display = 'none';
+            btnSaveLoader.style.display = 'inline-flex';
+
+            try {
+                const { error: insertError } = await supabase
+                    .from('inventory')
+                    .insert(entries);
+
+                if (insertError) {
+                    throw insertError;
+                }
+
+                closeInventoryModalFn();
+                await loadInventory();
+            } catch (err) {
+                console.error('Error al guardar inventario:', err);
+                showInvAlert(err.message || 'Error al guardar el inventario. Intente nuevamente.', 'error');
+            } finally {
+                btnSaveInventory.disabled = false;
+                btnSaveText.style.display = 'inline';
+                btnSaveLoader.style.display = 'none';
+            }
+        });
+
+        // ===== Salida de inventario =====
+        function showOutInvAlert(message, type = 'error') {
+            outInvModalAlert.className = `modal-alert ${type}`;
+            outInvModalAlert.textContent = message;
+            outInvModalAlert.style.display = 'block';
+        }
+
+        function hideOutInvAlert() {
+            outInvModalAlert.className = 'modal-alert';
+            outInvModalAlert.textContent = '';
+            outInvModalAlert.style.display = 'none';
+        }
+
+        function buildOutProductOptionsHTML() {
+            if (!productsList.length) {
+                return '<option value="">No hay productos disponibles</option>';
+            }
+            let options = '<option value="">Seleccionar producto...</option>';
+            productsList.forEach((prod, index) => {
+                options += `<option value="${index}">${escapeHtml(prod.reference)}</option>`;
+            });
+            return options;
+        }
+
+        async function openOutInventoryModal() {
+            hideOutInvAlert();
+            outInventoryForm.reset();
+            outCurrentAvailableStock = 0;
+
+            outStockInfoBox.style.display = 'none';
+            outStockMessage.textContent = '';
+            outAmount.value = '';
+            outAmount.disabled = true;
+            btnSaveOutInventory.disabled = true;
+            outSize.innerHTML = '<option value="">Selecciona un producto primero...</option>';
+            outSize.disabled = true;
+
+            if (productsList.length === 0) {
+                await loadProductsForSelect();
+            }
+
+            outProduct.innerHTML = buildOutProductOptionsHTML();
+            outInventoryModal.classList.add('active');
+        }
+
+        function closeOutInventoryModalFn() {
+            outInventoryModal.classList.remove('active');
+            hideOutInvAlert();
+            outInventoryForm.reset();
+            outStockInfoBox.style.display = 'none';
+            outCurrentAvailableStock = 0;
+        }
+
+        btnSalidaInventario.addEventListener('click', openOutInventoryModal);
+        closeOutInventoryModal.addEventListener('click', closeOutInventoryModalFn);
+        cancelOutInventoryBtn.addEventListener('click', closeOutInventoryModalFn);
+        outInventoryModalOverlay.addEventListener('click', closeOutInventoryModalFn);
+
+        outInventoryModal.addEventListener('click', (e) => {
+            if (e.target === outInventoryModal) {
+                closeOutInventoryModalFn();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && outInventoryModal.classList.contains('active')) {
+                closeOutInventoryModalFn();
+            }
+            if (e.key === 'Escape' && editInventoryModal.classList.contains('active')) {
+                closeEditInventoryModalFn();
+            }
+        });
+
+        // Edit Inventory Modal Event Listeners
+        closeEditInventoryModal.addEventListener('click', closeEditInventoryModalFn);
+        cancelEditInventoryBtn.addEventListener('click', closeEditInventoryModalFn);
+        editInventoryModalOverlay.addEventListener('click', closeEditInventoryModalFn);
+        editInventoryModal.addEventListener('click', (e) => {
+            if (e.target === editInventoryModal) {
+                closeEditInventoryModalFn();
+            }
+        });
+
+        editInventoryForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            editInvModalAlert.style.display = 'none';
+
+            const id = editInvId.value;
+            const amountVal = parseInt(editInvAmount.value, 10);
+
+            if (isNaN(amountVal) || amountVal <= 0) {
+                editInvModalAlert.className = 'modal-alert error';
+                editInvModalAlert.textContent = 'La cantidad debe ser un número entero mayor a 0.';
+                editInvModalAlert.style.display = 'block';
+                return;
+            }
+
+            btnSaveEditInventory.disabled = true;
+            btnSaveEditInventoryText.style.display = 'none';
+            btnSaveEditInventoryLoader.style.display = 'inline-flex';
+
+            try {
+                let query = supabase
+                    .from('inventory')
+                    .update({ amount: amountVal });
+
+                if (id) {
+                    query = query.eq('id', id);
+                } else {
+                    query = query
+                        .eq('reference', currentEditInvReference)
+                        .eq('size', currentEditInvSize);
+                }
+
+                const { error } = await query;
+
+                if (error) throw error;
+
+                closeEditInventoryModalFn();
+                await loadInventory();
+            } catch (err) {
+                console.error('Error updating inventory:', err);
+                editInvModalAlert.className = 'modal-alert error';
+                editInvModalAlert.textContent = err.message || 'Error al actualizar el inventario';
+                editInvModalAlert.style.display = 'block';
+            } finally {
+                btnSaveEditInventory.disabled = false;
+                btnSaveEditInventoryText.style.display = 'inline';
+                btnSaveEditInventoryLoader.style.display = 'none';
+            }
+        });
+
+        outProduct.addEventListener('change', async () => {
+            outAmount.value = '';
+            outAmount.disabled = true;
+            btnSaveOutInventory.disabled = true;
+            outStockInfoBox.style.display = 'none';
+            outCurrentAvailableStock = 0;
+
+            const selectedIndex = outProduct.value;
+
+            if (selectedIndex !== '' && productsList[selectedIndex]) {
+                const selectedProd = productsList[selectedIndex];
+
+                let sizes = [];
+                if (Array.isArray(selectedProd.size)) {
+                    sizes = selectedProd.size;
+                } else if (typeof selectedProd.size === 'string' && selectedProd.size.trim()) {
+                    try {
+                        const parsed = JSON.parse(selectedProd.size);
+                        sizes = Array.isArray(parsed) ? parsed : [selectedProd.size];
+                    } catch {
+                        sizes = selectedProd.size.split(',').map(s => s.trim()).filter(Boolean);
+                    }
+                }
+
+                if (sizes.length === 0) {
+                    outSize.innerHTML = '<option value="">Sin tallas registradas</option>';
+                    outSize.disabled = true;
+                } else {
+                    let sizeOpts = '<option value="">Seleccionar talla...</option>';
+                    sizes.forEach(s => {
+                        sizeOpts += `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`;
+                    });
+                    outSize.innerHTML = sizeOpts;
+                    outSize.disabled = false;
+                }
+            } else {
+                outSize.innerHTML = '<option value="">Selecciona un producto primero...</option>';
+                outSize.disabled = true;
+            }
+        });
+
+        outSize.addEventListener('change', async () => {
+            const selectedSize = outSize.value;
+            const selectedIndex = outProduct.value;
+            outAmount.value = '';
+            outAmount.disabled = true;
+            btnSaveOutInventory.disabled = true;
+            outCurrentAvailableStock = 0;
+
+            if (!selectedSize || selectedIndex === '' || !productsList[selectedIndex]) {
+                outStockInfoBox.style.display = 'none';
+                return;
+            }
+
+            const ref = productsList[selectedIndex].reference;
+            outStockInfoBox.style.display = 'flex';
+            outStockInfoBox.className = 'stock-info-box';
+            outStockMessage.textContent = 'Consultando disponibilidad en inventario...';
+
+            const { data, error } = await supabase
+                .from('inventory')
+                .select('amount')
+                .eq('reference', ref)
+                .eq('size', selectedSize);
+
+            if (error) {
+                console.error('Error consultando stock:', error);
+                outStockInfoBox.className = 'stock-info-box out-stock';
+                outStockMessage.textContent = 'Error al consultar inventario.';
+                return;
+            }
+
+            outCurrentAvailableStock = (data || []).reduce((acc, row) => acc + (Number(row.amount) || 0), 0);
+
+            if (outCurrentAvailableStock <= 0) {
+                outStockInfoBox.className = 'stock-info-box out-stock';
+                outStockMessage.textContent = 'Sin stock disponible en inventario.';
+                outAmount.disabled = true;
+                btnSaveOutInventory.disabled = true;
+            } else {
+                outStockInfoBox.className = 'stock-info-box in-stock';
+                outStockMessage.innerHTML = `Disponibles en inventario: <strong>${outCurrentAvailableStock}</strong> uds`;
+                outAmount.disabled = false;
+                outAmount.min = 1;
+                outAmount.max = outCurrentAvailableStock;
+                outAmount.placeholder = `Máx. ${outCurrentAvailableStock}`;
+                outAmount.focus();
+            }
+        });
+
+        outAmount.addEventListener('keydown', (e) => {
+            if (['-', '+', 'e', 'E', '.', ','].includes(e.key)) {
+                e.preventDefault();
+            }
+        });
+
+        outAmount.addEventListener('input', () => {
+            outAmount.value = outAmount.value.replace(/\D/g, '');
+            let val = parseInt(outAmount.value, 10);
+
+            if (isNaN(val) || val <= 0) {
+                btnSaveOutInventory.disabled = true;
+                return;
+            }
+
+            if (val > outCurrentAvailableStock) {
+                val = outCurrentAvailableStock;
+                outAmount.value = outCurrentAvailableStock;
+            }
+
+            const remaining = outCurrentAvailableStock - val;
+            outStockInfoBox.className = 'stock-info-box in-stock';
+            outStockMessage.innerHTML = `Disponibles: <strong>${outCurrentAvailableStock}</strong> uds — Restantes: <strong>${remaining}</strong> uds`;
+
+            btnSaveOutInventory.disabled = false;
+        });
+
+        outInventoryForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideOutInvAlert();
+
+            const selectedIndex = outProduct.value;
+            if (selectedIndex === '' || !productsList[selectedIndex]) {
+                showOutInvAlert('Selecciona un producto válido.');
+                return;
+            }
+
+            const ref = productsList[selectedIndex].reference;
+            const sizeVal = outSize.value.trim();
+            let amountVal = parseInt(outAmount.value, 10);
+
+            if (!sizeVal) {
+                showOutInvAlert('Selecciona una talla.');
+                return;
+            }
+
+            if (isNaN(amountVal) || amountVal <= 0) {
+                showOutInvAlert('Ingresa una cantidad válida mayor a 0.');
+                return;
+            }
+
+            btnSaveOutInventory.disabled = true;
+            btnSaveOutText.style.display = 'none';
+            btnSaveOutLoader.style.display = 'inline-flex';
+
+            try {
+                // Re-verificar stock actual en la base de datos
+                const { data: invRows, error: invFetchErr } = await supabase
+                    .from('inventory')
+                    .select('*')
+                    .eq('reference', ref)
+                    .eq('size', sizeVal);
+
+                if (invFetchErr) {
+                    throw new Error('Error al consultar inventario actual: ' + invFetchErr.message);
+                }
+
+                const totalAvailableNow = (invRows || []).reduce((acc, row) => acc + (Number(row.amount) || 0), 0);
+
+                if (totalAvailableNow < amountVal) {
+                    throw new Error(`Stock insuficiente en inventario. Solo hay ${totalAvailableNow} unidades disponibles.`);
+                }
+
+                // Descontar las unidades retiradas del inventario (inventario actual - unidades retiradas)
+                let remainingToDeduct = amountVal;
+                for (const row of invRows) {
+                    if (remainingToDeduct <= 0) break;
+                    const rowAmount = Number(row.amount) || 0;
+                    if (rowAmount <= 0) continue;
+
+                    const deductFromThisRow = Math.min(rowAmount, remainingToDeduct);
+                    const newRowAmount = rowAmount - deductFromThisRow;
+                    remainingToDeduct -= deductFromThisRow;
+
+                    let updateQuery = supabase
+                        .from('inventory')
+                        .update({ amount: newRowAmount });
+
+                    if (row.id !== undefined && row.id !== null) {
+                        updateQuery = updateQuery.eq('id', row.id);
+                    } else if (row.created_at) {
+                        updateQuery = updateQuery
+                            .eq('reference', ref)
+                            .eq('size', sizeVal)
+                            .eq('created_at', row.created_at);
+                    } else {
+                        updateQuery = updateQuery
+                            .eq('reference', ref)
+                            .eq('size', sizeVal);
+                    }
+
+                    const { error: updateErr } = await updateQuery;
+                    if (updateErr) {
+                        console.error('Error al descontar inventario:', updateErr);
+                        throw new Error('Ocurrió un error al descontar del inventario: ' + updateErr.message);
+                    }
+                }
+
+                closeOutInventoryModalFn();
+                await loadInventory();
+            } catch (err) {
+                console.error('Error al registrar la salida de inventario:', err);
+                showOutInvAlert(err.message || 'Error al registrar la salida de inventario. Intenta nuevamente.');
+            } finally {
+                btnSaveOutInventory.disabled = false;
+                btnSaveOutText.style.display = 'inline';
+                btnSaveOutLoader.style.display = 'none';
+            }
+        });
+
+        btnBack.addEventListener('click', () => {
+            window.location.href = 'dashboard.html';
+        });
+
+        // Workspace Drawer
+        const workspaceMenuBtn = document.getElementById('workspaceMenuBtn');
+        const workspaceDrawer = document.getElementById('workspaceDrawer');
+        const workspaceDrawerOverlay = document.getElementById('workspaceDrawerOverlay');
+        const workspaceDrawerClose = document.getElementById('workspaceDrawerClose');
+
+        function openWorkspaceDrawer() {
+            workspaceDrawer.classList.add('active');
+            workspaceDrawerOverlay.classList.add('active');
+            workspaceMenuBtn.setAttribute('aria-expanded', 'true');
+        }
+
+        function closeWorkspaceDrawer() {
+            workspaceDrawer.classList.remove('active');
+            workspaceDrawerOverlay.classList.remove('active');
+            workspaceMenuBtn.setAttribute('aria-expanded', 'false');
+        }
+
+        workspaceMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (workspaceDrawer.classList.contains('active')) {
+                closeWorkspaceDrawer();
+            } else {
+                openWorkspaceDrawer();
+            }
+        });
+
+        workspaceDrawerClose.addEventListener('click', closeWorkspaceDrawer);
+        workspaceDrawerOverlay.addEventListener('click', closeWorkspaceDrawer);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && workspaceDrawer.classList.contains('active')) {
+                closeWorkspaceDrawer();
+                workspaceMenuBtn.focus();
+            }
+        });
+
+        // Load user profile and apply role-based restrictions
+        async function loadWorkspaceUser() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session?.user) return;
+
+            const { data: profile, error } = await supabase
+                .from('users')
+                .select('name, role')
+                .eq('user_id', session.user.id)
+                .maybeSingle();
+
+            const name = profile?.name || session.user.user_metadata?.name || 'Usuario';
+            const role = profile?.role || null;
+
+            const avatar = document.getElementById('workspaceUserAvatar');
+            const nameEl = document.getElementById('workspaceUserName');
+            if (avatar) avatar.textContent = name.charAt(0).toUpperCase();
+            if (nameEl) nameEl.textContent = name;
+
+            // Apply role-based restrictions (hide for 'usuario' role)
+            const isUserRole = String(role || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === 'usuario';
+            const restrictedModules = ['usuarios', 'productos', 'financiera', 'compras'];
+            if (isUserRole) {
+                restrictedModules.forEach(module => {
+                    const item = document.querySelector(`.workspace-drawer-item[href="${module}.html"]`);
+                    if (item) item.style.display = 'none';
+                });
+            }
+        }
+        loadWorkspaceUser();
+
+        async function loadInventory(categoryFilter = '') {
+            tableContent.innerHTML = `
+                <div class="loading-container">
+                    <div class="spinner-lg"></div>
+                    <p style="color: var(--text-muted);">Cargando inventario...</p>
+                </div>
+            `;
+
+            let query = supabase
+                .from('inventory')
+                .select('reference, categorie, amount, size')
+                .order('reference', { ascending: true });
+
+            if (categoryFilter) {
+                query = query.eq('categorie', categoryFilter);
+            }
+
+            const { data, error } = await query;
+
+            if (error) {
+                tableContent.innerHTML = `<div class="inventory-empty"><p>Error al cargar el inventario. Intenta de nuevo.</p></div>`;
+                console.error('Error loading inventory:', error);
+                return;
+            }
+
+            inventoryCount.textContent = data ? data.length : 0;
+
+            if (!data || data.length === 0) {
+                tableContent.innerHTML = `
+                    <div class="inventory-empty">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                            <line x1="7" y1="7" x2="7.01" y2="7"/>
+                        </svg>
+                        <p>${categoryFilter ? 'No hay productos en esta categoría.' : 'No hay productos en el inventario.'}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <table class="inventory-table">
+                    <thead>
+                        <tr>
+                            <th>Referencia</th>
+                            <th>Categoría</th>
+                            <th>Cantidad</th>
+                            <th>Talla</th>
+                            <th class="actions-cell">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            data.forEach(item => {
+                html += `
+                    <tr>
+                        <td>${escapeHtml(item.reference)}</td>
+                        <td>${escapeHtml(item.categorie || '—')}</td>
+                        <td>${item.amount}</td>
+                        <td>${escapeHtml(item.size)}</td>
+                        <td class="actions-cell">
+                            <button class="btn-action btn-edit" data-id="${item.id || ''}" data-reference="${escapeHtml(item.reference)}" data-size="${escapeHtml(item.size)}" aria-label="Editar inventario">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                            </button>
+                            <button class="btn-action btn-delete" data-id="${item.id || ''}" data-reference="${escapeHtml(item.reference)}" data-size="${escapeHtml(item.size)}" aria-label="Eliminar inventario">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3 6 5 6 21 6"/>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                </svg>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            tableContent.innerHTML = html;
+
+            // Event listeners for action buttons
+            tableContent.querySelectorAll('.btn-edit').forEach(btn => {
+                btn.addEventListener('click', () => openEditInventoryModal(btn.dataset.id, btn.dataset.reference, btn.dataset.size));
+            });
+            tableContent.querySelectorAll('.btn-delete').forEach(btn => {
+                btn.addEventListener('click', () => deleteInventory(btn.dataset.id, btn.dataset.reference, btn.dataset.size));
+            });
+        }
+
+        function escapeHtml(text) {
+            if (text === null || text === undefined) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        let currentEditInvId = null;
+        let currentEditInvReference = null;
+        let currentEditInvSize = null;
+
+        function openEditInventoryModal(id, reference, size) {
+            currentEditInvId = id;
+            currentEditInvReference = reference;
+            currentEditInvSize = size;
+
+            editInvId.value = id || '';
+            editInvReference.value = reference;
+            editInvSize.value = size;
+            editInvAmount.value = '';
+
+            // Fetch current amount from inventory
+            if (id) {
+                supabase
+                    .from('inventory')
+                    .select('amount')
+                    .eq('id', id)
+                    .single()
+                    .then(({ data, error }) => {
+                        if (!error && data) {
+                            editInvAmount.value = data.amount;
+                        }
+                    });
+            }
+
+            editInvModalAlert.style.display = 'none';
+            editInventoryModal.classList.add('active');
+        }
+
+        function closeEditInventoryModalFn() {
+            editInventoryModal.classList.remove('active');
+            currentEditInvId = null;
+            currentEditInvReference = null;
+            currentEditInvSize = null;
+            editInventoryForm.reset();
+        }
+
+        async function deleteInventory(id, reference, size) {
+            if (!confirm(`¿Eliminar la entrada de inventario "${reference}" (${size})?`)) return;
+
+            try {
+                let query = supabase.from('inventory').delete();
+
+                if (id) {
+                    query = query.eq('id', id);
+                } else {
+                    query = query.eq('reference', reference).eq('size', size);
+                }
+
+                const { error } = await query;
+
+                if (error) throw error;
+
+                await loadInventory();
+            } catch (err) {
+                console.error('Error deleting inventory:', err);
+                alert(err.message || 'Error al eliminar la entrada de inventario');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (!session) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Load categories for filter dropdown
+            await loadCategories();
+            
+            await loadInventory();
+        });
+
+        // Category filter logic
+        async function loadCategories() {
+            const { data, error } = await supabase
+                .from('products')
+                .select('categorie')
+                .not('categorie', 'is', null);
+
+            if (error) {
+                console.error('Error loading categories:', error);
+                return;
+            }
+
+            // Get unique categories
+            const categories = [...new Set(data.map(p => p.categorie).filter(Boolean))].sort();
+
+            const select = document.getElementById('categoryFilter');
+            const clearBtn = document.getElementById('btnClearCategoryFilter');
+
+            // Populate select
+            select.innerHTML = '<option value="">Todas las categorías</option>' + 
+                categories.map(cat => `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`).join('');
+
+            // Select change event
+            select.addEventListener('change', () => {
+                loadInventory(select.value);
+            });
+
+            // Clear button
+            clearBtn.addEventListener('click', () => {
+                select.value = '';
+                loadInventory('');
+            });
+        }
+    </script>
+</body>
+</html>

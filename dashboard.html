@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eladis Boutique - Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .dashboard-container {
+            min-height: 100vh;
+            background: var(--background);
+        }
+
+        .dashboard-header {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 0 40px;
+            height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 13px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .dashboard-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .dashboard-logo svg {
+            width: 40px;
+            height: 40px;
+            color: var(--primary);
+        }
+
+        .dashboard-logo h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .btn-logout {
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-logout:hover {
+            background: var(--error-bg);
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        .dashboard-main {
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .welcome-section {
+            margin-bottom: 40px;
+        }
+
+        .welcome-section h2 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .welcome-section p {
+            color: var(--text-muted);
+            font-size: 16px;
+        }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .module-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .module-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--primary-light);
+        }
+
+        .module-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .module-icon svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .module-card:nth-child(1) .module-icon {
+            background: rgba(45, 55, 72, 0.1);
+            color: var(--primary);
+        }
+
+        .module-card:nth-child(2) .module-icon {
+            background: rgba(56, 178, 172, 0.1);
+            color: var(--accent);
+        }
+
+        .module-card:nth-child(3) .module-icon {
+            background: rgba(237, 137, 54, 0.1);
+            color: var(--secondary);
+        }
+
+        .module-card:nth-child(4) .module-icon {
+            background: rgba(56, 161, 105, 0.1);
+            color: var(--success);
+        }
+
+        .module-card:nth-child(5) .module-icon {
+            background: rgba(120, 53, 152, 0.1);
+            color: #783598;
+        }
+
+        .module-card:nth-child(6) .module-icon {
+            background: rgba(217, 83, 79, 0.1);
+            color: var(--error);
+        }
+
+        .module-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .module-card p {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .module-card .coming-soon {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 4px 12px;
+            background: var(--background);
+            color: var(--text-muted);
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-header {
+                height: auto;
+                min-height: 72px;
+                padding: 16px 20px;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .dashboard-main {
+                padding: 20px;
+            }
+
+            .modules-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <div class="dashboard-logo">
+                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="45" stroke="#2D3748" stroke-width="3"/>
+                    <path d="M30 50 L45 65 L70 35" stroke="#2D3748" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <h1>Eladis Boutique</h1>
+            </div>
+            <div class="user-menu">
+                <div class="user-info">
+                    <div class="user-name" id="userName">En sesión: Cargando...</div>
+                </div>
+                <button class="btn-logout" id="logoutBtn">Cerrar Sesión</button>
+            </div>
+        </header>
+
+        <main class="dashboard-main">
+            <section class="welcome-section">
+                <h2>Bienvenido</h2>
+            </section>
+
+            <div class="modules-grid">
+                <article class="module-card" data-module="usuarios" onclick="window.location.href='usuarios.html'">
+                    <div class="module-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </div>
+                    <h3>Usuarios</h3>
+                </article>
+
+                <article class="module-card" data-module="productos" onclick="window.location.href='productos.html'">
+                    <div class="module-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                            <line x1="7" y1="7" x2="7.01" y2="7"/>
+                        </svg>
+                    </div>
+                    <h3>Productos</h3>
+                </article>
+
+                <article class="module-card" onclick="window.location.href='inventario.html'">
+                    <div class="module-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                            <line x1="12" y1="22.08" x2="12" y2="12"/>
+                        </svg>
+                    </div>
+                    <h3>Inventario</h3>
+                </article>
+
+                <article class="module-card" onclick="window.location.href='ventas.html'">
+                    <div class="module-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="9" cy="21" r="1"/>
+                            <circle cx="20" cy="21" r="1"/>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 1-2 1.61H9.72a2 2 0 0 1-2-1.61L23 6H6"/>
+                        </svg>
+                    </div>
+                    <h3>Ventas</h3>
+                </article>
+
+                <article class="module-card" data-module="compras" onclick="window.location.href='compras.html'">
+                    <div class="module-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                            <line x1="12" y1="22.08" x2="12" y2="12"/>
+                        </svg>
+                    </div>
+                    <h3>Compras</h3>
+                </article>
+
+                <article class="module-card" data-module="financiera" onclick="window.location.href='financiera.html'">
+                    <div class="module-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                    </div>
+                    <h3>Gestion Financiera</h3>
+                </article>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+        const SUPABASE_URL = 'https://qsrksmofmzgumypmsaob.supabase.co';
+        const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_eDa8I1-LttvCUy2nCHBreA_0WCdzvqx';
+        const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+        function normalizeRole(role) {
+            return String(role || '')
+                .trim()
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '');
+        }
+
+        // Módulos que el rol Usuario no puede ver (el resto sí)
+        const RESTRICTED_MODULES = ['usuarios', 'productos', 'financiera', 'compras'];
+
+        const userName = document.getElementById('userName');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        function applyModuleAccess(role) {
+            const isUserRole = normalizeRole(role) === 'usuario';
+            document.querySelectorAll('[data-module]').forEach(card => {
+                const moduleName = card.getAttribute('data-module');
+                if (isUserRole && RESTRICTED_MODULES.includes(moduleName)) {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        async function initDashboard() {
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (!session) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Leer nombre y rol desde la tabla users
+            let name = user.user_metadata?.name || null;
+            let role = null;
+
+            const { data: profile, error } = await supabase
+                .from('users')
+                .select('name, role')
+                .eq('user_id', user.id)
+                .maybeSingle();
+
+            if (!error && profile) {
+                name = profile.name || name;
+                role = profile.role || null;
+            }
+
+            const firstName = (name || 'Usuario').split(' ')[0];
+            userName.textContent = 'En sesión: ' + firstName;
+            applyModuleAccess(role);
+        }
+
+        logoutBtn.addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            window.location.href = 'index.html';
+        });
+
+        initDashboard();
+    </script>
+</body>
+</html>

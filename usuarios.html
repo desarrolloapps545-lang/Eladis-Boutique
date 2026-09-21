@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eladis Boutique - Gestión de Usuarios</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .users-container {
+            min-height: 100vh;
+            background: var(--background);
+        }
+
+        .users-header {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .users-header .dashboard-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .users-header .dashboard-logo svg {
+            width: 40px;
+            height: 40px;
+            color: var(--primary);
+        }
+
+        .users-header .dashboard-logo h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .btn-create-user {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-create-user:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-create-user svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .users-main {
+            padding: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .users-section-header {
+            margin-bottom: 24px;
+        }
+
+        .users-section-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .users-section-header p {
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        .users-table-wrapper {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .users-table thead th {
+            background: var(--background);
+            padding: 16px 24px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .users-table tbody td {
+            padding: 16px 24px;
+            font-size: 14px;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .users-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .users-table tbody tr:hover {
+            background: var(--background);
+        }
+
+        .users-empty {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--text-muted);
+        }
+
+        .users-empty svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+
+        .users-empty p {
+            font-size: 15px;
+        }
+
+        .user-count {
+            display: inline-block;
+            background: var(--background);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-left: 8px;
+        }
+
+        .loading-container {
+            text-align: center;
+            padding: 60px 24px;
+        }
+
+        .spinner-lg {
+            width: 36px;
+            height: 36px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .modal .form-group {
+            margin-bottom: 20px;
+        }
+
+        .modal .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .modal .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .modal .form-group input,
+        .modal .form-group select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 15px;
+            color: var(--text-primary);
+            background: var(--card-bg);
+            transition: var(--transition);
+        }
+
+        .modal .form-group input:focus,
+        .modal .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(45, 55, 72, 0.15);
+        }
+
+        .modal .form-group input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .modal .form-error {
+            font-size: 13px;
+            color: var(--error);
+            margin-top: 4px;
+            display: none;
+        }
+
+        .btn-create {
+            width: 100%;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .btn-create:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-create:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .modal-footer .btn-create {
+            margin-top: 0;
+        }
+
+        @media (max-width: 768px) {
+            .users-header {
+                padding: 16px 20px;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .users-main {
+                padding: 20px;
+            }
+
+            .users-table thead th,
+            .users-table tbody td {
+                padding: 12px 16px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="users-container">
+<header class="users-header">
+            <!-- Workspace Menu Button (far left) -->
+            <button type="button" class="workspace-menu-btn" id="workspaceMenuBtn" aria-label="Abrir menú de espacios de trabajo" aria-expanded="false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/>
+                    <rect x="14" y="3" width="7" height="7" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1"/>
+                    <rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+            </button>
+            <div class="dashboard-logo">
+                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="45" stroke="#2D3748" stroke-width="3"/>
+                    <path d="M30 50 L45 65 L70 35" stroke="#2D3748" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <h1>Eladis Boutique</h1>
+            </div>
+            <div style="display:flex; gap:12px; align-items:center;">
+                <button class="btn-create-user" id="btnCrearUsuario">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Crear usuario
+                </button>
+                <button class="btn-logout" id="btnBack">← Regresar</button>
+            </div>
+        </header>
+
+        <!-- Workspace Drawer -->
+        <div class="workspace-drawer" id="workspaceDrawer" role="navigation" aria-label="Espacios de trabajo">
+            <div class="workspace-drawer-header">
+                <h3>Eladis Boutique</h3>
+                <button type="button" class="workspace-drawer-close" id="workspaceDrawerClose" aria-label="Cerrar menú">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="workspace-drawer-content">
+                <div class="workspace-drawer-section">
+                    <div class="workspace-drawer-section-title">Navegación</div>
+                    <a href="dashboard.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7" rx="1"/>
+                            <rect x="14" y="3" width="7" height="7" rx="1"/>
+                            <rect x="3" y="14" width="7" height="7" rx="1"/>
+                            <rect x="14" y="14" width="7" height="7" rx="1"/>
+                        </svg>
+                        Dashboard
+                    </a>
+                    <a href="productos.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                            <line x1="7" y1="7" x2="7.01" y2="7"/>
+                        </svg>
+                        Productos
+                    </a>
+                    <a href="inventario.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                            <line x1="7" y1="7" x2="7.01" y2="7"/>
+                        </svg>
+                        Inventario
+                    </a>
+                    <a href="ventas.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="9" cy="21" r="1"/>
+                            <circle cx="20" cy="21" r="1"/>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 1-2 1.61H9.72a2 2 0 0 1-2-1.61L23 6H6"/>
+                        </svg>
+                        Ventas
+                    </a>
+                    <a href="compras.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <path d="M16 10a4 4 0 0 1-8 0"/>
+                        </svg>
+                        Compras
+                    </a>
+                    <a href="financiera.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                        Gestión Financiera
+                    </a>
+                    <a href="usuarios.html" class="workspace-drawer-item active-workspace" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        Usuarios
+                    </a>
+                </div>
+            </div>
+            <div class="workspace-drawer-footer">
+                <div class="workspace-drawer-user">
+                    <div class="workspace-drawer-user-avatar" id="workspaceUserAvatar">EB</div>
+                    <div class="workspace-drawer-user-info">
+                        <div class="workspace-drawer-user-name" id="workspaceUserName">Usuario</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="workspace-drawer-overlay" id="workspaceDrawerOverlay"></div>
+
+        <main class="users-main">
+            <section class="users-section-header">
+                <h2>
+                    Usuarios
+                    <span class="user-count" id="userCount">0</span>
+                </h2>
+                <p>Administra los usuarios registrados en el sistema.</p>
+            </section>
+
+            <div class="users-table-wrapper">
+                <div id="tableContent">
+                    <div class="loading-container">
+                        <div class="spinner-lg"></div>
+                        <p style="color: var(--text-muted);">Cargando usuarios...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="createUserModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="createUserTitle">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="createUserTitle">Crear nuevo usuario</h2>
+                <button type="button" class="modal-close" id="closeCreateModal" aria-label="Cerrar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="createUserForm" novalidate>
+                    <div class="form-group">
+                        <label for="newName">Nombre completo</label>
+                        <input type="text" id="newName" name="name" placeholder="Juan Pérez" required autocomplete="name">
+                        <div class="form-error" id="nameError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="newEmail">Correo electrónico</label>
+                        <input type="email" id="newEmail" name="email" placeholder="usuario@email.com" required autocomplete="email">
+                        <div class="form-error" id="emailError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">Contraseña</label>
+                        <input type="password" id="newPassword" name="password" placeholder="••••••••" required autocomplete="new-password">
+                        <div class="form-error" id="passwordError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="newRole">Rol</label>
+                        <select id="newRole" name="role" required>
+                            <option value="">Seleccionar rol...</option>
+                        </select>
+                        <div class="form-error" id="roleError"></div>
+                    </div>
+                    <button type="submit" class="btn-create" id="btnCrear">
+                        <span id="btnCrearText">Crear usuario</span>
+                        <span id="btnCrearLoader" style="display:none;">
+                            <svg class="spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+                                <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+                            </svg>
+                        </span>
+                    </button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-modal-primary" id="cancelCreateBtn">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+        // ===== Configuración local (antes venía de ./app.js) =====
+        const SUPABASE_URL = 'https://qsrksmofmzgumypmsaob.supabase.co';
+        const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_eDa8I1-LttvCUy2nCHBreA_0WCdzvqx';
+        const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+        function normalizeRole(role) {
+            return String(role || '')
+                .trim()
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '');
+        }
+
+        function isFullAccessRole(role) {
+            const r = normalizeRole(role);
+            return r === 'propietario' || r === 'desarrollador';
+        }
+
+        async function getCurrentUserProfile() {
+            const authResult = await supabase.auth.getUser();
+            const user = authResult?.data?.user || null;
+            if (!user) return null;
+
+            const { data, error } = await supabase
+                .from('users')
+                .select('user_id, name, email, role')
+                .eq('user_id', user.id)
+                .maybeSingle();
+
+            if (error) {
+                console.error('Error fetching user profile:', error);
+                return {
+                    user_id: user.id,
+                    name: user.user_metadata?.name || user.email,
+                    email: user.email,
+                    role: user.user_metadata?.role || null
+                };
+            }
+
+            return data || {
+                user_id: user.id,
+                name: user.user_metadata?.name || user.email,
+                email: user.email,
+                role: user.user_metadata?.role || null
+            };
+        }
+
+        async function guardPage({ requireFullAccess = false } = {}) {
+            const sessionResult = await supabase.auth.getSession();
+            const session = sessionResult?.data?.session || null;
+
+            if (!session) {
+                window.location.href = 'index.html';
+                return null;
+            }
+
+            const profile = await getCurrentUserProfile();
+
+            if (requireFullAccess && !isFullAccessRole(profile?.role)) {
+                window.location.href = 'dashboard.html';
+                return null;
+            }
+
+            return profile;
+        }
+
+        const btnCrearUsuario = document.getElementById('btnCrearUsuario');
+        const btnBack = document.getElementById('btnBack');
+        const createUserModal = document.getElementById('createUserModal');
+        const closeCreateModal = document.getElementById('closeCreateModal');
+        const cancelCreateBtn = document.getElementById('cancelCreateBtn');
+        const createUserForm = document.getElementById('createUserForm');
+        const btnCrear = document.getElementById('btnCrear');
+        const btnCrearText = document.getElementById('btnCrearText');
+        const btnCrearLoader = document.getElementById('btnCrearLoader');
+        const tableContent = document.getElementById('tableContent');
+        const userCount = document.getElementById('userCount');
+
+        const newName = document.getElementById('newName');
+        const newEmail = document.getElementById('newEmail');
+        const newPassword = document.getElementById('newPassword');
+        const newRole = document.getElementById('newRole');
+        const nameError = document.getElementById('nameError');
+        const emailError = document.getElementById('emailError');
+        const passwordError = document.getElementById('passwordError');
+        const roleError = document.getElementById('roleError');
+
+        // Roles disponibles para asignar al crear usuarios (sin restricciones)
+        const AVAILABLE_ROLES = ['Desarrollador', 'Propietario', 'Usuario'];
+
+        function getAssignableRoles() {
+            return AVAILABLE_ROLES;
+        }
+
+        function buildRoleOptionsHTML() {
+            let options = '<option value="">Seleccionar rol...</option>';
+            AVAILABLE_ROLES.forEach(r => {
+                options += `<option value="${r}">${r}</option>`;
+            });
+            return options;
+        }
+
+        function openModal() {
+            createUserModal.classList.add('active');
+            newName.value = '';
+            newEmail.value = '';
+            newPassword.value = '';
+            newRole.innerHTML = buildRoleOptionsHTML();
+            newRole.value = '';
+            nameError.style.display = 'none';
+            emailError.style.display = 'none';
+            passwordError.style.display = 'none';
+            roleError.style.display = 'none';
+        }
+
+        function closeModal() {
+            createUserModal.classList.remove('active');
+        }
+
+        function showFormError(field, message) {
+            if (field === 'name') nameError.textContent = message;
+            if (field === 'email') emailError.textContent = message;
+            if (field === 'password') passwordError.textContent = message;
+            if (field === 'role') roleError.textContent = message;
+            field === 'name' ? nameError.style.display = 'block' :
+            field === 'email' ? emailError.style.display = 'block' :
+            field === 'password' ? passwordError.style.display = 'block' :
+            roleError.style.display = 'block';
+        }
+
+        function clearFormErrors() {
+            nameError.style.display = 'none';
+            emailError.style.display = 'none';
+            passwordError.style.display = 'none';
+            roleError.style.display = 'none';
+        }
+
+        function setCreating(loading) {
+            btnCrear.disabled = loading;
+            btnCrearText.style.display = loading ? 'none' : 'inline';
+            btnCrearLoader.style.display = loading ? 'flex' : 'none';
+        }
+
+        async function loadUsers() {
+            tableContent.innerHTML = `
+                <div class="loading-container">
+                    <div class="spinner-lg"></div>
+                    <p style="color: var(--text-muted);">Cargando usuarios...</p>
+                </div>
+            `;
+
+            const { data, error } = await supabase.rpc('sp_get_users');
+
+            if (error) {
+                tableContent.innerHTML = `
+                    <div class="users-empty">
+                        <p>Error al cargar los usuarios. Intenta de nuevo.</p>
+                    </div>
+                `;
+                console.error('Error loading users:', error);
+                return;
+            }
+
+            const users = typeof data === 'string' ? JSON.parse(data) : (Array.isArray(data) ? data : (data ? [data] : []));
+
+            // Obtener los roles desde la tabla users para mostrarlos en la columna Rol
+            const { data: rolesData, error: rolesError } = await supabase
+                .from('users')
+                .select('email, role');
+
+            if (rolesError) {
+                console.error('Error loading user roles:', rolesError);
+            } else if (Array.isArray(rolesData)) {
+                const roleByEmail = {};
+                rolesData.forEach(r => {
+                    if (r.email) roleByEmail[String(r.email).toLowerCase()] = r.role;
+                });
+                users.forEach(u => {
+                    if (u.email && roleByEmail[String(u.email).toLowerCase()] !== undefined) {
+                        u.role = roleByEmail[String(u.email).toLowerCase()];
+                    }
+                });
+            }
+
+            userCount.textContent = users.length;
+
+            if (users.length === 0) {
+                tableContent.innerHTML = `
+                    <div class="users-empty">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        <p>No hay usuarios registrados aún.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Correo</th>
+                            <th>Rol</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            users.forEach(user => {
+                html += `
+                    <tr>
+                        <td>${escapeHtml(user.name)}</td>
+                        <td>${escapeHtml(user.email)}</td>
+                        <td>${escapeHtml(user.role || '—')}</td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            tableContent.innerHTML = html;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        btnCrearUsuario.addEventListener('click', openModal);
+        btnBack.addEventListener('click', () => { window.location.href = 'dashboard.html'; });
+
+        // Workspace Drawer
+        const workspaceMenuBtn = document.getElementById('workspaceMenuBtn');
+        const workspaceDrawer = document.getElementById('workspaceDrawer');
+        const workspaceDrawerOverlay = document.getElementById('workspaceDrawerOverlay');
+        const workspaceDrawerClose = document.getElementById('workspaceDrawerClose');
+
+        function openWorkspaceDrawer() {
+            workspaceDrawer.classList.add('active');
+            workspaceDrawerOverlay.classList.add('active');
+            workspaceMenuBtn.setAttribute('aria-expanded', 'true');
+        }
+
+        function closeWorkspaceDrawer() {
+            workspaceDrawer.classList.remove('active');
+            workspaceDrawerOverlay.classList.remove('active');
+            workspaceMenuBtn.setAttribute('aria-expanded', 'false');
+        }
+
+        workspaceMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (workspaceDrawer.classList.contains('active')) {
+                closeWorkspaceDrawer();
+            } else {
+                openWorkspaceDrawer();
+            }
+        });
+
+        workspaceDrawerClose.addEventListener('click', closeWorkspaceDrawer);
+        workspaceDrawerOverlay.addEventListener('click', closeWorkspaceDrawer);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && workspaceDrawer.classList.contains('active')) {
+                closeWorkspaceDrawer();
+                workspaceMenuBtn.focus();
+            }
+        });
+
+        // Load user profile and apply role-based restrictions
+        async function loadWorkspaceUser() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session?.user) return;
+
+            const { data: profile, error } = await supabase
+                .from('users')
+                .select('name, role')
+                .eq('user_id', session.user.id)
+                .maybeSingle();
+
+            const name = profile?.name || session.user.user_metadata?.name || 'Usuario';
+            const role = profile?.role || null;
+
+            const avatar = document.getElementById('workspaceUserAvatar');
+            const nameEl = document.getElementById('workspaceUserName');
+            if (avatar) avatar.textContent = name.charAt(0).toUpperCase();
+            if (nameEl) nameEl.textContent = name;
+
+            // Apply role-based restrictions (hide for 'usuario' role)
+            const isUserRole = String(role || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === 'usuario';
+            const restrictedModules = ['usuarios', 'productos', 'financiera', 'compras'];
+            if (isUserRole) {
+                restrictedModules.forEach(module => {
+                    const item = document.querySelector(`.workspace-drawer-item[href="${module}.html"]`);
+                    if (item) item.style.display = 'none';
+                });
+            }
+        }
+        loadWorkspaceUser();
+
+        closeCreateModal.addEventListener('click', closeModal);
+        cancelCreateBtn.addEventListener('click', closeModal);
+
+        createUserModal.addEventListener('click', (e) => {
+            if (e.target === createUserModal || e.target.classList.contains('modal-overlay')) {
+                closeModal();
+            }
+        });
+
+        createUserForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearFormErrors();
+
+            const name = newName.value.trim();
+            const email = newEmail.value.trim();
+            const password = newPassword.value;
+            const role = newRole.value.trim();
+
+            let hasError = false;
+
+            if (!name || name.length < 2) {
+                showFormError('name', 'El nombre debe tener al menos 2 caracteres.');
+                hasError = true;
+            }
+
+            if (!email || !email.includes('@')) {
+                showFormError('email', 'Ingresa un correo electrónico válido.');
+                hasError = true;
+            }
+
+            if (!password || password.length < 6) {
+                showFormError('password', 'La contraseña debe tener al menos 6 caracteres.');
+                hasError = true;
+            }
+
+            const allowedRoles = getAssignableRoles();
+            if (!role || !allowedRoles.includes(role)) {
+                showFormError('role', 'Selecciona un rol válido.');
+                hasError = true;
+            }
+
+            if (hasError) return;
+
+            setCreating(true);
+
+            try {
+                const { data: rpcData, error: rpcError } = await supabase.rpc('register_user', {
+                    p_email: email,
+                    p_password: password,
+                    p_name: name
+                });
+
+                if (rpcError) {
+                    throw rpcError;
+                }
+
+                if (rpcData && typeof rpcData === 'object' && rpcData.success === false) {
+                    throw new Error(rpcData.error || 'Error al crear el usuario.');
+                }
+
+                // Guardar el rol seleccionado en la columna "role" de la tabla users
+                const { error: roleUpdateError } = await supabase
+                    .from('users')
+                    .update({ role })
+                    .eq('email', email);
+
+                if (roleUpdateError) {
+                    console.error('Error al guardar el rol del usuario:', roleUpdateError);
+                    alert('El usuario se creó, pero no se pudo guardar el rol: ' + roleUpdateError.message);
+                }
+
+                closeModal();
+                await loadUsers();
+            } catch (err) {
+                console.error('Error creating user:', err);
+                let message = 'Error al crear el usuario';
+                if (err.message && err.message.includes('User already registered')) {
+                    message = 'Ya existe un usuario con este correo electrónico.';
+                } else if (err.message) {
+                    message = err.message;
+                }
+                alert(message);
+            } finally {
+                setCreating(false);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Todos los usuarios con sesión pueden acceder a la gestión de usuarios
+            const profile = await guardPage();
+            if (!profile) return;
+
+            newRole.innerHTML = buildRoleOptionsHTML();
+
+            await loadUsers();
+        });
+    </script>
+</body>
+</html>
