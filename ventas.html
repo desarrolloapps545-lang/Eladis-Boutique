@@ -1068,6 +1068,13 @@
             saleModalAlert.style.display = 'block';
         }
 
+        function escapeHtml(text) {
+            if (text === null || text === undefined) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         function hideSaleAlert() {
             saleModalAlert.className = 'modal-alert';
             saleModalAlert.textContent = '';
@@ -1076,7 +1083,22 @@
 
         // Product cache and state for multi-product sales
         let productsCache = [];
+        let categoriesCache = [];
         let saleProductCounter = 0;
+
+        async function loadCategories() {
+            const { data, error } = await supabase
+                .from('categories')
+                .select('name')
+                .order('name', { ascending: true });
+
+            if (error) {
+                console.error('Error cargando categorías:', error);
+                return;
+            }
+
+            categoriesCache = data || [];
+        }
 
         async function loadProductsForSale() {
             const { data, error } = await supabase
@@ -1154,11 +1176,48 @@
             const amountInput = row.querySelector('.sale-row-amount-input');
             const subtotalEl = row.querySelector('.sale-row-subtotal');
             const removeBtn = row.querySelector('.btn-remove-row');
+            const categorySelect = row.querySelector('.sale-row-category-select');
 
-            // Populate dropdown
-            productDropdown.innerHTML = productsCache.map(p => 
-                `<div class="product-option" data-value="${escapeHtml(p.reference)}" style="padding: 10px 12px; cursor: pointer; font-size: 13px; color: var(--text-primary); border-bottom: 1px solid var(--border);">${escapeHtml(p.reference)}</div>`
-            ).join('');
+            // Populate category dropdown
+            let categoryOpts = '<option value="">Todas las categorías</option>';
+            categoriesCache.forEach(cat => {
+                categoryOpts += `<option value="${escapeHtml(cat.name)}">${escapeHtml(cat.name)}</option>`;
+            });
+            categorySelect.innerHTML = categoryOpts;
+
+            // Populate dropdown with all products
+            function renderProductDropdown(filterCategory = '') {
+                let filtered = productsCache;
+                if (filterCategory) {
+                    filtered = productsCache.filter(p => p.categorie === filterCategory);
+                }
+                productDropdown.innerHTML = filtered.map(p => 
+                    `<div class="product-option" data-value="${escapeHtml(p.reference)}" style="padding: 10px 12px; cursor: pointer; font-size: 13px; color: var(--text-primary); border-bottom: 1px solid var(--border);">${escapeHtml(p.reference)}</div>`
+                ).join('');
+
+                // Re-attach click handlers
+                productDropdown.querySelectorAll('.product-option').forEach(opt => {
+                    opt.addEventListener('click', () => {
+                        const ref = opt.dataset.value;
+                        productInput.value = ref;
+                        productValue.value = ref;
+                        productDropdown.style.display = 'none';
+                        updateRowSizes(row, ref);
+                        updateRowPrice(row, ref);
+                        calculateSubtotal(row);
+                        updateGrandTotal();
+                    });
+                    opt.addEventListener('mouseenter', () => opt.style.background = 'var(--background)');
+                    opt.addEventListener('mouseleave', () => opt.style.background = '');
+                });
+            }
+
+            renderProductDropdown();
+
+            // Category change - filter products
+            categorySelect.addEventListener('change', () => {
+                renderProductDropdown(categorySelect.value);
+            });
 
             // Product input focus
             productInput.addEventListener('focus', () => {
@@ -1353,8 +1412,14 @@
                 await loadProductsForSale();
             }
             
+            // Load categories if not cached
+            if (categoriesCache.length === 0) {
+                await loadCategories();
+            }
+            
             // Add first empty row
             addProductRow();
+            updateGrandTotal();
             
             createSaleModal.classList.add('active');
             document.getElementById('clientFullName').focus();
@@ -1457,11 +1522,11 @@
 
             if (hasErrors) return;
 
-            const clientData = {
+const clientData = {
                 nombre: document.getElementById('clientFullName').value.trim(),
                 celular: document.getElementById('clientPhoneInput').value.trim(),
                 direccion: document.getElementById('clientAddressInput').value.trim(),
-                tipo_pago: document.getElementById('clientPaymentSelect').value
+                tipoPago: document.getElementById('clientPaymentSelect').value
             };
 
             const now = new Date().toISOString();
@@ -1495,14 +1560,19 @@
                 // Calculate grand total
                 saleItems.forEach(item => grandTotal += item.subtotal);
 
-                // Insert a SINGLE sale record with all items as arrays
+                // Insert a SINGLE sale record with all items as arrays in Postgres format
+                const refsArray = '{"' + saleItems.map(i => i.reference.replace(/"/g, '\\"')).join('","') + '"}';
+                const sizesArray = '{"' + saleItems.map(i => i.size.replace(/"/g, '\\"')).join('","') + '"}';
+                const pricesArray = '{' + saleItems.map(i => i.price).join(',') + '}';
+                const amountsArray = '{' + saleItems.map(i => i.amount).join(',') + '}';
+
                 const { data: newSale, error: insertSaleError } = await supabase
                     .from('sales')
                     .insert({
-                        reference: saleItems.map(i => i.reference),
-                        size: saleItems.map(i => i.size),
-                        price: saleItems.map(i => i.price),
-                        amount: saleItems.map(i => i.amount),
+                        reference: refsArray,
+                        size: sizesArray,
+                        price: pricesArray,
+                        amount: amountsArray,
                         total_sale: grandTotal,
                         client_data: clientData,
                         created_at: new Date().toISOString()
@@ -1576,6 +1646,15 @@
 
                 closeCreateSaleModalFn();
                 await loadSales();
+                
+                // Descargar mini automáticamente
+                if (newSale && newSale.id) {
+                    // Buscar la venta recién creada en la lista
+                    const newSaleIndex = salesList.findIndex(s => s.id === newSale.id);
+                    if (newSaleIndex >= 0) {
+                        setTimeout(() => downloadMiniInvoice(newSale.id, newSaleIndex), 500);
+                    }
+                }
             } catch (err) {
                 console.error('Error al registrar la venta:', err);
                 showSaleAlert(err.message || 'Error al registrar la venta. Intenta nuevamente.');
@@ -2099,54 +2178,53 @@
             `;
 
             salesList.forEach((sale, index) => {
-                const refs = Array.isArray(sale.reference) ? sale.reference : [sale.reference];
-                const sizes = Array.isArray(sale.size) ? sale.size : [sale.size];
-                const prices = Array.isArray(sale.price) ? sale.price : [sale.price];
-                const amounts = Array.isArray(sale.amount) ? sale.amount : [sale.amount];
+                const items = getSaleItems(sale);
+                
+                // Build arrays for each column
+                const refs = items.map(item => item.reference || '—').join(', ');
+                const sizes = items.map(item => item.size || '—').join(', ');
+                const prices = items.map(item => formatCurrency(item.price)).join(', ');
+                const amounts = items.map(item => item.amount !== null && item.amount !== undefined ? item.amount : '—').join(', ');
 
-                refs.forEach((ref, i) => {
-                    html += `
-                        <tr>
-                            <td>${i === 0 ? escapeHtml(formatDate(sale.created_at)) : ''}</td>
-                            <td>${escapeHtml(ref || '—')}</td>
-                            <td>${escapeHtml(sizes[i] || '—')}</td>
-                            <td class="price-cell">${formatCurrency(prices[i])}</td>
-                            <td>${amounts[i] !== null && amounts[i] !== undefined ? amounts[i] : '—'}</td>
-                            <td class="total-cell">${i === 0 ? formatCurrency(sale.total_sale) : ''}</td>
-                            <td>
-                                ${i === 0 ? `<button type="button" class="btn-eye" data-index="${index}" title="Ver datos del cliente" aria-label="Ver datos del cliente">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                        <circle cx="12" cy="12" r="3"/>
-                                    </svg>
-                                </button>` : ''}
-                            </td>
-                            <td class="actions-cell">
-                                ${i === 0 ? `
-                                    <button class="btn-action btn-download" data-id="${sale.id || ''}" data-index="${index}" aria-label="Descargar mini factura" title="Descargar mini factura">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                            <polyline points="7 10 12 15 17 10"/>
-                                            <line x1="12" y1="15" x2="12" y2="3"/>
-                                        </svg>
-                                    </button>
-                                    <button class="btn-action btn-edit" data-id="${sale.id || ''}" data-index="${index}" aria-label="Editar venta">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                                        </svg>
-                                    </button>
-                                    <button class="btn-action btn-delete" data-id="${sale.id || ''}" data-index="${index}" aria-label="Eliminar venta">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <polyline points="3 6 5 6 21 6"/>
-                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                                        </svg>
-                                    </button>
-                                ` : ''}
-                            </td>
-                        </tr>
-                    `;
-                });
+                html += `
+                    <tr>
+                        <td>${escapeHtml(formatDate(sale.created_at))}</td>
+                        <td style="font-size: 13px;">${escapeHtml(refs)}</td>
+                        <td style="font-size: 13px;">${escapeHtml(sizes)}</td>
+                        <td class="price-cell">${escapeHtml(prices)}</td>
+                        <td style="font-size: 13px;">${escapeHtml(amounts)}</td>
+                        <td class="total-cell">${formatCurrency(sale.total_sale)}</td>
+                        <td>
+                            <button type="button" class="btn-eye" data-index="${index}" title="Ver datos del cliente" aria-label="Ver datos del cliente">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                            </button>
+                        </td>
+                        <td class="actions-cell">
+                            <button class="btn-action btn-download" data-id="${sale.id || ''}" data-index="${index}" aria-label="Descargar mini factura" title="Descargar mini factura">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="7 10 12 15 17 10"/>
+                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>
+                            </button>
+                            <button class="btn-action btn-edit" data-id="${sale.id || ''}" data-index="${index}" aria-label="Editar venta">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                            </button>
+                            <button class="btn-action btn-delete" data-id="${sale.id || ''}" data-index="${index}" aria-label="Eliminar venta">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3 6 5 6 21 6"/>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                </svg>
+                            </button>
+                        </td>
+                    </tr>
+                `;
             });
 
             html += '</tbody></table>';
@@ -2175,11 +2253,55 @@
             });
         }
 
-        function escapeHtml(text) {
-            if (text === null || text === undefined) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+        function parsePostgresArray(arr) {
+            if (!arr) return [];
+            if (Array.isArray(arr)) return arr;
+            if (typeof arr === 'string') {
+                if (arr.startsWith('{') && arr.endsWith('}')) {
+                    const inner = arr.slice(1, -1);
+                    if (!inner) return [];
+                    const result = [];
+                    let current = '';
+                    let inQuotes = false;
+                    for (let i = 0; i < inner.length; i++) {
+                        const ch = inner[i];
+                        if (ch === '"' && !inQuotes) {
+                            inQuotes = true;
+                        } else if (ch === '"' && inQuotes) {
+                            inQuotes = false;
+                        } else if (ch === ',' && !inQuotes) {
+                            result.push(current);
+                            current = '';
+                        } else {
+                            current += ch;
+                        }
+                    }
+                    if (current) result.push(current);
+                    return result;
+                }
+                return arr.split(',');
+            }
+            return [arr];
+        }
+
+        function getSaleItems(sale) {
+            if (sale.client_data && sale.client_data.items) {
+                return sale.client_data.items;
+            }
+            const refs = parsePostgresArray(sale.reference);
+            const sizes = parsePostgresArray(sale.size);
+            const prices = parsePostgresArray(sale.price);
+            const amounts = parsePostgresArray(sale.amount);
+            const items = [];
+            for (let i = 0; i < refs.length; i++) {
+                items.push({
+                    reference: refs[i],
+                    size: sizes[i],
+                    price: parseFloat(prices[i]) || 0,
+                    amount: parseInt(amounts[i]) || 0
+                });
+            }
+            return items;
         }
 
         // Generar y descargar mini factura como JPG
@@ -2188,21 +2310,23 @@ async function downloadMiniInvoice(saleId, index) {
             if (!sale) return;
 
             const client = sale.client_data || {};
-            const refs = Array.isArray(sale.reference) ? sale.reference : [sale.reference];
-            const sizes = Array.isArray(sale.size) ? sale.size : [sale.size];
-            const prices = Array.isArray(sale.price) ? sale.price : [sale.price];
-            const amounts = Array.isArray(sale.amount) ? sale.amount : [sale.amount];
+            const items = getSaleItems(sale);
 
             // Fetch product categories for all references
             let productCategories = {};
-            for (const ref of refs) {
-                const { data: productData } = await supabase
-                    .from('products')
-                    .select('reference, categoria')
-                    .eq('reference', ref)
-                    .maybeSingle();
-                if (productData) {
-                    productCategories[ref] = productData.categoria || '—';
+            for (const item of items) {
+                const ref = item.reference;
+                try {
+                    const { data: productData } = await supabase
+                        .from('products')
+                        .select('*')
+                        .eq('reference', ref)
+                        .maybeSingle();
+                    if (productData) {
+                        productCategories[ref] = productData.categoria || productData.categoria || '—';
+                    }
+                } catch (err) {
+                    console.warn('Error fetching product:', ref, err);
                 }
             }
 
@@ -2276,14 +2400,12 @@ async function downloadMiniInvoice(saleId, index) {
 
             // Sección: Producto(s)
             y = drawSectionHeader('PRODUCTO(S)', y);
-            refs.forEach((ref, i) => {
-                const productName = ref || '—';
-                const productCategory = productCategories[ref] || '—';
-                y = drawRow(`Nombre ${i + 1}:`, productName, y);
-                y = drawRow(`Talla ${i + 1}:`, sizes[i] || '—', y);
-                y = drawRow(`Precio ${i + 1}:`, formatCurrency(prices[i]), y);
-                y = drawRow(`cantidad ${i + 1}:`, amounts[i] !== null && amounts[i] !== undefined ? String(amounts[i]) : '—', y);
-                if (i < refs.length - 1) y += 4;
+            items.forEach((item, i) => {
+                const productRef = item.reference || '—';
+                y = drawRow('Referencia:', productRef, y);
+                y = drawRow('Talla:', item.size || '—', y);
+                y = drawRow('cantidad:', item.amount !== null && item.amount !== undefined ? String(item.amount) : '—', y);
+                if (i < items.length - 1) y += 4;
             });
             y = drawDivider(y + 8);
 
@@ -2292,21 +2414,7 @@ async function downloadMiniInvoice(saleId, index) {
             y = drawRow('Nombre:', client.nombre || '—', y);
             y = drawRow('Celular:', client.celular || '—', y);
             y = drawRow('Dirección:', client.direccion || '—', y);
-            y = drawRow('Tipo de Pago:', client.tipoPago || '—', y);
-            y = drawDivider(y + 8);
-
-            // Sección: Producto
-            y = drawSectionHeader('PRODUCTO', y);
-            y = drawRow('Nombre:', productName, y);
-            y = drawRow('Talla:', sale.size || '—', y);
-            y = drawDivider(y + 8);
-
-            // Sección: Cliente
-            y = drawSectionHeader('CLIENTE', y);
-            y = drawRow('Nombre:', client.nombre || '—', y);
-            y = drawRow('Celular:', client.celular || '—', y);
-            y = drawRow('Dirección:', client.direccion || '—', y);
-            y = drawRow('Tipo de Pago:', client.tipo_pago || '—', y);
+            y = drawRow('Tipo de Pago:', client.tipoPago || client.tipoPago || client.payment || '—', y);
             y = drawDivider(y + 8);
 
             // Footer
@@ -2323,7 +2431,7 @@ async function downloadMiniInvoice(saleId, index) {
 
             // Descargar como JPG
             const link = document.createElement('a');
-            const safeRef = (sale.reference || 'venta').replace(/[^a-zA-Z0-9]/g, '_');
+            const safeRef = (items[0]?.reference || 'venta').replace(/[^a-zA-Z0-9]/g, '_');
             link.download = `mini-factura-${safeRef}-${Date.now()}.jpg`;
             link.href = finalCanvas.toDataURL('image/jpeg', 0.95);
             link.click();
@@ -2333,37 +2441,35 @@ async function downloadMiniInvoice(saleId, index) {
         let currentEditSaleIndex = null;
         let currentEditSaleAvailableStock = 0;
 
-        async function openEditSaleModal(id, index) {
+async function openEditSaleModal(id, index) {
             const sale = salesList[index];
             if (!sale) return;
 
             currentEditSaleId = id;
             currentEditSaleIndex = index;
 
-            const refs = Array.isArray(sale.reference) ? sale.reference : [sale.reference];
-            const sizes = Array.isArray(sale.size) ? sale.size : [sale.size];
-            const prices = Array.isArray(sale.price) ? sale.price : [sale.price];
-            const amounts = Array.isArray(sale.amount) ? sale.amount : [sale.amount];
+            const items = getSaleItems(sale);
+            const firstItem = items[0] || { reference: sale.reference, size: sale.size, price: sale.price, amount: sale.amount };
 
             editSaleId.value = id || '';
             editSaleIndex.value = index;
-            editSaleReference.value = refs[0] || '';
-            editSaleOriginalSize.value = sizes[0] || '';
-            editSaleOriginalAmount.value = amounts[0] || '';
+            editSaleReference.value = firstItem.reference || '';
+            editSaleOriginalSize.value = firstItem.size || '';
+            editSaleOriginalAmount.value = firstItem.amount || '';
             editSaleOriginalTotal.value = sale.total_sale || 0;
-            editSalePrice.value = formatCurrency(prices[0]);
-            editSaleAmount.value = amounts[0] || '';
+            editSalePrice.value = formatCurrency(firstItem.price);
+            editSaleAmount.value = firstItem.amount || '';
             editSaleTotal.value = formatCurrency(sale.total_sale);
 
             // Fetch available sizes for this product
             const { data: productData, error: productError } = await supabase
                 .from('products')
                 .select('size')
-                .eq('reference', refs[0])
+                .eq('reference', firstItem.reference)
                 .single();
 
             if (productError || !productData) {
-                editSaleSize.innerHTML = `<option value="${escapeHtml(sizes[0])}">${escapeHtml(sizes[0])}</option>`;
+                editSaleSize.innerHTML = `<option value="${escapeHtml(firstItem.size)}">${escapeHtml(firstItem.size)}</option>`;
             } else {
                 let sizesArr = [];
                 if (Array.isArray(productData.size)) {
@@ -2379,14 +2485,14 @@ async function downloadMiniInvoice(saleId, index) {
 
                 let sizeOpts = '';
                 sizesArr.forEach(s => {
-                    const selected = s === sizes[0] ? 'selected' : '';
+                    const selected = s === firstItem.size ? 'selected' : '';
                     sizeOpts += `<option value="${escapeHtml(s)}" ${selected}>${escapeHtml(s)}</option>`;
                 });
                 editSaleSize.innerHTML = sizeOpts;
             }
 
             // Fetch inventory for the original size
-            await fetchEditSaleStock(refs[0], sizes[0]);
+            await fetchEditSaleStock(firstItem.reference, firstItem.size);
 
             editSaleModalAlert.style.display = 'none';
             editSaleModal.classList.add('active');
