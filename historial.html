@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eladis Boutique - Historial</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .history-container {
+            min-height: 100vh;
+            background: var(--background);
+        }
+
+        .history-header {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .history-header .dashboard-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .history-header .dashboard-logo svg {
+            width: 40px;
+            height: 40px;
+            color: var(--primary);
+        }
+
+        .history-header .dashboard-logo h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .btn-back-history {
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-back-history:hover {
+            background: var(--background);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .history-main {
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .history-section-header {
+            margin-bottom: 24px;
+        }
+
+        .history-section-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .history-section-header p {
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        .history-count {
+            display: inline-block;
+            background: var(--background);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin_left: 8px;
+        }
+
+        .history-filter-bar {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            padding: 16px 24px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .history-filter-bar .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .history-filter-bar .filter-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .history-filter-bar select,
+        .history-filter-bar input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            color: var(--text-primary);
+            background: var(--background);
+            box-sizing: border-box;
+        }
+
+        .history-filter-bar select:focus,
+        .history-filter-bar input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(45, 55, 72, 0.15);
+        }
+
+        .btn-clear-history-filter {
+            padding: 10px 16px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            height: 44px;
+        }
+
+        .btn-clear-history-filter:hover {
+            background: var(--background);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .history-table-wrapper {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+
+        .history-table thead th {
+            background: var(--background);
+            padding: 16px 24px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .history-table tbody td {
+            padding: 14px 24px;
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .history-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .history-table tbody tr:hover {
+            background: var(--background);
+        }
+
+        .history-type-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .history-type-badge.entry {
+            background: rgba(72, 187, 120, 0.15);
+            color: #22543d;
+        }
+
+        .history-type-badge.exit {
+            background: rgba(245, 101, 101, 0.15);
+            color: #742217;
+        }
+
+        .history-type-badge.sale {
+            background: rgba(66, 153, 225, 0.15);
+            color: #22543d;
+        }
+
+        .history-type-badge.edit {
+            background: rgba(147, 51, 234, 0.15);
+            color: #4438ca;
+        }
+
+        .history-type-badge.delete {
+            background: rgba(245, 101, 101, 0.15);
+            color: #742217;
+        }
+
+        .history-empty {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--text-muted);
+        }
+
+        .history-empty svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+
+        .history-empty p {
+            font-size: 15px;
+        }
+
+        .loading-container {
+            text-align: center;
+            padding: 60px 24px;
+        }
+
+        .spinner-lg {
+            width: 36px;
+            height: 36px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .history-detail {
+            font-size: 12px;
+            color: var(--text-muted);
+            word-break: break-word;
+            text-align: left;
+        }
+
+        @media (max-width: 768px) {
+            .history-header {
+                padding: 16px 20px;
+            }
+
+            .history-main {
+                padding: 20px;
+            }
+
+            .history-table thead th,
+            .history-table tbody td {
+                padding: 12px 16px;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .history-header {
+                flex-direction: column;
+            }
+
+            .history-filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="history-container">
+        <header class="history-header">
+            <!-- Workspace Menu Button (far left) -->
+            <button type="button" class="workspace-menu-btn" id="workspaceMenuBtn" aria-label="Abrir menú de espacios de trabajo" aria-expanded="false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/>
+                    <rect x="14" y="3" width="7" height="7" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1"/>
+                    <rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+            </button>
+            <div class="dashboard-logo">
+                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="45" stroke="#2D3748" stroke-width="3"/>
+                    <path d="M30 50 L45 65 L70 35" stroke="#2D3748" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <h1>Eladis Boutique</h1>
+            </div>
+            <div style="display:flex; gap:12px; align-items:center;">
+                <button class="btn-back-history" id="btnBack">← Regresar</button>
+            </div>
+        </header>
+
+        <!-- Workspace Drawer -->
+        <div class="workspace-drawer" id="workspaceDrawer" role="navigation" aria-label="Espacios de trabajo">
+            <div class="workspace-drawer-header">
+                <h3>Eladis Boutique</h3>
+                <button type="button" class="workspace-drawer-close" id="workspaceDrawerClose" aria-label="Cerrar menú">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="workspace-drawer-content">
+                <div class="workspace-drawer-section">
+                    <div class="workspace-drawer-section-title">Navegación</div>
+                    <a href="dashboard.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7" rx="1"/>
+                            <rect x="14" y="3" width="7" height="7" rx="1"/>
+                            <rect x="3" y="14" width="7" height="7" rx="1"/>
+                            <rect x="14" y="14" width="7" height="7" rx="1"/>
+                        </svg>
+                        Dashboard
+                    </a>
+                    <a href="productos.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                            <line x1="7" y1="7" x2="7.01" y2="7"/>
+                        </svg>
+                        Productos
+                    </a>
+                    <a href="inventario.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                            <line x1="7" y1="7" x2="7.01" y2="7"/>
+                        </svg>
+                        Inventario
+                    </a>
+                    <a href="ventas.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="9" cy="21" r="1"/>
+                            <circle cx="20" cy="21" r="1"/>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 1-2 1.61H9.72a2 2 0 0 1-2-1.61L23 6H6"/>
+                        </svg>
+                        Ventas
+                    </a>
+                    <a href="compras.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <path d="M16 10a4 4 0 0 1-8 0"/>
+                        </svg>
+                        Compras
+                    </a>
+                    <a href="financiera.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                        Gestión Financiera
+                    </a>
+                    <a href="usuarios.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        Usuarios
+                    </a>
+                    <a href="historial.html" class="workspace-drawer-item active-workspace" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                            <path d="M12 8v4l2 2" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        Historial
+                    </a>
+                </div>
+            </div>
+            <div class="workspace-drawer-footer">
+                <div class="workspace-drawer-user">
+                    <div class="workspace-drawer-user-avatar" id="workspaceUserAvatar">EB</div>
+                    <div class="workspace-drawer-user-info">
+                        <div class="workspace-drawer-user-name" id="workspaceUserName">Usuario</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="workspace-drawer-overlay" id="workspaceDrawerOverlay"></div>
+
+        <main class="history-main">
+            <section class="history-section-header">
+                <h2>
+                    Historial
+                    <span class="history-count" id="historyCount">0</span>
+                </h2>
+                <p>Historial de movimientos de inventario y ventas.</p>
+            </section>
+
+            <!-- Filter Bar -->
+            <div class="history-filter-bar">
+                <div class="filter-group">
+                    <label for="movementTypeFilter">Tipo de movimiento</label>
+                    <select id="movementTypeFilter">
+                        <option value="">Todos los tipos</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="dateFromFilter">Desde</label>
+                    <input type="date" id="dateFromFilter">
+                </div>
+                <div class="filter-group">
+                    <label for="dateToFilter">Hasta</label>
+                    <input type="date" id="dateToFilter">
+                </div>
+                <div class="filter-group" style="display: flex; align-items: flex-end;">
+                    <button class="btn-clear-history-filter" id="btnClearHistoryFilter">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                        Limpiar filtros
+                    </button>
+                </div>
+            </div>
+
+            <div class="history-table-wrapper">
+                <div id="historyTableContent">
+                    <div class="loading-container">
+                        <div class="spinner-lg"></div>
+                        <p style="color: var(--text-muted);">Cargando historial...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { supabase } from './app.js';
+
+        const btnBack = document.getElementById('btnBack');
+        const historyTableContent = document.getElementById('historyTableContent');
+        const historyCount = document.getElementById('historyCount');
+        const movementTypeFilter = document.getElementById('movementTypeFilter');
+        const dateFromFilter = document.getElementById('dateFromFilter');
+        const dateToFilter = document.getElementById('dateToFilter');
+        const btnClearHistoryFilter = document.getElementById('btnClearHistoryFilter');
+
+        let movementsList = [];
+
+        function formatCurrency(value) {
+            if (value === null || value === undefined || value === '') return '—';
+            const num = typeof value === 'string' ? parseFloat(value.replace(/[^0-9.-]/g, '')) : Number(value);
+            if (isNaN(num)) return '—';
+            return '$ ' + num.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '—';
+            try {
+                const d = new Date(dateStr);
+                if (isNaN(d.getTime())) {
+                    return dateStr.substring(0, 10);
+                }
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const year = d.getFullYear();
+                return `${day}/${month}/${year}`;
+            } catch {
+                return dateStr.substring(0, 10);
+            }
+        }
+
+        function escapeHtml(text) {
+            if (text === null || text === undefined) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function getTypeBadge(type) {
+            let badgeClass = '';
+            let label = type || 'Desconocido';
+
+            if (type.includes('Entrada')) {
+                badgeClass = 'entry';
+            } else if (type.includes('Salida')) {
+                badgeClass = 'exit';
+            } else if (type.includes('Venta')) {
+                badgeClass = 'sale';
+            } else if (type.includes('Editada')) {
+                badgeClass = 'edit';
+            } else if (type.includes('Eliminada')) {
+                badgeClass = 'delete';
+            }
+
+            return `<span class="history-type-badge ${badgeClass}">${escapeHtml(label)}</span>`;
+        }
+
+        function getMovementDetail(movement) {
+            const data = movement.sale_data || movement.movement_data || movement.purchase_data || movement.inventory_data || {};
+            const parts = [];
+
+            if (data.items) {
+                const items = Array.isArray(data.items) ? data.items : [data.items];
+                items.forEach((item, i) => {
+                    if (i > 0) parts.push('<br>');
+                    let itemDetail = `<strong>${escapeHtml(item.reference || '—')}</strong> - Tall. ${escapeHtml(item.size || '—')} - ${item.amount || 0} x ${formatCurrency(item.price || 0)} = ${formatCurrency((item.price || 0) * (item.amount || 0))}`;
+                    parts.push(itemDetail);
+                });
+                if (data.total_sale) {
+                    parts.push(`<br><strong>Total:</strong> ${formatCurrency(data.total_sale)}`);
+                }
+                if (data.client_data && data.client_data.nombre) {
+                    parts.push(`<br><strong>Cliente:</strong> ${escapeHtml(data.client_data.nombre)}`);
+                }
+            } else if (data.reference) {
+                parts.push(`<strong>${escapeHtml(data.reference)}</strong> - Tall. ${escapeHtml(data.size || '—')} - ${data.amount || 0} uds`);
+                if (data.purchase_price) {
+                    parts.push(` x ${formatCurrency(data.purchase_price)}`);
+                }
+                if (data.total_purchase) {
+                    parts.push(` = <strong>${formatCurrency(data.total_purchase)}</strong>`);
+                } else if (data.total_sale) {
+                    parts.push(` = <strong>${formatCurrency(data.total_sale)}</strong>`);
+                }
+            } else if (data.entries) {
+                const entries = Array.isArray(data.entries) ? data.entries : [data.entries];
+                entries.forEach((entry, i) => {
+                    if (i > 0) parts.push('<br>');
+                    parts.push(`<strong>${escapeHtml(entry.reference || '—')}</strong> - Tall. ${escapeHtml(entry.size || '—')} - ${entry.amount || 0} uds`);
+                });
+            }
+
+            if (data.observation) {
+                parts.push(`<br><strong>Observación:</strong> ${escapeHtml(data.observation)}`);
+            }
+
+            return parts.join('');
+        }
+
+        async function loadMovements() {
+            historyTableContent.innerHTML = `
+                <div class="loading-container">
+                    <div class="spinner-lg"></div>
+                    <p style="color: var(--text-muted);">Cargando historial...</p>
+                </div>
+            `;
+
+            let query = supabase
+                .from('movements')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            const typeFilter = movementTypeFilter.value;
+            if (typeFilter) {
+                query = query.eq('type', typeFilter);
+            }
+
+            const dateFrom = dateFromFilter.value;
+            const dateTo = dateToFilter.value;
+
+            if (dateFrom) {
+                query = query.gte('created_at', dateFrom);
+            }
+            if (dateTo) {
+                const nextDay = new Date(dateTo);
+                nextDay.setDate(nextDay.getDate() + 1);
+                query = query.lt('created_at', nextDay.toISOString());
+            }
+
+            const { data, error } = await query;
+
+            if (error) {
+                historyTableContent.innerHTML = `<div class="history-empty"><p>Error al cargar el historial. Intenta de nuevo.</p></div>`;
+                console.error('Error loading movements:', error);
+                return;
+            }
+
+            movementsList = data || [];
+            historyCount.textContent = movementsList.length;
+
+            if (movementsList.length === 0) {
+                historyTableContent.innerHTML = `
+                    <div class="history-empty">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 8v4l2 2"/>
+                        </svg>
+                        <p>No hay movimientos registrados.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Tipo</th>
+                            <th>Detalles</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            movementsList.forEach((movement) => {
+                html += `
+                    <tr>
+                        <td>${escapeHtml(formatDate(movement.created_at))}</td>
+                        <td>${getTypeBadge(movement.type)}</td>
+                        <td class="history-detail">${getMovementDetail(movement)}</td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            historyTableContent.innerHTML = html;
+        }
+
+        function populateMovementTypes() {
+            const types = ['Entrada Inventario', 'Salida Inventario', 'Venta', 'Venta Editada', 'Venta Eliminada'];
+            let opts = '<option value="">Todos los tipos</option>';
+            types.forEach(t => {
+                opts += `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`;
+            });
+            movementTypeFilter.innerHTML = opts;
+        }
+
+        // Workspace Drawer
+        const workspaceMenuBtn = document.getElementById('workspaceMenuBtn');
+        const workspaceDrawer = document.getElementById('workspaceDrawer');
+        const workspaceDrawerOverlay = document.getElementById('workspaceDrawerOverlay');
+        const workspaceDrawerClose = document.getElementById('workspaceDrawerClose');
+
+        function openWorkspaceDrawer() {
+            workspaceDrawer.classList.add('active');
+            workspaceDrawerOverlay.classList.add('active');
+            workspaceMenuBtn.setAttribute('aria-expanded', 'true');
+        }
+
+        function closeWorkspaceDrawer() {
+            workspaceDrawer.classList.remove('active');
+            workspaceDrawerOverlay.classList.remove('active');
+            workspaceMenuBtn.setAttribute('aria-expanded', 'false');
+        }
+
+        workspaceMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (workspaceDrawer.classList.contains('active')) {
+                closeWorkspaceDrawer();
+            } else {
+                openWorkspaceDrawer();
+            }
+        });
+
+        workspaceDrawerClose.addEventListener('click', closeWorkspaceDrawer);
+        workspaceDrawerOverlay.addEventListener('click', closeWorkspaceDrawer);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && workspaceDrawer.classList.contains('active')) {
+                closeWorkspaceDrawer();
+                workspaceMenuBtn.focus();
+            }
+        });
+
+        // Load user profile
+        async function loadWorkspaceUser() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session?.user) return;
+
+            const { data: profile, error } = await supabase
+                .from('users')
+                .select('name, role')
+                .eq('user_id', session.user.id)
+                .maybeSingle();
+
+            const name = profile?.name || session.user.user_metadata?.name || 'Usuario';
+            const role = profile?.role || null;
+
+            const avatar = document.getElementById('workspaceUserAvatar');
+            const nameEl = document.getElementById('workspaceUserName');
+            if (avatar) avatar.textContent = name.charAt(0).toUpperCase();
+            if (nameEl) nameEl.textContent = name;
+
+            const isUserRole = String(role || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === 'usuario';
+            const restrictedModules = ['usuarios', 'productos', 'financiera', 'compras'];
+            if (isUserRole) {
+                restrictedModules.forEach(module => {
+                    const item = document.querySelector(`.workspace-drawer-item[href="${module}.html"]`);
+                    if (item) item.style.display = 'none';
+                });
+            }
+        }
+        loadWorkspaceUser();
+
+        btnBack.addEventListener('click', () => {
+            window.location.href = 'dashboard.html';
+        });
+
+        movementTypeFilter.addEventListener('change', loadMovements);
+        dateFromFilter.addEventListener('change', loadMovements);
+        dateToFilter.addEventListener('change', loadMovements);
+
+        btnClearHistoryFilter.addEventListener('click', () => {
+            movementTypeFilter.value = '';
+            dateFromFilter.value = '';
+            dateToFilter.value = '';
+            loadMovements();
+        });
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (!session) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            populateMovementTypes();
+            await loadMovements();
+        });
+    </script>
+</body>
+</html>

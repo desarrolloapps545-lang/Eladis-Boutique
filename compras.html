@@ -213,7 +213,7 @@
 
         /* Modal Styles */
         .purchase-modal-content {
-            max-width: 520px;
+            max-width: 900px;
             width: 92%;
         }
 
@@ -502,6 +502,13 @@
                         </svg>
                         Usuarios
                     </a>
+                    <a href="historial.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 8v4l2 2"/>
+                        </svg>
+                        Historial
+                    </a>
                 </div>
             </div>
             <div class="workspace-drawer-footer">
@@ -551,38 +558,47 @@
             <div class="modal-body" style="padding: 24px; text-align: left;">
                 <div id="purchaseModalAlert" class="modal-alert"></div>
 
-                <form id="createPurchaseForm" novalidate>
-                    <div class="purchase-form-group">
-                        <label for="purchaseProduct">Producto</label>
-                        <select id="purchaseProduct" required>
-                            <option value="">Seleccionar producto...</option>
-                        </select>
+<form id="createPurchaseForm" novalidate>
+                    <div class="purchase-products-section" style="margin-bottom: 20px; padding: 16px; background: var(--background); border-radius: var(--radius-md); border: 1px solid var(--border);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h3 style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin: 0;">productos de la Compra</h3>
+                            <button type="button" class="btn-add-row" id="btnAddPurchaseProductRow" style="padding: 8px 12px; font-size: 13px; background: var(--primary); color: white; border: none; border-radius: var(--radius-md); cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;">
+                                    <line x1="12" y1="5" x2="12" y2="19"/>
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                                Agregar producto
+                            </button>
+                        </div>
+
+                        <div class="purchase-products-header" style="display: grid; grid-template-columns: 1.3fr 2.5fr 1fr 1fr 1fr 1fr 60px; gap: 8px; padding: 8px 12px; background: var(--card-bg); border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
+                            <div>Categoría</div>
+                            <div>Producto</div>
+                            <div>Talla</div>
+                            <div>Precio Unit.</div>
+                            <div>Cantidad</div>
+                            <div>Subtotal</div>
+                            <div></div>
+                        </div>
+
+                        <div id="purchaseProductRows"></div>
+
+                        <div id="noPurchaseProductsMessage" style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 14px; display: none;">
+                            No hay productos agregados. Haz clic en " agregar producto" para comenzar.
+                        </div>
                     </div>
 
-                    <div class="price-display-row" id="priceDisplayRow" style="display: none;">
-                        <span class="price-display-label">Precio de compra unitario:</span>
-                        <span class="price-display-val" id="unitPriceDisplay">$ 0</span>
+                    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 16px; padding: 16px; background: var(--card-bg); border-radius: var(--radius-md); border: 1px solid var(--border);">
+                        <div style="font-size: 14px; color: var(--text-secondary);">
+                            Total a pagar:
+                        </div>
+                        <div id="grandTotalPurchaseDisplay" style="font-size: 22px; font-weight: 700; color: var(--primary);">
+                            $ 0
+                        </div>
                     </div>
 
-                    <div class="purchase-form-group">
-                        <label for="purchaseSize">Talla</label>
-                        <select id="purchaseSize" required disabled>
-                            <option value="">Selecciona un producto primero...</option>
-                        </select>
-                    </div>
-
-                    <div class="purchase-form-group">
-                        <label for="purchaseAmount">Cantidad</label>
-                        <input type="number" id="purchaseAmount" min="1" step="1" placeholder="Ej. 10" required disabled>
-                    </div>
-
-                    <div class="total-display-row" id="totalDisplayRow" style="display: none;">
-                        <span class="total-display-label">Total compra:</span>
-                        <span class="total-display-val" id="totalPurchaseDisplay">$ 0</span>
-                    </div>
-
-                    <div class="modal-actions">
-                        <button type="button" class="btn-modal-cancel" id="cancelPurchaseBtn">Cancelar</button>
+                    <div class="modal-actions" style="margin-top: 20px;">
+                        <button type="button" class="btn-modal-cancel" id="cancelPurchaseBtn">cancelar</button>
                         <button type="submit" class="btn-modal-submit" id="btnSubmitPurchase" disabled>
                             <span id="btnSubmitPurchaseText">Registrar Compra</span>
                             <span id="btnSubmitPurchaseLoader" style="display:none;">
@@ -613,35 +629,50 @@
             </div>
             <div class="modal-body" style="padding: 24px; text-align: left;">
                 <div id="editPurchaseModalAlert" class="modal-alert"></div>
-                <form id="editPurchaseForm" novalidate>
+
+<form id="editPurchaseForm" novalidate>
                     <input type="hidden" id="editPurchaseId">
                     <input type="hidden" id="editPurchaseIndex">
-                    <input type="hidden" id="editPurchaseOriginalSize">
-                    <input type="hidden" id="editPurchaseOriginalAmount">
-                    <input type="hidden" id="editPurchaseOriginalTotal">
-                    <div class="purchase-form-group">
-                        <label for="editPurchaseReference">Referencia</label>
-                        <input type="text" id="editPurchaseReference" required disabled>
+                    <input type="hidden" id="editPurchaseOriginalData">
+
+                    <div class="purchase-products-section" style="margin-bottom: 20px; padding: 16px; background: var(--background); border-radius: var(--radius-md); border: 1px solid var(--border);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h3 style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin: 0;">productos de la Compra</h3>
+                            <button type="button" class="btn-add-row" id="btnAddEditPurchaseProductRow" style="padding: 8px 12px; font-size: 13px; background: var(--primary); color: white; border: none; border-radius: var(--radius-md); cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;">
+                                    <line x1="12" y1="5" x2="12" y2="19"/>
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                                Agregar producto
+                            </button>
+                        </div>
+
+                        <div class="edit-purchase-products-header" style="display: grid; grid-template-columns: 1.3fr 2.5fr 1fr 1fr 1fr 1fr 60px; gap: 8px; padding: 8px 12px; background: var(--card-bg); border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
+                            <div>Categoría</div>
+                            <div>Producto</div>
+                            <div>Talla</div>
+                            <div>Precio Unit.</div>
+                            <div>Cantidad</div>
+                            <div>Subtotal</div>
+                            <div></div>
+                        </div>
+
+                        <div id="editPurchaseProductRows"></div>
+
+                        <div id="noEditPurchaseProductsMessage" style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 14px; display: none;">
+                            No hay productos agregados. Haz clic en "Agregar producto" para comenzar.
+                        </div>
                     </div>
-                    <div class="purchase-form-group">
-                        <label for="editPurchaseSize">Talla</label>
-                        <select id="editPurchaseSize" required>
-                            <option value="">Cargando tallas...</option>
-                        </select>
+
+                    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 16px; padding: 16px; background: var(--card-bg); border-radius: var(--radius-md); border: 1px solid var(--border);">
+                        <div style="font-size: 14px; color: var(--text-secondary);">
+                            Total de la compra:
+                        </div>
+                        <div id="editGrandTotalPurchaseDisplay" style="font-size: 22px; font-weight: 700; color: var(--primary);">
+                            $ 0
+                        </div>
                     </div>
-                    <div class="purchase-form-group">
-                        <label for="editPurchasePrice">Precio unitario</label>
-                        <input type="text" id="editPurchasePrice" required disabled>
-                    </div>
-                    <div class="purchase-form-group">
-                        <label for="editPurchaseAmount">Cantidad</label>
-                        <input type="number" id="editPurchaseAmount" min="1" step="1" placeholder="Ej. 10" required>
-                        <div id="editPurchaseStockInfoBox" class="stock-info-box" style="display: none;"></div>
-                    </div>
-                    <div class="purchase-form-group">
-                        <label for="editPurchaseTotal">Total compra</label>
-                        <input type="text" id="editPurchaseTotal" required disabled>
-                    </div>
+
                     <div class="modal-actions">
                         <button type="button" class="btn-modal-cancel" id="cancelEditPurchaseBtn">Cancelar</button>
                         <button type="submit" class="btn-modal-submit" id="btnSaveEditPurchase">
@@ -667,21 +698,17 @@
         const tableContent = document.getElementById('tableContent');
         const purchasesCount = document.getElementById('purchasesCount');
 
-        // Modal Registrar Compra
+// Modal Registrar Compra
         const createPurchaseModal = document.getElementById('createPurchaseModal');
         const createPurchaseModalOverlay = document.getElementById('createPurchaseModalOverlay');
         const closeCreatePurchaseModal = document.getElementById('closeCreatePurchaseModal');
         const cancelPurchaseBtn = document.getElementById('cancelPurchaseBtn');
         const createPurchaseForm = document.getElementById('createPurchaseForm');
         const purchaseModalAlert = document.getElementById('purchaseModalAlert');
-
-        const purchaseProduct = document.getElementById('purchaseProduct');
-        const priceDisplayRow = document.getElementById('priceDisplayRow');
-        const unitPriceDisplay = document.getElementById('unitPriceDisplay');
-        const purchaseSize = document.getElementById('purchaseSize');
-        const purchaseAmount = document.getElementById('purchaseAmount');
-        const totalDisplayRow = document.getElementById('totalDisplayRow');
-        const totalPurchaseDisplay = document.getElementById('totalPurchaseDisplay');
+        const btnAddPurchaseProductRow = document.getElementById('btnAddPurchaseProductRow');
+        const purchaseProductRows = document.getElementById('purchaseProductRows');
+        const grandTotalPurchaseDisplay = document.getElementById('grandTotalPurchaseDisplay');
+        const noPurchaseProductsMessage = document.getElementById('noPurchaseProductsMessage');
         const btnSubmitPurchase = document.getElementById('btnSubmitPurchase');
         const btnSubmitPurchaseText = document.getElementById('btnSubmitPurchaseText');
         const btnSubmitPurchaseLoader = document.getElementById('btnSubmitPurchaseLoader');
@@ -694,19 +721,27 @@
         const editPurchaseForm = document.getElementById('editPurchaseForm');
         const editPurchaseId = document.getElementById('editPurchaseId');
         const editPurchaseIndex = document.getElementById('editPurchaseIndex');
+        const editPurchaseOriginalData = document.getElementById('editPurchaseOriginalData');
+        const editPurchaseProductRows = document.getElementById('editPurchaseProductRows');
+        const btnAddEditPurchaseProductRow = document.getElementById('btnAddEditPurchaseProductRow');
+        const noEditPurchaseProductsMessage = document.getElementById('noEditPurchaseProductsMessage');
+        const editGrandTotalPurchaseDisplay = document.getElementById('editGrandTotalPurchaseDisplay');
+        const savEditPurchase = document.getElementById('btnSaveEditPurchase');
+        const savEditPurchaseText = document.getElementById('btnSaveEditPurchaseText');
+        const savEditPurchaseLoader = document.getElementById('btnSaveEditPurchaseLoader');
+        const editPurchaseModalAlert = document.getElementById('editPurchaseModalAlert');
+        
+        // Form field elements for edit modal
         const editPurchaseReference = document.getElementById('editPurchaseReference');
         const editPurchaseSize = document.getElementById('editPurchaseSize');
         const editPurchasePrice = document.getElementById('editPurchasePrice');
         const editPurchaseAmount = document.getElementById('editPurchaseAmount');
-        const editPurchaseTotal = document.getElementById('editPurchaseTotal');
-        const btnSaveEditPurchase = document.getElementById('btnSaveEditPurchase');
-        const btnSaveEditPurchaseText = document.getElementById('btnSaveEditPurchaseText');
-        const btnSaveEditPurchaseLoader = document.getElementById('btnSaveEditPurchaseLoader');
-        const editPurchaseModalAlert = document.getElementById('editPurchaseModalAlert');
+        const editPurchaseOriginalSize = document.getElementById('editPurchaseOriginalSize');
+        const editPurchaseOriginalAmount = document.getElementById('editPurchaseOriginalAmount');
 
         let productsList = [];
         let purchasesList = [];
-        let currentPurchasePrice = 0;
+        let purchaseProductCounter = 0;
 
         function formatCurrency(value) {
             if (value === null || value === undefined || value === '') return '—';
@@ -744,9 +779,65 @@
             return div.innerHTML;
         }
 
+        // Convertir array JS a literal de array de Postgres ('{"valor"}')
+        function pgArrayLiteral(arr) {
+            return '{' + (arr || []).map(v => String(v).replace(/\\/g, '\\\\').replace(/"/g, '\\"')).join(',') + '}';
+        }
+
+        // Parsear una cadena de array de Postgres a array JS
+        function parsePostgresArray(value) {
+            if (Array.isArray(value)) return value;
+            if (typeof value !== 'string' || !value) return value === null || value === undefined ? '' : value;
+            const str = value.trim();
+            if (str.startsWith('{') && str.endsWith('}')) {
+                return str.slice(1, -1).split(',').map(s => s.trim().replace(/^"|"$/g, '')).filter(Boolean);
+            }
+            return str;
+        }
+
+        // Parsear un campo jsonb a array JS (maneja strings, números y valores nulos)
+        function parseJsonbField(value) {
+            if (Array.isArray(value)) return value;
+            if (value === null || value === undefined) return [];
+            if (typeof value === 'number') return [value];
+            if (typeof value === 'string') {
+                if (!value.trim()) return [];
+                try {
+                    const parsed = JSON.parse(value);
+                    return Array.isArray(parsed) ? parsed : [parsed];
+                } catch {
+                    return [value];
+                }
+            }
+            return [value];
+        }
+
+        // Construir un array de ítems de compra normalizado desde un registro
+        function getPurchaseItems(purchase) {
+            const references = parsePostgresArray(purchase.reference);
+            const sizes = parsePostgresArray(purchase.size);
+            const amounts = parseJsonbField(purchase.amount);
+            const prices = parseJsonbField(purchase.purchase_price);
+
+            const refArr = Array.isArray(references) ? references : (references ? [references] : []);
+            const sizeArr = Array.isArray(sizes) ? sizes : (sizes ? [sizes] : []);
+
+            const maxLen = Math.max(refArr.length, sizeArr.length, amounts.length, prices.length, 0);
+            const items = [];
+            for (let i = 0; i < maxLen; i++) {
+                items.push({
+                    reference: refArr[i] || '',
+                    size: sizeArr[i] || '',
+                    amount: Number(amounts[i]) || 0,
+                    purchase_price: Number(prices[i]) || 0,
+                });
+            }
+            return items;
+        }
+
         let currentEditPurchaseId = null;
         let currentEditPurchaseIndex = null;
-        let currentEditPurchaseAvailableStock = 0;
+        let editProductCounter = 0;
 
         async function openEditPurchaseModal(id, index) {
             const purchase = purchasesList[index];
@@ -757,91 +848,36 @@
 
             editPurchaseId.value = id || '';
             editPurchaseIndex.value = index;
-            editPurchaseReference.value = purchase.reference || '';
-            editPurchaseOriginalSize.value = purchase.size || '';
-            editPurchaseOriginalAmount.value = purchase.amount || '';
-            editPurchaseOriginalTotal.value = purchase.total_purchase || 0;
-            editPurchasePrice.value = formatCurrency(purchase.purchase_price);
-            editPurchaseAmount.value = purchase.amount || '';
-            editPurchaseTotal.value = formatCurrency(purchase.total_purchase);
 
-            // Fetch available sizes for this product
-            const { data: productData, error: productError } = await supabase
-                .from('products')
-                .select('size')
-                .eq('reference', purchase.reference)
-                .single();
+            // Obtener los ítems originales y almacenarlos como JSON en campo oculto
+            const originalItems = getPurchaseItems(purchase);
+            editPurchaseOriginalData.value = JSON.stringify(originalItems.map(item => ({
+                reference: item.reference,
+                size: item.size,
+                amount: item.amount,
+                purchase_price: item.purchase_price
+            })));
 
-            if (productError || !productData) {
-                editPurchaseSize.innerHTML = `<option value="${escapeHtml(purchase.size)}">${escapeHtml(purchase.size)}</option>`;
-            } else {
-                let sizes = [];
-                if (Array.isArray(productData.size)) {
-                    sizes = productData.size;
-                } else if (typeof productData.size === 'string' && productData.size.trim()) {
-                    try {
-                        const parsed = JSON.parse(productData.size);
-                        sizes = Array.isArray(parsed) ? parsed : [productData.size];
-                    } catch {
-                        sizes = productData.size.split(',').map(s => s.trim()).filter(Boolean);
-                    }
-                }
+            // Limpiar filas del modal de edición
+            editPurchaseProductRows.innerHTML = '';
+            editProductCounter = 0;
+            savEditPurchase.disabled = true;
+            updateEditGrandTotal();
 
-                let sizeOpts = '';
-                sizes.forEach(s => {
-                    const selected = s === purchase.size ? 'selected' : '';
-                    sizeOpts += `<option value="${escapeHtml(s)}" ${selected}>${escapeHtml(s)}</option>`;
-                });
-                editPurchaseSize.innerHTML = sizeOpts;
+            // Cargar productos y luego crear una fila por cada ítem original
+            await loadProductsForPurchase();
+            originalItems.forEach((item, i) => {
+                addEditPurchaseProductRow(item);
+            });
+
+            // Si no hay ítems, agregar una fila vacía
+            if (originalItems.length === 0) {
+                addEditPurchaseProductRow(null);
             }
 
-            // Fetch inventory for the original size
-            await fetchEditPurchaseStock(purchase.reference, purchase.size);
-
+            updateEditPurchaseRowsVisibility();
             editPurchaseModalAlert.style.display = 'none';
             editPurchaseModal.classList.add('active');
-        }
-
-        async function fetchEditPurchaseStock(reference, size) {
-            const editStockInfoBox = document.getElementById('editPurchaseStockInfoBox');
-            editStockInfoBox.style.display = 'none';
-            currentEditPurchaseAvailableStock = 0;
-
-            const { data, error } = await supabase
-                .from('inventory')
-                .select('amount')
-                .eq('reference', reference)
-                .eq('size', size);
-
-            if (error) {
-                console.error('Error consultando stock:', error);
-                return;
-            }
-
-            currentEditPurchaseAvailableStock = (data || []).reduce((acc, row) => acc + (Number(row.amount) || 0), 0);
-
-            editStockInfoBox.style.display = 'flex';
-            editStockInfoBox.className = 'stock-info-box in-stock';
-            editStockInfoBox.innerHTML = `Disponibles en inventario: <strong>${currentEditPurchaseAvailableStock}</strong> uds`;
-
-            editPurchaseAmount.min = 1;
-            editPurchaseAmount.max = currentEditPurchaseAvailableStock;
-            editPurchaseAmount.placeholder = `Máx. ${currentEditPurchaseAvailableStock}`;
-
-            updateEditPurchaseTotal();
-        }
-
-        function updateEditPurchaseTotal() {
-            const amountVal = parseInt(editPurchaseAmount.value, 10);
-            // Remove $, spaces, and dots (thousands separators) before parsing
-            const priceVal = parseFloat(editPurchasePrice.value.replace(/[^0-9.-]/g, '').replace(/\./g, '')) || 0;
-
-            if (!isNaN(amountVal) && amountVal > 0 && priceVal > 0) {
-                const total = priceVal * amountVal;
-                editPurchaseTotal.value = formatCurrency(total);
-            } else {
-                editPurchaseTotal.value = formatCurrency(0);
-            }
         }
 
         function closeEditPurchaseModalFn() {
@@ -849,14 +885,18 @@
             currentEditPurchaseId = null;
             currentEditPurchaseIndex = null;
             editPurchaseForm.reset();
-            editPurchaseSize.innerHTML = '<option value="">Cargando tallas...</option>';
+            editPurchaseProductRows.innerHTML = '';
+            editProductCounter = 0;
         }
 
         async function deletePurchase(id, index) {
             const purchase = purchasesList[index];
             if (!purchase) return;
 
-            if (!confirm(`¿Eliminar la compra de "${purchase.reference}" (${purchase.size})?`)) return;
+            const items = getPurchaseItems(purchase);
+            const summary = items.map(i => `${i.reference} (${i.size})`).join(', ');
+
+            if (!confirm(`¿Eliminar la compra de "${summary || purchase.id}"?`)) return;
 
             try {
                 let query = supabase.from('purchases').delete();
@@ -865,8 +905,8 @@
                     query = query.eq('id', id);
                 } else {
                     query = query
-                        .eq('reference', purchase.reference)
-                        .eq('size', purchase.size)
+                        .eq('reference', pgArrayLiteral(parsePostgresArray(purchase.reference)))
+                        .eq('size', pgArrayLiteral(parsePostgresArray(purchase.size)))
                         .eq('created_at', purchase.created_at);
                 }
 
@@ -874,27 +914,29 @@
 
                 if (error) throw error;
 
-                // 1. Decrease inventory stock (subtract purchased quantity)
-                const { data: invData, error: invError } = await supabase
-                    .from('inventory')
-                    .select('*')
-                    .eq('reference', purchase.reference)
-                    .eq('size', purchase.size)
-                    .single();
+                // 1. Decrease inventory stock for each product (subtract purchased quantity)
+                for (const item of items) {
+                    const { data: invData, error: invError } = await supabase
+                        .from('inventory')
+                        .select('*')
+                        .eq('reference', item.reference)
+                        .eq('size', item.size)
+                        .single();
 
-                if (!invError && invData) {
-                    const newAmount = (Number(invData.amount) || 0) - (Number(purchase.amount) || 0);
-                    if (newAmount < 0) throw new Error(`No hay suficiente stock en inventario para eliminar esta compra.`);
-                    let updateQuery = supabase.from('inventory').update({ amount: newAmount });
-                    if (invData.id) {
-                        updateQuery = updateQuery.eq('id', invData.id);
-                    } else {
-                        updateQuery = updateQuery.eq('reference', purchase.reference).eq('size', purchase.size);
+                    if (!invError && invData) {
+                        const newAmount = (Number(invData.amount) || 0) - item.amount;
+                        if (newAmount < 0) throw new Error(`No hay suficiente stock en inventario para "${item.reference}" (${item.size}).`);
+                        let updateQuery = supabase.from('inventory').update({ amount: newAmount });
+                        if (invData.id) {
+                            updateQuery = updateQuery.eq('id', invData.id);
+                        } else {
+                            updateQuery = updateQuery.eq('reference', item.reference).eq('size', item.size);
+                        }
+                        const { error: updateErr } = await updateQuery;
+                        if (updateErr) throw updateErr;
+                    } else if (invError && invError.code === 'PGRST116') {
+                        throw new Error(`No hay stock en inventario para "${item.reference}" (${item.size}).`);
                     }
-                    const { error: updateErr } = await updateQuery;
-                    if (updateErr) throw updateErr;
-                } else if (invError && invError.code === 'PGRST116') {
-                    throw new Error(`No hay stock en inventario para esta talla.`);
                 }
 
                 // 2. Increase capital (add purchase total back since expense is removed)
@@ -919,6 +961,25 @@
                 }
 
                 await loadPurchases();
+
+                // Save to movements table for deleted purchase (one per item)
+                const movements = items.map(item => ({
+                    type: 'compra de producto eliminada',
+                    purchase_data: {
+                        reference: item.reference,
+                        size: item.size,
+                        purchase_price: item.purchase_price,
+                        amount: item.amount,
+                        total_purchase: item.purchase_price * item.amount
+                    },
+                    created_at: new Date().toISOString()
+                }));
+                const { error: movementError } = await supabase
+                    .from('movements')
+                    .insert(movements);
+                if (movementError) {
+                    console.error('Error saving movement:', movementError);
+                }
             } catch (err) {
                 console.error('Error deleting purchase:', err);
                 alert(err.message || 'Error al eliminar la compra');
@@ -945,33 +1006,22 @@
 
             if (error) {
                 console.error('Error cargando productos:', error);
-                purchaseProduct.innerHTML = '<option value="">Error al cargar productos</option>';
                 return;
             }
 
             productsList = data || [];
-            let options = '<option value="">Seleccionar producto...</option>';
-            productsList.forEach((prod, index) => {
-                options += `<option value="${index}">${escapeHtml(prod.reference)}</option>`;
-            });
-            purchaseProduct.innerHTML = options;
         }
 
         function openCreatePurchaseModal() {
             hidePurchaseAlert();
             createPurchaseForm.reset();
-            currentPurchasePrice = 0;
 
-            priceDisplayRow.style.display = 'none';
-            totalDisplayRow.style.display = 'none';
-
-            purchaseSize.innerHTML = '<option value="">Selecciona un producto primero...</option>';
-            purchaseSize.disabled = true;
-            purchaseAmount.value = '';
-            purchaseAmount.disabled = true;
+            purchaseProductRows.innerHTML = '';
+            purchaseProductCounter = 0;
             btnSubmitPurchase.disabled = true;
+            updateGrandTotalPurchase();
 
-            loadProductsForPurchase();
+            loadProductsForPurchase().then(() => addPurchaseProductRow());
             createPurchaseModal.classList.add('active');
         }
 
@@ -1012,17 +1062,21 @@
         });
 
         // Handle size change in edit purchase modal
-        editPurchaseSize.addEventListener('change', async () => {
-            const reference = editPurchaseReference.value;
-            const size = editPurchaseSize.value;
-            await fetchEditPurchaseStock(reference, size);
-        });
+        if (editPurchaseSize) {
+            editPurchaseSize.addEventListener('change', async () => {
+                const reference = editPurchaseReference.value;
+                const size = editPurchaseSize.value;
+                await fetchEditPurchaseStock(reference, size);
+            });
+        }
 
         // Calculate total in real-time for edit purchase modal
-        editPurchaseAmount.addEventListener('input', () => {
-            editPurchaseAmount.value = editPurchaseAmount.value.replace(/\D/g, '');
-            updateEditPurchaseTotal();
-        });
+        if (editPurchaseAmount) {
+            editPurchaseAmount.addEventListener('input', () => {
+                editPurchaseAmount.value = editPurchaseAmount.value.replace(/\D/g, '');
+                updateEditPurchaseTotal();
+            });
+        }
 
         editPurchaseForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -1046,23 +1100,23 @@
             const reference = editPurchaseReference.value;
             const totalVal = priceVal * amountVal;
 
-            btnSaveEditPurchase.disabled = true;
-            btnSaveEditPurchaseText.style.display = 'none';
-            btnSaveEditPurchaseLoader.style.display = 'inline-flex';
+            savEditPurchase.disabled = true;
+            savEditPurchaseText.style.display = 'none';
+            savEditPurchaseLoader.style.display = 'inline-flex';
 
             try {
                 // 1. Update the purchase record
                 let query = supabase
                     .from('purchases')
-                    .update({ amount: amountVal, size: newSize, total_purchase: totalVal });
+                    .update({ amount: amountVal, size: pgArrayLiteral([newSize]), total_purchase: totalVal });
 
                 if (id) {
                     query = query.eq('id', id);
                 } else if (purchasesList[index]) {
                     const purchase = purchasesList[index];
                     query = query
-                        .eq('reference', purchase.reference)
-                        .eq('size', purchase.size)
+                        .eq('reference', pgArrayLiteral(parsePostgresArray(purchase.reference)))
+                        .eq('size', pgArrayLiteral(parsePostgresArray(purchase.size)))
                         .eq('created_at', purchase.created_at);
                 } else {
                     throw new Error('No se pudo identificar la compra a editar');
@@ -1148,172 +1202,460 @@
                             if (updateErr) throw updateErr;
                         } else if (invError && invError.code === 'PGRST116') {
                             throw new Error(`No hay stock en talla ${originalSize}.`);
-} else {
-                    throw invError;
+                        } else {
+                            throw invError;
+                        }
+                    }
                 }
-            }
-        }
 
-        // 3. Update capital (budget) - purchases subtract from capital
-        const originalTotal = parseFloat(editPurchaseOriginalTotal.value) || 0;
-        const capitalDiff = totalVal - originalTotal;
-        if (capitalDiff !== 0) {
-            const { data: budgetRows, error: budgetFetchErr } = await supabase
-                .from('budget')
-                .select('id, value')
-                .limit(1);
+                // 3. Update capital (budget) - purchases subtract from capital
+                const originalTotal = parseFloat(editPurchaseOriginalTotal.value) || 0;
+                const capitalDiff = totalVal - originalTotal;
+                if (capitalDiff !== 0) {
+                    const { data: budgetRows, error: budgetFetchErr } = await supabase
+                        .from('budget')
+                        .select('id, value')
+                        .limit(1);
 
-            if (budgetFetchErr) {
-                console.error('Error al consultar el capital:', budgetFetchErr);
-                throw new Error('La compra se actualizó pero ocurrió un error al consultar el capital: ' + budgetFetchErr.message);
-            }
+                    if (budgetFetchErr) {
+                        console.error('Error al consultar el capital:', budgetFetchErr);
+                        throw new Error('La compra se actualizó pero ocurrió un error al consultar el capital: ' + budgetFetchErr.message);
+                    }
 
-            if (budgetRows && budgetRows.length > 0) {
-                const budgetRecord = budgetRows[0];
-                // For purchases: higher total = more money spent = subtract from capital
-                const newCapital = (Number(budgetRecord.value) || 0) - capitalDiff;
+                    if (budgetRows && budgetRows.length > 0) {
+                        const budgetRecord = budgetRows[0];
+                        // For purchases: higher total = more money spent = subtract from capital
+                        const newCapital = (Number(budgetRecord.value) || 0) - capitalDiff;
 
-                const { error: budgetUpdateErr } = await supabase
-                    .from('budget')
-                    .update({ value: newCapital })
-                    .eq('id', budgetRecord.id);
+                        const { error: budgetUpdateErr } = await supabase
+                            .from('budget')
+                            .update({ value: newCapital })
+                            .eq('id', budgetRecord.id);
 
-                if (budgetUpdateErr) {
-                    console.error('Error al actualizar el capital:', budgetUpdateErr);
-                    throw new Error('La compra se actualizó pero ocurrió un error al actualizar el capital: ' + budgetUpdateErr.message);
+                        if (budgetUpdateErr) {
+                            console.error('Error al actualizar el capital:', budgetUpdateErr);
+                            throw new Error('La compra se actualizó pero ocurrió un error al actualizar el capital: ' + budgetUpdateErr.message);
+                        }
+                    }
                 }
-            }
-        }
 
-        closeEditPurchaseModalFn();
+                closeEditPurchaseModalFn();
                 await loadPurchases();
+
+                // Save to movements table for edited purchase
+                const movementData = {
+                    type: 'compra de producto editada',
+                    purchase_data: {
+                        reference: reference,
+                        size: newSize,
+                        purchase_price: priceVal,
+                        amount: amountVal,
+                        total_purchase: totalVal
+                    },
+                    created_at: new Date().toISOString()
+                };
+                const { error: movementError } = await supabase
+                    .from('movements')
+                    .insert(movementData);
+                if (movementError) {
+                    console.error('Error saving movement:', movementError);
+                }
             } catch (err) {
                 console.error('Error updating purchase:', err);
                 editPurchaseModalAlert.className = 'modal-alert error';
                 editPurchaseModalAlert.textContent = err.message || 'Error al actualizar la compra';
                 editPurchaseModalAlert.style.display = 'block';
             } finally {
-                btnSaveEditPurchase.disabled = false;
-                btnSaveEditPurchaseText.style.display = 'inline';
-                btnSaveEditPurchaseLoader.style.display = 'none';
+                savEditPurchase.disabled = false;
+                savEditPurchaseText.style.display = 'inline';
+                savEditPurchaseLoader.style.display = 'none';
             }
         });
 
-        // Al cambiar de producto
-        purchaseProduct.addEventListener('change', () => {
-            const selectedIndex = purchaseProduct.value;
-            purchaseAmount.value = '';
-            purchaseAmount.disabled = true;
-            totalDisplayRow.style.display = 'none';
-            btnSubmitPurchase.disabled = true;
-            currentPurchasePrice = 0;
+        function updateEditGrandTotal() {
+            const rows = getEditPurchaseRowData();
+            const grandTotal = rows.reduce((acc, r) => acc + (r.price * r.amount), 0);
+            editGrandTotalPurchaseDisplay.textContent = formatCurrency(grandTotal);
+            return grandTotal;
+        }
 
-            if (selectedIndex !== '' && productsList[selectedIndex]) {
-                const selectedProd = productsList[selectedIndex];
+        function updateEditPurchaseRowsVisibility() {
+            const hasRows = editPurchaseProductRows.children.length > 0;
+            noEditPurchaseProductsMessage.style.display = hasRows ? 'none' : 'block';
+        }
 
-                // Mostrar precio de compra
-                currentPurchasePrice = Number(selectedProd.purchase_price) || 0;
-                unitPriceDisplay.textContent = formatCurrency(currentPurchasePrice);
-                priceDisplayRow.style.display = 'flex';
+        function getEditPurchaseRowData() {
+            const rows = [];
+            editPurchaseProductRows.querySelectorAll('.edit-purchase-product-row').forEach(rowEl => {
+                const productIdx = rowEl.querySelector('.row-product').value;
+                const sizeVal = rowEl.querySelector('.row-size').value.trim();
+                const amountVal = parseInt(rowEl.querySelector('.row-amount').value, 10);
+                const priceVal = parseFloat(rowEl.querySelector('.row-price').value.replace(/[^0-9.-]/g, '').replace(/\./g, '')) || 0;
+                const prod = productsList[productIdx];
+                if (!prod || !sizeVal || isNaN(amountVal) || amountVal <= 0) return;
+                rows.push({
+                    prod,
+                    size: sizeVal,
+                    amount: amountVal,
+                    price: priceVal
+                });
+            });
+            return rows;
+        }
 
-                // Obtener tallas
-                let sizes = [];
-                if (Array.isArray(selectedProd.size)) {
-                    sizes = selectedProd.size;
-                } else if (typeof selectedProd.size === 'string' && selectedProd.size.trim()) {
-                    try {
-                        const parsed = JSON.parse(selectedProd.size);
-                        sizes = Array.isArray(parsed) ? parsed : [selectedProd.size];
-                    } catch {
-                        sizes = selectedProd.size.split(',').map(s => s.trim()).filter(Boolean);
+        function updateEditPurchaseTotal() {
+            const rows = getEditPurchaseRowData();
+            const total = rows.reduce((acc, r) => acc + (r.price * r.amount), 0);
+            editGrandTotalPurchaseDisplay.textContent = formatCurrency(total);
+            return total;
+        }
+
+        function addEditPurchaseProductRow(item = null) {
+            editProductCounter++;
+            const rowIndex = editProductCounter;
+
+            const row = document.createElement('div');
+            row.className = 'edit-purchase-product-row';
+            row.dataset.rowIndex = rowIndex;
+            row.style.cssText = 'display: grid; grid-template-columns: 1.3fr 2.5fr 1fr 1fr 1fr 1fr 60px; gap: 8px; padding: 8px 12px; align-items: center; border-bottom: 1px solid var(--border);';
+
+            const categories = [...new Set(
+                productsList
+                    .map(prod => String(prod.categorie ?? '').trim())
+                    .filter(Boolean)
+            )].sort((a, b) => a.localeCompare(b, 'es'));
+
+            let categoryOpts = '<option value="">Todas las categorías</option>';
+            categories.forEach(category => {
+                categoryOpts += `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`;
+            });
+
+            let productOpts = '<option value="">Producto...</option>';
+            productsList.forEach((prod, index) => {
+                productOpts += `<option value="${index}">${escapeHtml(prod.reference)}</option>`;
+            });
+
+            row.innerHTML = `
+                <select class="row-category" aria-label="Categoría" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; background: var(--card-bg); color: var(--text-primary);">${categoryOpts}</select>
+                <select class="row-product" aria-label="Producto" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; background: var(--card-bg); color: var(--text-primary);">${productOpts}</select>
+                <select class="row-size" disabled style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; background: var(--card-bg); color: var(--text-primary);"><option value="">—</option></select>
+                <input type="text" class="row-price" disabled placeholder="$0" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; box-sizing: border-box;">
+                <input type="number" class="row-amount" min="1" step="1" placeholder="Ej. 10" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; box-sizing: border-box;">
+                <div class="row-subtotal" style="font-size: 13px; font-weight: 600; color: var(--text-primary);">$ 0</div>
+                <button type="button" class="btn-remove-row" aria-label="Quitar producto" style="padding: 6px; background: transparent; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; color: var(--text-secondary); display: flex; align-items: center; justify-content: center;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            `;
+
+            editPurchaseProductRows.appendChild(row);
+            updateEditPurchaseRowsVisibility();
+
+            const categorySelect = row.querySelector('.row-category');
+            const productSelect = row.querySelector('.row-product');
+            const sizeSelect = row.querySelector('.row-size');
+            const priceInput = row.querySelector('.row-price');
+            const amountInput = row.querySelector('.row-amount');
+            const subtotalEl = row.querySelector('.row-subtotal');
+
+            if (item) {
+                categorySelect.value = item.prod?.categorie || '';
+                productSelect.value = productsList.findIndex(p => p.reference === item.reference);
+                sizeSelect.value = item.size;
+                sizeSelect.disabled = false;
+                priceInput.value = formatCurrency(item.purchase_price);
+                amountInput.value = item.amount;
+                subtotalEl.textContent = formatCurrency(item.purchase_price * item.amount);
+            }
+
+            function updateEditPurchaseProductOptions() {
+                const selectedCategory = categorySelect.value;
+                let filteredProductOpts = '<option value="">Producto...</option>';
+
+                productsList.forEach((prod, index) => {
+                    const productCategory = String(prod.categorie ?? '').trim();
+                    if (selectedCategory && productCategory !== selectedCategory) return;
+                    filteredProductOpts += `<option value="${index}">${escapeHtml(prod.reference)}</option>`;
+                });
+
+                productSelect.innerHTML = filteredProductOpts;
+                productSelect.value = '';
+                priceInput.value = '';
+                amountInput.value = '';
+                subtotalEl.textContent = '$ 0';
+                sizeSelect.innerHTML = '<option value="">—</option>';
+                sizeSelect.disabled = true;
+                updateEditGrandTotal();
+            }
+
+            categorySelect.addEventListener('change', updateEditPurchaseProductOptions);
+
+            productSelect.addEventListener('change', () => {
+                const selectedProd = productsList[productSelect.value];
+                amountInput.value = '';
+                subtotalEl.textContent = '$ 0';
+                updateEditGrandTotal();
+
+                if (selectedProd) {
+                    priceInput.value = formatCurrency(selectedProd.purchase_price);
+
+                    const sizes = parseSizes(selectedProd.size);
+                    if (sizes.length === 0) {
+                        sizeSelect.innerHTML = '<option value="">Sin tallas</option>';
+                        sizeSelect.disabled = true;
+                    } else {
+                        let sizeOpts = '<option value="">Talla...</option>';
+                        sizes.forEach(s => {
+                            sizeOpts += `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`;
+                        });
+                        sizeSelect.innerHTML = sizeOpts;
+                        sizeSelect.disabled = false;
                     }
-                }
-
-                if (sizes.length === 0) {
-                    purchaseSize.innerHTML = '<option value="">Sin tallas registradas</option>';
-                    purchaseSize.disabled = true;
                 } else {
-                    let sizeOpts = '<option value="">Seleccionar talla...</option>';
-                    sizes.forEach(s => {
-                        sizeOpts += `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`;
-                    });
-                    purchaseSize.innerHTML = sizeOpts;
-                    purchaseSize.disabled = false;
+                    priceInput.value = '';
+                    sizeSelect.innerHTML = '<option value="">—</option>';
+                    sizeSelect.disabled = true;
                 }
-            } else {
-                priceDisplayRow.style.display = 'none';
-                purchaseSize.innerHTML = '<option value="">Selecciona un producto primero...</option>';
-                purchaseSize.disabled = true;
+            });
+
+            sizeSelect.addEventListener('change', () => {
+                if (sizeSelect.value) {
+                    amountInput.disabled = false;
+                    amountInput.focus();
+                } else {
+                    amountInput.disabled = true;
+                    amountInput.value = '';
+                    subtotalEl.textContent = '$ 0';
+                    updateEditGrandTotal();
+                }
+            });
+
+            amountInput.addEventListener('input', () => {
+                amountInput.value = amountInput.value.replace(/\D/g, '');
+                const val = parseInt(amountInput.value, 10);
+                const price = productsList[productSelect.value] ? (Number(productsList[productSelect.value].purchase_price) || 0) : 0;
+                subtotalEl.textContent = (!isNaN(val) && val > 0) ? formatCurrency(price * val) : '$ 0';
+                updateEditGrandTotal();
+            });
+
+            row.querySelector('.btn-remove-row').addEventListener('click', () => {
+                row.remove();
+                updateEditPurchaseRowsVisibility();
+                updateEditGrandTotal();
+            });
+
+            updateEditGrandTotal();
+        }
+
+        async function fetchEditPurchaseStock(reference, size) {
+            const { data, error } = await supabase
+                .from('inventory')
+                .select('*')
+                .eq('reference', reference)
+                .eq('size', size)
+                .single();
+
+            if (error && error.code !== 'PGRST116') {
+                console.error('Error fetching stock:', error);
             }
-        });
+            // Stock info available in data if needed
+        }
 
-        // Al cambiar de talla
-        purchaseSize.addEventListener('change', () => {
-            const selectedSize = purchaseSize.value;
-            const selectedIndex = purchaseProduct.value;
-
-            if (selectedSize && selectedIndex !== '' && productsList[selectedIndex]) {
-                purchaseAmount.disabled = false;
-                purchaseAmount.focus();
-            } else {
-                purchaseAmount.disabled = true;
-                purchaseAmount.value = '';
-                totalDisplayRow.style.display = 'none';
-                btnSubmitPurchase.disabled = true;
+        // ===== Filas dinámicas de productos en el modal de registro =====
+        function parseSizes(sizeField) {
+            let sizes = [];
+            if (Array.isArray(sizeField)) {
+                sizes = sizeField;
+            } else if (typeof sizeField === 'string' && sizeField.trim()) {
+                try {
+                    const parsed = JSON.parse(sizeField);
+                    sizes = Array.isArray(parsed) ? parsed : [sizeField];
+                } catch {
+                    sizes = sizeField.split(',').map(s => s.trim()).filter(Boolean);
+                }
             }
-        });
+            return sizes;
+        }
 
-        // Prevenir caracteres no numéricos en el input de cantidad
-        purchaseAmount.addEventListener('keydown', (e) => {
-            if (['-', '+', 'e', 'E', '.', ','].includes(e.key)) {
-                e.preventDefault();
+        function addPurchaseProductRow() {
+            purchaseProductCounter++;
+            const rowIndex = purchaseProductCounter;
+
+            const row = document.createElement('div');
+            row.className = 'purchase-product-row';
+            row.dataset.rowIndex = rowIndex;
+            row.style.cssText = 'display: grid; grid-template-columns: 1.3fr 2.5fr 1fr 1fr 1fr 1fr 60px; gap: 8px; padding: 8px 12px; align-items: center; border-bottom: 1px solid var(--border);';
+
+            const categories = [...new Set(
+                productsList
+                    .map(prod => String(prod.categorie ?? '').trim())
+                    .filter(Boolean)
+            )].sort((a, b) => a.localeCompare(b, 'es'));
+
+            let categoryOpts = '<option value="">Todas las categorías</option>';
+            categories.forEach(category => {
+                categoryOpts += `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`;
+            });
+
+            let productOpts = '<option value="">Producto...</option>';
+            productsList.forEach((prod, index) => {
+                productOpts += `<option value="${index}">${escapeHtml(prod.reference)}</option>`;
+            });
+
+            row.innerHTML = `
+                <select class="row-category" aria-label="Categoría" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; background: var(--card-bg); color: var(--text-primary);">${categoryOpts}</select>
+                <select class="row-product" aria-label="Producto" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; background: var(--card-bg); color: var(--text-primary);">${productOpts}</select>
+                <select class="row-size" disabled style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; background: var(--card-bg); color: var(--text-primary);"><option value="">—</option></select>
+                <input type="text" class="row-price" disabled placeholder="$0" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; box-sizing: border-box;">
+                <input type="number" class="row-amount" min="1" step="1" placeholder="Ej. 10" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; box-sizing: border-box;">
+                <div class="row-subtotal" style="font-size: 13px; font-weight: 600; color: var(--text-primary);">$ 0</div>
+                <button type="button" class="btn-remove-row" aria-label="Quitar producto" style="padding: 6px; background: transparent; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; color: var(--text-secondary); display: flex; align-items: center; justify-content: center;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            `;
+
+            purchaseProductRows.appendChild(row);
+            updatePurchaseRowsVisibility();
+
+            const categorySelect = row.querySelector('.row-category');
+            const productSelect = row.querySelector('.row-product');
+            const sizeSelect = row.querySelector('.row-size');
+            const priceInput = row.querySelector('.row-price');
+            const amountInput = row.querySelector('.row-amount');
+            const subtotalEl = row.querySelector('.row-subtotal');
+
+            function updatePurchaseProductOptions() {
+                const selectedCategory = categorySelect.value;
+                let filteredProductOpts = '<option value="">Producto...</option>';
+
+                productsList.forEach((prod, index) => {
+                    const productCategory = String(prod.categorie ?? '').trim();
+                    if (selectedCategory && productCategory !== selectedCategory) return;
+                    filteredProductOpts += `<option value="${index}">${escapeHtml(prod.reference)}</option>`;
+                });
+
+                productSelect.innerHTML = filteredProductOpts;
+                productSelect.value = '';
+                priceInput.value = '';
+                amountInput.value = '';
+                subtotalEl.textContent = '$ 0';
+                sizeSelect.innerHTML = '<option value="">—</option>';
+                sizeSelect.disabled = true;
+                updateGrandTotalPurchase();
+                updateSubmitPurchaseState();
             }
-        });
 
-        // Cálculo del Total en tiempo real
-        purchaseAmount.addEventListener('input', () => {
-            purchaseAmount.value = purchaseAmount.value.replace(/\D/g, '');
-            const val = parseInt(purchaseAmount.value, 10);
+            categorySelect.addEventListener('change', updatePurchaseProductOptions);
 
-            if (isNaN(val) || val <= 0) {
-                totalDisplayRow.style.display = 'none';
-                btnSubmitPurchase.disabled = true;
-                return;
-            }
+            productSelect.addEventListener('change', () => {
+                const selectedProd = productsList[productSelect.value];
+                amountInput.value = '';
+                subtotalEl.textContent = '$ 0';
+                updateGrandTotalPurchase();
 
-            const total = currentPurchasePrice * val;
-            totalPurchaseDisplay.textContent = formatCurrency(total);
-            totalDisplayRow.style.display = 'flex';
-            btnSubmitPurchase.disabled = false;
-        });
+                if (selectedProd) {
+                    priceInput.value = formatCurrency(selectedProd.purchase_price);
+
+                    const sizes = parseSizes(selectedProd.size);
+                    if (sizes.length === 0) {
+                        sizeSelect.innerHTML = '<option value="">Sin tallas</option>';
+                        sizeSelect.disabled = true;
+                    } else {
+                        let sizeOpts = '<option value="">Talla...</option>';
+                        sizes.forEach(s => {
+                            sizeOpts += `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`;
+                        });
+                        sizeSelect.innerHTML = sizeOpts;
+                        sizeSelect.disabled = false;
+                    }
+                } else {
+                    priceInput.value = '';
+                    sizeSelect.innerHTML = '<option value="">—</option>';
+                    sizeSelect.disabled = true;
+                }
+                updateSubmitPurchaseState();
+            });
+
+            sizeSelect.addEventListener('change', () => {
+                if (sizeSelect.value) {
+                    amountInput.disabled = false;
+                    amountInput.focus();
+                } else {
+                    amountInput.disabled = true;
+                    amountInput.value = '';
+                    subtotalEl.textContent = '$ 0';
+                    updateGrandTotalPurchase();
+                }
+                updateSubmitPurchaseState();
+            });
+
+            amountInput.addEventListener('input', () => {
+                amountInput.value = amountInput.value.replace(/\D/g, '');
+                const val = parseInt(amountInput.value, 10);
+                const price = productsList[productSelect.value] ? (Number(productsList[productSelect.value].purchase_price) || 0) : 0;
+                subtotalEl.textContent = (!isNaN(val) && val > 0) ? formatCurrency(price * val) : '$ 0';
+                updateGrandTotalPurchase();
+                updateSubmitPurchaseState();
+            });
+
+            row.querySelector('.btn-remove-row').addEventListener('click', () => {
+                row.remove();
+                updatePurchaseRowsVisibility();
+                updateGrandTotalPurchase();
+                updateSubmitPurchaseState();
+            });
+
+            updateSubmitPurchaseState();
+        }
+
+        function updatePurchaseRowsVisibility() {
+            const hasRows = purchaseProductRows.children.length > 0;
+            noPurchaseProductsMessage.style.display = hasRows ? 'none' : 'block';
+        }
+
+        function getPurchaseRowData() {
+            const rows = [];
+            purchaseProductRows.querySelectorAll('.purchase-product-row').forEach(rowEl => {
+                const productIdx = rowEl.querySelector('.row-product').value;
+                const sizeVal = rowEl.querySelector('.row-size').value.trim();
+                const amountVal = parseInt(rowEl.querySelector('.row-amount').value, 10);
+                const prod = productsList[productIdx];
+                if (!prod || !sizeVal || isNaN(amountVal) || amountVal <= 0) return;
+                rows.push({
+                    prod,
+                    size: sizeVal,
+                    amount: amountVal,
+                    price: Number(prod.purchase_price) || 0
+                });
+            });
+            return rows;
+        }
+
+        function updateGrandTotalPurchase() {
+            const rows = getPurchaseRowData();
+            const grandTotal = rows.reduce((acc, r) => acc + (r.price * r.amount), 0);
+            grandTotalPurchaseDisplay.textContent = formatCurrency(grandTotal);
+            return grandTotal;
+        }
+
+        function updateSubmitPurchaseState() {
+            const rows = getPurchaseRowData();
+            btnSubmitPurchase.disabled = rows.length === 0;
+        }
+
+        btnAddPurchaseProductRow.addEventListener('click', addPurchaseProductRow);
 
         // Enviar formulario de registro de compra
         createPurchaseForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             hidePurchaseAlert();
 
-            const selectedIndex = purchaseProduct.value;
-            if (selectedIndex === '' || !productsList[selectedIndex]) {
-                showPurchaseAlert('Selecciona un producto válido.');
+            const rows = getPurchaseRowData();
+            if (rows.length === 0) {
+                showPurchaseAlert('Agrega al menos un producto con talla y cantidad válida.');
                 return;
             }
 
-            const selectedProd = productsList[selectedIndex];
-            const refVal = selectedProd.reference;
-            const sizeVal = purchaseSize.value.trim();
-            const amountVal = parseInt(purchaseAmount.value, 10);
-
-            if (!sizeVal) {
-                showPurchaseAlert('Selecciona una talla para la compra.');
-                return;
-            }
-
-            if (isNaN(amountVal) || amountVal <= 0) {
-                showPurchaseAlert('Ingresa una cantidad válida mayor a 0.');
-                return;
-            }
-
-            const totalVal = currentPurchasePrice * amountVal;
+            const grandTotal = updateGrandTotalPurchase();
             const now = new Date().toISOString();
 
             btnSubmitPurchase.disabled = true;
@@ -1321,15 +1663,21 @@
             btnSubmitPurchaseLoader.style.display = 'inline-flex';
 
             try {
-                // 1. Insertar la compra en la tabla purchases
+                // Construir arrays con todos los productos de la compra
+                const references = rows.map(r => r.prod.reference);
+                const sizes = rows.map(r => r.size);
+                const amounts = rows.map(r => r.amount);
+                const purchasePrices = rows.map(r => r.price);
+
+                // 1. Insertar una sola compra con todos los productos en un registro
                 const { error: insertError } = await supabase
                     .from('purchases')
                     .insert({
-                        reference: refVal,
-                        size: sizeVal,
-                        purchase_price: currentPurchasePrice,
-                        amount: amountVal,
-                        total_purchase: totalVal,
+                        reference: pgArrayLiteral(references),
+                        size: pgArrayLiteral(sizes),
+                        purchase_price: purchasePrices,
+                        amount: amounts,
+                        total_purchase: grandTotal,
                         created_at: now
                     });
 
@@ -1337,61 +1685,59 @@
                     throw insertError;
                 }
 
-                // 2. Sumar la cantidad comprada al inventario del producto para esa talla (unidades compradas + unidades en inventario)
-                const { data: invRows, error: fetchInvErr } = await supabase
-                    .from('inventory')
-                    .select('*')
-                    .eq('reference', refVal)
-                    .eq('size', sizeVal);
-
-                if (fetchInvErr) {
-                    console.error('Error al consultar inventario:', fetchInvErr);
-                    throw new Error('La compra se registró pero ocurrió un error al consultar el inventario: ' + fetchInvErr.message);
-                }
-
-                if (invRows && invRows.length > 0) {
-                    // Si ya existe el registro en inventario, se suman las unidades compradas
-                    const firstRow = invRows[0];
-                    const currentStock = Number(firstRow.amount) || 0;
-                    const newStock = currentStock + amountVal;
-
-                    let updateQuery = supabase
+                // 2. Sumar la cantidad comprada al inventario para cada producto/talla
+                for (const item of rows) {
+                    const { data: invRows, error: fetchInvErr } = await supabase
                         .from('inventory')
-                        .update({ amount: newStock });
+                        .select('*')
+                        .eq('reference', item.prod.reference)
+                        .eq('size', item.size);
 
-                    if (firstRow.id !== undefined && firstRow.id !== null) {
-                        updateQuery = updateQuery.eq('id', firstRow.id);
-                    } else if (firstRow.created_at) {
-                        updateQuery = updateQuery
-                            .eq('reference', refVal)
-                            .eq('size', sizeVal)
-                            .eq('created_at', firstRow.created_at);
+                    if (fetchInvErr) {
+                        console.error('Error al consultar inventario:', fetchInvErr);
+                        throw new Error('La compra se registró pero ocurrió un error al consultar el inventario: ' + fetchInvErr.message);
+                    }
+
+                    if (invRows && invRows.length > 0) {
+                        const firstRow = invRows[0];
+                        const currentStock = Number(firstRow.amount) || 0;
+                        const newStock = currentStock + item.amount;
+
+                        let updateQuery = supabase.from('inventory').update({ amount: newStock });
+
+                        if (firstRow.id !== undefined && firstRow.id !== null) {
+                            updateQuery = updateQuery.eq('id', firstRow.id);
+                        } else if (firstRow.created_at) {
+                            updateQuery = updateQuery
+                                .eq('reference', item.prod.reference)
+                                .eq('size', item.size)
+                                .eq('created_at', firstRow.created_at);
+                        } else {
+                            updateQuery = updateQuery
+                                .eq('reference', item.prod.reference)
+                                .eq('size', item.size);
+                        }
+
+                        const { error: updateInvErr } = await updateQuery;
+                        if (updateInvErr) {
+                            console.error('Error al actualizar inventario:', updateInvErr);
+                            throw new Error('La compra se registró pero ocurrió un error al actualizar el inventario: ' + updateInvErr.message);
+                        }
                     } else {
-                        updateQuery = updateQuery
-                            .eq('reference', refVal)
-                            .eq('size', sizeVal);
-                    }
+                        const { error: createInvErr } = await supabase
+                            .from('inventory')
+                            .insert({
+                                reference: item.prod.reference,
+                                size: item.size,
+                                amount: item.amount,
+                                categorie: item.prod.categorie || null,
+                                created_at: now
+                            });
 
-                    const { error: updateInvErr } = await updateQuery;
-                    if (updateInvErr) {
-                        console.error('Error al actualizar inventario:', updateInvErr);
-                        throw new Error('La compra se registró pero ocurrió un error al actualizar el inventario: ' + updateInvErr.message);
-                    }
-                } else {
-                    // Si aún no existe la entrada en inventario para esa talla, se crea el nuevo registro
-                    const { error: createInvErr } = await supabase
-                        .from('inventory')
-                        .insert({
-                            reference: refVal,
-                            size: sizeVal,
-                            amount: amountVal,
-                            categorie: selectedProd.categorie || null,
-                            created_at: now
-                        });
-
-                    if (createInvErr) {
-                        console.error('Error al insertar en inventario:', createInvErr);
-                        throw new Error('La compra se registró pero ocurrió un error al ingresar al inventario: ' + createInvErr.message);
+                        if (createInvErr) {
+                            console.error('Error al insertar en inventario:', createInvErr);
+                            throw new Error('La compra se registró pero ocurrió un error al ingresar al inventario: ' + createInvErr.message);
+                        }
                     }
                 }
 
@@ -1408,7 +1754,7 @@
 
                 if (budgetRows && budgetRows.length > 0) {
                     const budgetRecord = budgetRows[0];
-                    const newCapital = (Number(budgetRecord.value) || 0) - totalVal;
+                    const newCapital = (Number(budgetRecord.value) || 0) - grandTotal;
 
                     const { error: budgetUpdateErr } = await supabase
                         .from('budget')
@@ -1423,6 +1769,25 @@
 
                 closeCreatePurchaseModalFn();
                 await loadPurchases();
+
+                // Guardar en la tabla movements (uno por producto)
+                const movements = rows.map(item => ({
+                    type: 'compra de producto',
+                    purchase_data: {
+                        reference: item.prod.reference,
+                        size: item.size,
+                        purchase_price: item.price,
+                        amount: item.amount,
+                        total_purchase: item.price * item.amount
+                    },
+                    created_at: new Date().toISOString()
+                }));
+                const { error: movementError } = await supabase
+                    .from('movements')
+                    .insert(movements);
+                if (movementError) {
+                    console.error('Error saving movement:', movementError);
+                }
             } catch (err) {
                 console.error('Error al registrar la compra:', err);
                 showPurchaseAlert(err.message || 'Error al registrar la compra. Intenta nuevamente.');
@@ -1544,32 +1909,34 @@
 
             let html = `
                 <table class="purchases-table">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Referencia</th>
-                            <th>Talla</th>
-                            <th>Precio</th>
-                            <th>Cantidad</th>
-                            <th>Total</th>
-                            <th class="actions-cell">Acciones</th>
-                        </tr>
-                    </thead>
+             <thead>
+                         <tr>
+                             <th>Fecha</th>
+                             <th>Referencia</th>
+                             <th>Talla</th>
+                             <th>Cantidad</th>
+                             <th>Total</th>
+                             <th class="actions-cell">Acciones</th>
+                         </tr>
+                     </thead>
                     <tbody>
             `;
 
             data.forEach((item, index) => {
                 const formattedDate = formatDateOnly(item.created_at);
-                const formattedPrice = formatCurrency(item.purchase_price);
+                const items = getPurchaseItems(item);
+
+                const refDisplay = items.map(i => i.reference).filter(Boolean).join(', ') || '—';
+                const sizeDisplay = items.map(i => i.size).filter(Boolean).join(', ') || '—';
+                const totalAmount = items.reduce((sum, i) => sum + i.amount, 0);
                 const formattedTotal = formatCurrency(item.total_purchase);
 
                 html += `
                     <tr>
                         <td>${escapeHtml(formattedDate)}</td>
-                        <td>${escapeHtml(item.reference || '—')}</td>
-                        <td>${escapeHtml(item.size || '—')}</td>
-                        <td class="price-cell">${escapeHtml(formattedPrice)}</td>
-                        <td>${item.amount !== null && item.amount !== undefined ? item.amount : '—'}</td>
+                        <td>${escapeHtml(refDisplay)}</td>
+                        <td>${escapeHtml(sizeDisplay)}</td>
+                        <td>${totalAmount}</td>
                         <td class="total-cell">${escapeHtml(formattedTotal)}</td>
                         <td class="actions-cell">
                             <button class="btn-action btn-edit" data-id="${item.id || ''}" data-index="${index}" aria-label="Editar compra">

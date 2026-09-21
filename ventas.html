@@ -749,6 +749,13 @@
                         </svg>
                         Usuarios
                     </a>
+                    <a href="historial.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 8v4l2 2"/>
+                        </svg>
+                        Historial
+                    </a>
                 </div>
             </div>
             <div class="workspace-drawer-footer">
@@ -1647,6 +1654,24 @@ const clientData = {
 
                 closeCreateSaleModalFn();
                 await loadSales();
+
+                // Save to movements table
+                const movementData = {
+                    type: 'Venta de producto',
+                    sale_data: {
+                        items: saleItems,
+                        total_sale: grandTotal,
+                        client_data: clientData,
+                        sale_id: newSale?.id
+                    },
+                    created_at: new Date().toISOString()
+                };
+                const { error: movementError } = await supabase
+                    .from('movements')
+                    .insert(movementData);
+                if (movementError) {
+                    console.error('Error saving movement:', movementError);
+                }
                 
                 // Descargar mini automáticamente con los datos locales
                 const saleDataForInvoice = {
@@ -2144,6 +2169,23 @@ editSaleForm.addEventListener('submit', async (e) => {
                             throw new Error('La venta se actualizó pero ocurrió un error al actualizar el capital: ' + budgetUpdateErr.message);
                         }
                     }
+                }
+
+                // Save to movements table for edited sale
+                const movementData = {
+                    type: 'Venta de producto editada',
+                    sale_data: {
+                        items: updatedItems,
+                        total_sale: grandTotal,
+                        sale_id: id
+                    },
+                    created_at: new Date().toISOString()
+                };
+                const { error: movementError } = await supabase
+                    .from('movements')
+                    .insert(movementData);
+                if (movementError) {
+                    console.error('Error saving movement:', movementError);
                 }
 
                 closeEditSaleModalFn();
@@ -2900,6 +2942,23 @@ async function openEditSaleModal(id, index) {
 
                         if (budgetUpdateErr) throw budgetUpdateErr;
                     }
+                }
+
+                // Save to movements table for deleted sale
+                const movementData = {
+                    type: 'Venta Eliminada',
+                    sale_data: {
+                        items: items,
+                        total_sale: Number(sale.total_sale) || 0,
+                        sale_id: id
+                    },
+                    created_at: new Date().toISOString()
+                };
+                const { error: movementError } = await supabase
+                    .from('movements')
+                    .insert(movementData);
+                if (movementError) {
+                    console.error('Error saving movement:', movementError);
                 }
 
                 await loadSales();

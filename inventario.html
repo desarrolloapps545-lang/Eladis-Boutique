@@ -607,6 +607,13 @@
                         </svg>
                         Usuarios
                     </a>
+                    <a href="historial.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                            <path d="M12 8v4l2 2" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        Historial
+                    </a>
                 </div>
             </div>
             <div class="workspace-drawer-footer">
@@ -720,7 +727,7 @@
                 </form>
             </div>
         </div>
-    </div>
+</div>
 
     <!-- Modal Salida Inventario -->
     <div id="outInventoryModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="outInventoryModalTitle">
@@ -735,27 +742,18 @@
                     </svg>
                 </button>
             </div>
-<div class="modal-body" style="padding: 24px; text-align: left;">
+            <div class="modal-body" style="padding: 24px; text-align: left;">
                 <div id="outInvModalAlert" class="modal-alert"></div>
                 <form id="outInventoryForm" novalidate>
-                    <div class="sale-form-group" style="display:flex; flex-direction:column; gap:6px; text-align:left;">
-                        <label for="outProduct">Producto</label>
-                        <select id="outProduct" required>
-                            <option value="">Seleccionar producto...</option>
-                        </select>
-                    </div>
-                    <div class="sale-form-group" style="display:flex; flex-direction:column; gap:6px; text-align:left;">
-                        <label for="outSize">Talla</label>
-                        <select id="outSize" required disabled>
-                            <option value="">Selecciona un producto primero...</option>
-                        </select>
-                    </div>
-                    <div class="sale-form-group" style="display:flex; flex-direction:column; gap:6px; text-align:left;">
-                        <label for="outAmount">Cantidad a retirar</label>
-                        <input type="number" id="outAmount" min="1" step="1" placeholder="Ej. 1" required disabled>
-                        <div id="outStockInfoBox" class="stock-info-box" style="display:none;">
-                            <span id="outStockMessage">Consultando disponibilidad...</span>
-                        </div>
+                    <div class="modal-body-scroll">
+                        <div id="outInventoryRows"></div>
+                        <button type="button" class="btn-add-row" id="btnAddOutInventoryRow">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            Agregar producto
+                        </button>
                     </div>
                     <div class="modal-form-group" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);">
                         <label for="outInventoryObservation">Observación (opcional)</label>
@@ -775,8 +773,8 @@
                     </div>
                 </form>
             </div>
+        </div>
     </div>
-</div>
 
     <!-- Modal Editar Inventario -->
     <div id="editInventoryModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="editInventoryTitle">
@@ -867,18 +865,14 @@
         const cancelOutInventoryBtn = document.getElementById('cancelOutInventoryBtn');
         const outInventoryForm = document.getElementById('outInventoryForm');
         const outInvModalAlert = document.getElementById('outInvModalAlert');
-        const outProduct = document.getElementById('outProduct');
-        const outSize = document.getElementById('outSize');
-        const outAmount = document.getElementById('outAmount');
-        const outStockInfoBox = document.getElementById('outStockInfoBox');
-        const outStockMessage = document.getElementById('outStockMessage');
+        const outInventoryRows = document.getElementById('outInventoryRows');
+        const btnAddOutInventoryRow = document.getElementById('btnAddOutInventoryRow');
         const btnSaveOutInventory = document.getElementById('btnSaveOutInventory');
         const btnSaveOutText = document.getElementById('btnSaveOutText');
         const btnSaveOutLoader = document.getElementById('btnSaveOutLoader');
 
         let productsList = [];
         let inventoryRowCount = 0;
-        let outCurrentAvailableStock = 0;
 
         function showInvAlert(message, type = 'error') {
             invModalAlert.className = `modal-alert ${type}`;
@@ -1133,12 +1127,38 @@
             btnSaveLoader.style.display = 'inline-flex';
 
             try {
-                const { error: insertError } = await supabase
-                    .from('inventory')
-                    .insert(entries);
+                // Check for existing inventory records and update or insert accordingly
+                for (const entry of entries) {
+                    const { data: existingRows, error: checkError } = await supabase
+                        .from('inventory')
+                        .select('*')
+                        .eq('reference', entry.reference)
+                        .eq('size', entry.size);
 
-                if (insertError) {
-                    throw insertError;
+                    if (checkError) throw checkError;
+
+                    if (existingRows && existingRows.length > 0) {
+                        // Update existing record(s)
+                        for (const existingRow of existingRows) {
+                            const newAmount = (Number(existingRow.amount) || 0) + entry.amount;
+                            let updateQuery = supabase.from('inventory').update({ amount: newAmount });
+                            if (existingRow.id) {
+                                updateQuery = updateQuery.eq('id', existingRow.id);
+                            } else {
+                                updateQuery = updateQuery
+                                    .eq('reference', entry.reference)
+                                    .eq('size', entry.size);
+                            }
+                            const { error: updateErr } = await updateQuery;
+                            if (updateErr) throw updateErr;
+                        }
+                    } else {
+                        // Insert new record
+                        const { error: insertErr } = await supabase
+                            .from('inventory')
+                            .insert(entry);
+                        if (insertErr) throw insertErr;
+                    }
                 }
 
                 // Save to movements table
@@ -1196,24 +1216,64 @@
             return options;
         }
 
+        const outRowCount = 0;
+        let outCounter = 0;
+
+        function createOutInventoryRow(index) {
+            const prodOptions = buildOutProductOptionsHTML();
+            return `
+                <div class="inventory-row" data-index="${index}">
+                    <div class="modal-form-group">
+                        <label for="outInvProduct_${index}">Producto</label>
+                        <select id="outInvProduct_${index}" class="out-inv-product-select" required>
+                            ${prodOptions}
+                        </select>
+                    </div>
+                    <div class="modal-form-group">
+                        <label for="outInvSize_${index}">Talla</label>
+                        <select id="outInvSize_${index}" class="out-inv-size-select" required disabled>
+                            <option value="">Selecciona un producto primero...</option>
+                        </select>
+                    </div>
+                    <div class="modal-form-group">
+                        <label for="outInvAmount_${index}">Cantidad a retirar</label>
+                        <input type="number" id="outInvAmount_${index}" class="out-inv-amount-input" min="1" step="1" placeholder="Ej. 1" required disabled>
+                        <div class="stock-info-box" id="outInvStockInfoBox_${index}" style="display: none; margin-top: 4px;"></div>
+                    </div>
+                    <button type="button" class="remove-row hide" aria-label="Eliminar fila">×</button>
+                </div>
+            `;
+        }
+
+        function updateOutInventoryRemoveButtons() {
+            const rows = outInventoryRows.querySelectorAll('.inventory-row');
+            const hasMultiple = rows.length > 1;
+            rows.forEach(row => {
+                const removeBtn = row.querySelector('.remove-row');
+                if (removeBtn) {
+                    if (hasMultiple) {
+                        removeBtn.classList.remove('hide');
+                        row.classList.add('multiple');
+                    } else {
+                        removeBtn.classList.add('hide');
+                        row.classList.remove('multiple');
+                    }
+                }
+            });
+        }
+
         async function openOutInventoryModal() {
             hideOutInvAlert();
             outInventoryForm.reset();
-            outCurrentAvailableStock = 0;
-
-            outStockInfoBox.style.display = 'none';
-            outStockMessage.textContent = '';
-            outAmount.value = '';
-            outAmount.disabled = true;
-            btnSaveOutInventory.disabled = true;
-            outSize.innerHTML = '<option value="">Selecciona un producto primero...</option>';
-            outSize.disabled = true;
+            outInventoryRows.innerHTML = '';
+            outCounter = 0;
 
             if (productsList.length === 0) {
                 await loadProductsForSelect();
             }
 
-            outProduct.innerHTML = buildOutProductOptionsHTML();
+            outInventoryRows.insertAdjacentHTML('beforeend', createOutInventoryRow(outCounter++));
+            updateOutInventoryRemoveButtons();
             outInventoryModal.classList.add('active');
         }
 
@@ -1221,8 +1281,8 @@
             outInventoryModal.classList.remove('active');
             hideOutInvAlert();
             outInventoryForm.reset();
-            outStockInfoBox.style.display = 'none';
-            outCurrentAvailableStock = 0;
+            outInventoryRows.innerHTML = '';
+            outCounter = 0;
         }
 
         btnSalidaInventario.addEventListener('click', openOutInventoryModal);
@@ -1236,12 +1296,330 @@
             }
         });
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && outInventoryModal.classList.contains('active')) {
-                closeOutInventoryModalFn();
+        btnAddOutInventoryRow.addEventListener('click', () => {
+            outInventoryRows.insertAdjacentHTML('beforeend', createOutInventoryRow(outCounter++));
+            updateOutInventoryRemoveButtons();
+            const lastRow = outInventoryRows.lastElementChild;
+            if (lastRow) {
+                lastRow.scrollIntoView({ behavior: 'smooth', block: 'end' });
             }
-            if (e.key === 'Escape' && editInventoryModal.classList.contains('active')) {
-                closeEditInventoryModalFn();
+        });
+
+        // Event delegation for remove button
+        outInventoryRows.addEventListener('click', (e) => {
+            if (e.target.classList.contains('remove-row')) {
+                const row = e.target.closest('.inventory-row');
+                if (outInventoryRows.children.length > 1) {
+                    row.remove();
+                    updateOutInventoryRemoveButtons();
+                } else {
+                    const prodSelect = row.querySelector('.out-inv-product-select');
+                    const amountInput = row.querySelector('.out-inv-amount-input');
+                    const sizeSelect = row.querySelector('.out-inv-size-select');
+                    if (prodSelect) prodSelect.value = '';
+                    if (amountInput) amountInput.value = '';
+                    if (sizeSelect) {
+                        sizeSelect.innerHTML = '<option value="">Selecciona un producto primero...</option>';
+                        sizeSelect.disabled = true;
+                    }
+                }
+            }
+        });
+
+        // Event delegation for product select change
+        outInventoryRows.addEventListener('change', async function(e) {
+            if (e.target.classList.contains('out-inv-product-select')) {
+                const row = e.target.closest('.inventory-row');
+                const sizeSelect = row.querySelector('.out-inv-size-select');
+                const amountInput = row.querySelector('.out-inv-amount-input');
+                const stockBox = row.querySelector('.stock-info-box');
+                const selectedIndex = e.target.value;
+
+                amountInput.value = '';
+                amountInput.disabled = true;
+                stockBox.style.display = 'none';
+                row.dataset.availableStock = '0';
+
+                if (selectedIndex !== '' && productsList[selectedIndex]) {
+                    const selectedProd = productsList[selectedIndex];
+                    let sizes = [];
+                    if (Array.isArray(selectedProd.size)) {
+                        sizes = selectedProd.size;
+                    } else if (typeof selectedProd.size === 'string' && selectedProd.size.trim()) {
+                        try {
+                            const parsed = JSON.parse(selectedProd.size);
+                            sizes = Array.isArray(parsed) ? parsed : [selectedProd.size];
+                        } catch {
+                            sizes = selectedProd.size.split(',').map(s => s.trim()).filter(Boolean);
+                        }
+                    }
+
+                    if (sizes.length === 0) {
+                        sizeSelect.innerHTML = '<option value="">Sin tallas registradas</option>';
+                        sizeSelect.disabled = true;
+                    } else {
+                        let sizeOpts = '<option value="">Seleccionar talla...</option>';
+                        sizes.forEach(s => {
+                            sizeOpts += `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`;
+                        });
+                        sizeSelect.innerHTML = sizeOpts;
+                        sizeSelect.disabled = false;
+                    }
+                } else {
+                    sizeSelect.innerHTML = '<option value="">Selecciona un producto primero...</option>';
+                    sizeSelect.disabled = true;
+                }
+            }
+
+            if (e.target.classList.contains('out-inv-size-select')) {
+                const row = e.target.closest('.inventory-row');
+                const amountInput = row.querySelector('.out-inv-amount-input');
+                const stockBox = row.querySelector('.stock-info-box');
+                const selectedIndex = row.querySelector('.out-inv-product-select').value;
+                const selectedSize = e.target.value;
+
+                amountInput.value = '';
+                amountInput.disabled = true;
+                stockBox.style.display = 'none';
+                row.dataset.availableStock = '0';
+
+                if (!selectedSize || selectedIndex === '' || !productsList[selectedIndex]) {
+                    return;
+                }
+
+                const ref = productsList[selectedIndex].reference;
+                stockBox.style.display = 'block';
+                stockBox.className = 'stock-info-box';
+                stockBox.innerHTML = 'Consultando disponibilidad en inventario...';
+
+                const { data, error } = await supabase
+                    .from('inventory')
+                    .select('amount')
+                    .eq('reference', ref)
+                    .eq('size', selectedSize);
+
+                if (error) {
+                    console.error('Error consultando stock:', error);
+                    stockBox.className = 'stock-info-box out-stock';
+                    stockBox.innerHTML = 'Error al consultar inventario.';
+                    return;
+                }
+
+                const totalStock = (data || []).reduce((acc, r) => acc + (Number(r.amount) || 0), 0);
+                row.dataset.availableStock = totalStock;
+
+                if (totalStock <= 0) {
+                    stockBox.className = 'stock-info-box out-stock';
+                    stockBox.innerHTML = 'Sin stock disponible en inventario.';
+                } else {
+                    stockBox.className = 'stock-info-box in-stock';
+                    stockBox.innerHTML = `Disponibles en inventario: <strong>${totalStock}</strong> uds`;
+                    amountInput.disabled = false;
+                    amountInput.min = 1;
+                    amountInput.max = totalStock;
+                    amountInput.placeholder = `Máx. ${totalStock}`;
+                    amountInput.focus();
+                }
+
+                // Check if any row has valid data to enable save button
+                const rows = outInventoryRows.querySelectorAll('.inventory-row');
+                let hasValidRow = false;
+                rows.forEach(r => {
+                    const prod = r.querySelector('.out-inv-product-select');
+                    const size = r.querySelector('.out-inv-size-select');
+                    const amount = r.querySelector('.out-inv-amount-input');
+                    if (prod?.value && size?.value && amount?.value && parseInt(amount.value) > 0) {
+                        hasValidRow = true;
+                    }
+                });
+                btnSaveOutInventory.disabled = !hasValidRow;
+            }
+        });
+
+        // Amount input handler
+        outInventoryRows.addEventListener('input', function(e) {
+            if (e.target.classList.contains('out-inv-amount-input')) {
+                e.target.value = e.target.value.replace(/\D/g, '');
+                const row = e.target.closest('.inventory-row');
+                const stockBox = row.querySelector('.stock-info-box');
+                const availableStock = parseInt(row.dataset.availableStock || '0', 10);
+                let val = parseInt(e.target.value, 10);
+
+                if (isNaN(val) || val <= 0) {
+                    return;
+                }
+
+                if (val > availableStock) {
+                    val = availableStock;
+                    e.target.value = availableStock;
+                }
+            }
+
+            // Check if any row has valid data to enable save button
+            const rows = outInventoryRows.querySelectorAll('.inventory-row');
+            let hasValidRow = false;
+            rows.forEach(r => {
+                const prod = r.querySelector('.out-inv-product-select');
+                const size = r.querySelector('.out-inv-size-select');
+                const amount = r.querySelector('.out-inv-amount-input');
+                if (prod?.value && size?.value && amount?.value && parseInt(amount.value) > 0) {
+                    hasValidRow = true;
+                }
+            });
+            btnSaveOutInventory.disabled = !hasValidRow;
+        });
+
+        outInventoryForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideOutInvAlert();
+
+            const rows = outInventoryRows.querySelectorAll('.inventory-row');
+            const entries = [];
+            let hasError = false;
+            let errorMsg = '';
+
+            rows.forEach((row, i) => {
+                if (hasError) return;
+
+                const prodSelect = row.querySelector('.out-inv-product-select');
+                const amountInput = row.querySelector('.out-inv-amount-input');
+                const sizeSelect = row.querySelector('.out-inv-size-select');
+
+                const selectedIndex = prodSelect.value;
+                if (selectedIndex === '' || !productsList[selectedIndex]) {
+                    hasError = true;
+                    errorMsg = `Fila ${i + 1}: Selecciona un producto válido.`;
+                    return;
+                }
+
+                const selectedProd = productsList[selectedIndex];
+                const amountVal = parseInt(amountInput.value, 10);
+                const sizeVal = sizeSelect.value ? sizeSelect.value.trim() : '';
+
+                if (isNaN(amountVal) || amountVal <= 0) {
+                    hasError = true;
+                    errorMsg = `Fila ${i + 1}: La cantidad debe ser un número entero mayor a 0.`;
+                    return;
+                }
+
+                if (!sizeVal) {
+                    hasError = true;
+                    errorMsg = `Fila ${i + 1}: Selecciona una talla.`;
+                    return;
+                }
+
+                const availableStock = parseInt(row.dataset.availableStock || '0', 10);
+                if (amountVal > availableStock) {
+                    hasError = true;
+                    errorMsg = `Fila ${i + 1}: Stock insuficiente. Disponible: ${availableStock} uds.`;
+                    return;
+                }
+
+                entries.push({
+                    reference: selectedProd.reference,
+                    amount: amountVal,
+                    size: sizeVal,
+                    categorie: selectedProd.categorie
+                });
+            });
+
+            if (hasError) {
+                showOutInvAlert(errorMsg, 'error');
+                return;
+            }
+
+            if (entries.length === 0) {
+                showOutInvAlert('Agrega al menos un producto.', 'error');
+                return;
+            }
+
+            const now = new Date().toISOString();
+            const observation = document.getElementById('outInventoryObservation').value.trim();
+
+            btnSaveOutInventory.disabled = true;
+            btnSaveOutText.style.display = 'none';
+            btnSaveOutLoader.style.display = 'inline-flex';
+
+            try {
+                // Procesar cada entrada de salida
+                for (const entry of entries) {
+                    const { data: invRows, error: invFetchErr } = await supabase
+                        .from('inventory')
+                        .select('*')
+                        .eq('reference', entry.reference)
+                        .eq('size', entry.size);
+
+                    if (invFetchErr) {
+                        throw new Error('Error al consultar inventario actual: ' + invFetchErr.message);
+                    }
+
+                    const totalAvailableNow = (invRows || []).reduce((acc, row) => acc + (Number(row.amount) || 0), 0);
+                    if (totalAvailableNow < entry.amount) {
+                        throw new Error(`Stock insuficiente para ${entry.reference} (${entry.size}). Solo hay ${totalAvailableNow} unidades disponibles.`);
+                    }
+
+                    // Descontar las unidades retiradas
+                    let remainingToDeduct = entry.amount;
+                    for (const row of invRows) {
+                        if (remainingToDeduct <= 0) break;
+                        const rowAmount = Number(row.amount) || 0;
+                        if (rowAmount <= 0) continue;
+
+                        const deductFromThisRow = Math.min(rowAmount, remainingToDeduct);
+                        const newRowAmount = rowAmount - deductFromThisRow;
+                        remainingToDeduct -= deductFromThisRow;
+
+                        let updateQuery = supabase
+                            .from('inventory')
+                            .update({ amount: newRowAmount });
+
+                        if (row.id !== undefined && row.id !== null) {
+                            updateQuery = updateQuery.eq('id', row.id);
+                        } else if (row.created_at) {
+                            updateQuery = updateQuery
+                                .eq('reference', entry.reference)
+                                .eq('size', entry.size)
+                                .eq('created_at', row.created_at);
+                        } else {
+                            updateQuery = updateQuery
+                                .eq('reference', entry.reference)
+                                .eq('size', entry.size);
+                        }
+
+                        const { error: updateErr } = await updateQuery;
+                        if (updateErr) {
+                            throw new Error('Error al descontar inventario: ' + updateErr.message);
+                        }
+                    }
+                }
+
+                // Save to movements table with negative amounts
+                const movementData = {
+                    type: 'Salida Inventario',
+                    inventory_data: {
+                        entries: entries.map(e => ({ ...e, amount: -e.amount })),
+                        observation: observation
+                    },
+                    created_at: now
+                };
+
+                const { error: movementError } = await supabase
+                    .from('movements')
+                    .insert(movementData);
+
+                if (movementError) {
+                    console.error('Error saving movement:', movementError);
+                }
+
+                closeOutInventoryModalFn();
+                await loadInventory();
+            } catch (err) {
+                console.error('Error al registrar la salida de inventario:', err);
+                showOutInvAlert(err.message || 'Error al registrar la salida de inventario. Intenta nuevamente.');
+            } finally {
+                btnSaveOutInventory.disabled = false;
+                btnSaveOutText.style.display = 'inline';
+                btnSaveOutLoader.style.display = 'none';
             }
         });
 
@@ -1255,286 +1633,12 @@
             }
         });
 
-        editInventoryForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            editInvModalAlert.style.display = 'none';
-
-            const id = editInvId.value;
-            const amountVal = parseInt(editInvAmount.value, 10);
-
-            if (isNaN(amountVal) || amountVal <= 0) {
-                editInvModalAlert.className = 'modal-alert error';
-                editInvModalAlert.textContent = 'La cantidad debe ser un número entero mayor a 0.';
-                editInvModalAlert.style.display = 'block';
-                return;
-            }
-
-            btnSaveEditInventory.disabled = true;
-            btnSaveEditInventoryText.style.display = 'none';
-            btnSaveEditInventoryLoader.style.display = 'inline-flex';
-
-            try {
-                let query = supabase
-                    .from('inventory')
-                    .update({ amount: amountVal });
-
-                if (id) {
-                    query = query.eq('id', id);
-                } else {
-                    query = query
-                        .eq('reference', currentEditInvReference)
-                        .eq('size', currentEditInvSize);
-                }
-
-                const { error } = await query;
-
-                if (error) throw error;
-
-                closeEditInventoryModalFn();
-                await loadInventory();
-            } catch (err) {
-                console.error('Error updating inventory:', err);
-                editInvModalAlert.className = 'modal-alert error';
-                editInvModalAlert.textContent = err.message || 'Error al actualizar el inventario';
-                editInvModalAlert.style.display = 'block';
-            } finally {
-                btnSaveEditInventory.disabled = false;
-                btnSaveEditInventoryText.style.display = 'inline';
-                btnSaveEditInventoryLoader.style.display = 'none';
-            }
-        });
-
-        outProduct.addEventListener('change', async () => {
-            outAmount.value = '';
-            outAmount.disabled = true;
-            btnSaveOutInventory.disabled = true;
-            outStockInfoBox.style.display = 'none';
-            outCurrentAvailableStock = 0;
-
-            const selectedIndex = outProduct.value;
-
-            if (selectedIndex !== '' && productsList[selectedIndex]) {
-                const selectedProd = productsList[selectedIndex];
-
-                let sizes = [];
-                if (Array.isArray(selectedProd.size)) {
-                    sizes = selectedProd.size;
-                } else if (typeof selectedProd.size === 'string' && selectedProd.size.trim()) {
-                    try {
-                        const parsed = JSON.parse(selectedProd.size);
-                        sizes = Array.isArray(parsed) ? parsed : [selectedProd.size];
-                    } catch {
-                        sizes = selectedProd.size.split(',').map(s => s.trim()).filter(Boolean);
-                    }
-                }
-
-                if (sizes.length === 0) {
-                    outSize.innerHTML = '<option value="">Sin tallas registradas</option>';
-                    outSize.disabled = true;
-                } else {
-                    let sizeOpts = '<option value="">Seleccionar talla...</option>';
-                    sizes.forEach(s => {
-                        sizeOpts += `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`;
-                    });
-                    outSize.innerHTML = sizeOpts;
-                    outSize.disabled = false;
-                }
-            } else {
-                outSize.innerHTML = '<option value="">Selecciona un producto primero...</option>';
-                outSize.disabled = true;
-            }
-        });
-
-        outSize.addEventListener('change', async () => {
-            const selectedSize = outSize.value;
-            const selectedIndex = outProduct.value;
-            outAmount.value = '';
-            outAmount.disabled = true;
-            btnSaveOutInventory.disabled = true;
-            outCurrentAvailableStock = 0;
-
-            if (!selectedSize || selectedIndex === '' || !productsList[selectedIndex]) {
-                outStockInfoBox.style.display = 'none';
-                return;
-            }
-
-            const ref = productsList[selectedIndex].reference;
-            outStockInfoBox.style.display = 'flex';
-            outStockInfoBox.className = 'stock-info-box';
-            outStockMessage.textContent = 'Consultando disponibilidad en inventario...';
-
-            const { data, error } = await supabase
-                .from('inventory')
-                .select('amount')
-                .eq('reference', ref)
-                .eq('size', selectedSize);
-
-            if (error) {
-                console.error('Error consultando stock:', error);
-                outStockInfoBox.className = 'stock-info-box out-stock';
-                outStockMessage.textContent = 'Error al consultar inventario.';
-                return;
-            }
-
-            outCurrentAvailableStock = (data || []).reduce((acc, row) => acc + (Number(row.amount) || 0), 0);
-
-            if (outCurrentAvailableStock <= 0) {
-                outStockInfoBox.className = 'stock-info-box out-stock';
-                outStockMessage.textContent = 'Sin stock disponible en inventario.';
-                outAmount.disabled = true;
-                btnSaveOutInventory.disabled = true;
-            } else {
-                outStockInfoBox.className = 'stock-info-box in-stock';
-                outStockMessage.innerHTML = `Disponibles en inventario: <strong>${outCurrentAvailableStock}</strong> uds`;
-                outAmount.disabled = false;
-                outAmount.min = 1;
-                outAmount.max = outCurrentAvailableStock;
-                outAmount.placeholder = `Máx. ${outCurrentAvailableStock}`;
-                outAmount.focus();
-            }
-        });
-
-        outAmount.addEventListener('keydown', (e) => {
-            if (['-', '+', 'e', 'E', '.', ','].includes(e.key)) {
-                e.preventDefault();
-            }
-        });
-
-        outAmount.addEventListener('input', () => {
-            outAmount.value = outAmount.value.replace(/\D/g, '');
-            let val = parseInt(outAmount.value, 10);
-
-            if (isNaN(val) || val <= 0) {
-                btnSaveOutInventory.disabled = true;
-                return;
-            }
-
-            if (val > outCurrentAvailableStock) {
-                val = outCurrentAvailableStock;
-                outAmount.value = outCurrentAvailableStock;
-            }
-
-            const remaining = outCurrentAvailableStock - val;
-            outStockInfoBox.className = 'stock-info-box in-stock';
-            outStockMessage.innerHTML = `Disponibles: <strong>${outCurrentAvailableStock}</strong> uds — Restantes: <strong>${remaining}</strong> uds`;
-
-            btnSaveOutInventory.disabled = false;
-        });
-
-        outInventoryForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            hideOutInvAlert();
-
-            const selectedIndex = outProduct.value;
-            if (selectedIndex === '' || !productsList[selectedIndex]) {
-                showOutInvAlert('Selecciona un producto válido.');
-                return;
-            }
-
-            const ref = productsList[selectedIndex].reference;
-            const sizeVal = outSize.value.trim();
-            let amountVal = parseInt(outAmount.value, 10);
-            const observation = document.getElementById('outInventoryObservation').value.trim();
-
-            if (!sizeVal) {
-                showOutInvAlert('Selecciona una talla.');
-                return;
-            }
-
-            if (isNaN(amountVal) || amountVal <= 0) {
-                showOutInvAlert('Ingresa una cantidad válida mayor a 0.');
-                return;
-            }
-
-            const now = new Date().toISOString();
-
-            btnSaveOutInventory.disabled = true;
-            btnSaveOutText.style.display = 'none';
-            btnSaveOutLoader.style.display = 'inline-flex';
-
-            try {
-                // Re-verificar stock actual en la base de datos
-                const { data: invRows, error: invFetchErr } = await supabase
-                    .from('inventory')
-                    .select('*')
-                    .eq('reference', ref)
-                    .eq('size', sizeVal);
-
-                if (invFetchErr) {
-                    throw new Error('Error al consultar inventario actual: ' + invFetchErr.message);
-                }
-
-                const totalAvailableNow = (invRows || []).reduce((acc, row) => acc + (Number(row.amount) || 0), 0);
-
-                if (totalAvailableNow < amountVal) {
-                    throw new Error(`Stock insuficiente en inventario. Solo hay ${totalAvailableNow} unidades disponibles.`);
-                }
-
-                // Descontar las unidades retiradas del inventario (inventario actual - unidades retiradas)
-                let remainingToDeduct = amountVal;
-                for (const row of invRows) {
-                    if (remainingToDeduct <= 0) break;
-                    const rowAmount = Number(row.amount) || 0;
-                    if (rowAmount <= 0) continue;
-
-                    const deductFromThisRow = Math.min(rowAmount, remainingToDeduct);
-                    const newRowAmount = rowAmount - deductFromThisRow;
-                    remainingToDeduct -= deductFromThisRow;
-
-                    let updateQuery = supabase
-                        .from('inventory')
-                        .update({ amount: newRowAmount });
-
-                    if (row.id !== undefined && row.id !== null) {
-                        updateQuery = updateQuery.eq('id', row.id);
-                    } else if (row.created_at) {
-                        updateQuery = updateQuery
-                            .eq('reference', ref)
-                            .eq('size', sizeVal)
-                            .eq('created_at', row.created_at);
-                    } else {
-                        updateQuery = updateQuery
-                            .eq('reference', ref)
-                            .eq('size', sizeVal);
-                    }
-
-                    const { error: updateErr } = await updateQuery;
-                    if (updateErr) {
-                        console.error('Error al descontar inventario:', updateErr);
-                        throw new Error('Ocurrió un error al descontar del inventario: ' + updateErr.message);
-                    }
-                }
-
-                // Save to movements table
-                const movementData = {
-                    type: 'Salida Inventario',
-                    inventory_data: {
-                        reference: ref,
-                        size: sizeVal,
-                        amount: amountVal,
-                        observation: observation
-                    },
-                    created_at: now
-                };
-
-                const { error: movementError } = await supabase
-                    .from('movements')
-                    .insert(movementData);
-
-                if (movementError) {
-                    console.error('Error saving movement:', movementError);
-                    // Don't throw, just log - inventory was saved successfully
-                }
-
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && outInventoryModal.classList.contains('active')) {
                 closeOutInventoryModalFn();
-                await loadInventory();
-            } catch (err) {
-                console.error('Error al registrar la salida de inventario:', err);
-                showOutInvAlert(err.message || 'Error al registrar la salida de inventario. Intenta nuevamente.');
-            } finally {
-                btnSaveOutInventory.disabled = false;
-                btnSaveOutText.style.display = 'inline';
-                btnSaveOutLoader.style.display = 'none';
+            }
+            if (e.key === 'Escape' && editInventoryModal.classList.contains('active')) {
+                closeEditInventoryModalFn();
             }
         });
 
@@ -1751,6 +1855,35 @@
             currentEditInvSize = null;
             editInventoryForm.reset();
         }
+
+        // Edit Inventory Form Submit Handler
+        editInventoryForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editInvId').value;
+            const amount = parseInt(document.getElementById('editInvAmount').value, 10);
+            const reference = document.getElementById('editInvReference').value;
+
+            if (isNaN(amount) || amount < 0) {
+                alert('Ingresa una cantidad válida');
+                return;
+            }
+
+            try {
+                if (id) {
+                    const { error } = await supabase
+                        .from('inventory')
+                        .update({ amount: amount })
+                        .eq('id', id);
+                    if (error) throw error;
+                }
+
+                closeEditInventoryModalFn();
+                await loadInventory();
+            } catch (err) {
+                console.error('Error updating inventory:', err);
+                alert(err.message || 'Error al actualizar inventario');
+            }
+        });
 
         async function deleteInventory(id, reference, size) {
             if (!confirm(`¿Eliminar la entrada de inventario "${reference}" (${size})?`)) return;
