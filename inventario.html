@@ -630,7 +630,7 @@
             </section>
 
             <!-- Category Filter -->
-            <div class="inventory-filter-bar" style="display: flex; gap: 12px; align-items: center; padding: 16px 40px; background: var(--card-bg); border-bottom: 1px solid var(--border); flex-wrap: wrap;">
+            <div class="inventory-filter-bar" style="display: flex; gap: 12px; align-items: flex-end; padding: 16px 40px; background: var(--card-bg); border-bottom: 1px solid var(--border); flex-wrap: wrap;">
                 <div class="filter-group" style="flex: 1; max-width: 400px;">
                     <label for="categoryFilter" style="font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; display: block;">Filtrar por Categoría</label>
                     <div style="position: relative; width: 100%;">
@@ -642,13 +642,26 @@
                         </svg>
                     </div>
                 </div>
-                <button class="btn-clear-filter" id="btnClearCategoryFilter" style="padding: 10px 16px; background: transparent; border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; height: 44px;" title="Limpiar filtro">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;">
-                        <line x1="18" y1="6" x2="6" y2="18"/>
-                        <line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
-                    Limpiar
-                </button>
+                <div class="filter-group" style="flex: 1; max-width: 400px;">
+                    <label for="productFilter" style="font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; display: block;">Filtrar por Producto</label>
+                    <div style="position: relative; width: 100%;">
+                        <input type="text" id="productFilterInput" placeholder="Buscar producto..." style="width: 100%; padding: 10px 40px 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 14px; background: var(--background); color: var(--text-primary);" autocomplete="off" readonly>
+                        <div id="productFilterDropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); max-height: 250px; overflow-y: auto; z-index: 50;"></div>
+                        <input type="hidden" id="productFilterValue">
+                        <svg style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-muted); pointer-events: none;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="filter-group" style="display: flex; align-items: flex-end;">
+                    <button class="btn-clear-filter" id="btnClearCategoryFilter" style="padding: 10px 16px; background: transparent; border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; height: 44px;" title="Limpiar filtros">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                        Limpiar
+                    </button>
+                </div>
             </div>
 
             <div class="inventory-table-wrapper">
@@ -1545,7 +1558,7 @@
         }
         loadWorkspaceUser();
 
-        async function loadInventory(categoryFilter = '') {
+        async function loadInventory(categoryFilter = '', productFilter = '') {
             tableContent.innerHTML = `
                 <div class="loading-container">
                     <div class="spinner-lg"></div>
@@ -1560,6 +1573,10 @@
 
             if (categoryFilter) {
                 query = query.eq('categorie', categoryFilter);
+            }
+
+            if (productFilter) {
+                query = query.ilike('reference', `%${productFilter}%`);
             }
 
             const { data, error } = await query;
@@ -1724,7 +1741,7 @@
         async function loadCategories() {
             const { data, error } = await supabase
                 .from('products')
-                .select('categorie')
+                .select('categorie, reference')
                 .not('categorie', 'is', null);
 
             if (error) {
@@ -1737,20 +1754,70 @@
 
             const select = document.getElementById('categoryFilter');
             const clearBtn = document.getElementById('btnClearCategoryFilter');
+            const productFilterInput = document.getElementById('productFilterInput');
+            const productFilterDropdown = document.getElementById('productFilterDropdown');
+            const productFilterValue = document.getElementById('productFilterValue');
 
-            // Populate select
+            // Populate category select
             select.innerHTML = '<option value="">Todas las categorías</option>' + 
                 categories.map(cat => `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`).join('');
 
-            // Select change event
+            // Populate product filter dropdown
+            function renderProductDropdown() {
+                const refs = [...new Set(data.map(p => p.reference).filter(Boolean))].sort();
+                productFilterDropdown.innerHTML = refs.map(ref => 
+                    `<div class="product-filter-option" data-value="${escapeHtml(ref)}" style="padding: 10px 12px; cursor: pointer; font-size: 13px; color: var(--text-primary); border-bottom: 1px solid var(--border);">${escapeHtml(ref)}</div>`
+                ).join('');
+
+                productFilterDropdown.querySelectorAll('.product-filter-option').forEach(opt => {
+                    opt.addEventListener('click', () => {
+                        const ref = opt.dataset.value;
+                        productFilterInput.value = ref;
+                        productFilterValue.value = ref;
+                        productFilterDropdown.style.display = 'none';
+                        loadInventory(select.value, ref);
+                    });
+                    opt.addEventListener('mouseenter', () => opt.style.background = 'var(--background)');
+                    opt.addEventListener('mouseleave', () => opt.style.background = '');
+                });
+            }
+
+            renderProductDropdown();
+
+            // Category select change
             select.addEventListener('change', () => {
-                loadInventory(select.value);
+                productFilterInput.value = '';
+                productFilterValue.value = '';
+                loadInventory(select.value, '');
+            });
+
+            // Product filter dropdown events
+            productFilterInput.addEventListener('focus', () => {
+                productFilterDropdown.style.display = 'block';
+            });
+
+            productFilterInput.addEventListener('input', () => {
+                const search = productFilterInput.value.toLowerCase();
+                productFilterDropdown.querySelectorAll('.product-filter-option').forEach(opt => {
+                    const text = opt.textContent.toLowerCase();
+                    opt.style.display = text.includes(search) ? 'block' : 'none';
+                });
+                productFilterDropdown.style.display = 'block';
+            });
+
+            // Close dropdown on outside click
+            document.addEventListener('click', (e) => {
+                if (!productFilterInput.contains(e.target) && !productFilterDropdown.contains(e.target)) {
+                    productFilterDropdown.style.display = 'none';
+                }
             });
 
             // Clear button
             clearBtn.addEventListener('click', () => {
                 select.value = '';
-                loadInventory('');
+                productFilterInput.value = '';
+                productFilterValue.value = '';
+                loadInventory('', '');
             });
         }
     </script>
