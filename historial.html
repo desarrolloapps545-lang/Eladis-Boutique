@@ -722,7 +722,7 @@
             if (nameEl) nameEl.textContent = name;
 
             const isUserRole = String(role || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === 'usuario';
-            const restrictedModules = ['usuarios', 'productos', 'financiera', 'compras'];
+            const restrictedModules = ['usuarios', 'productos', 'compras'];
             if (isUserRole) {
                 restrictedModules.forEach(module => {
                     const item = document.querySelector(`.workspace-drawer-item[href="${module}.html"]`);

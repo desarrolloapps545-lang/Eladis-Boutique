@@ -830,7 +830,7 @@
     </div>
 
     <script type="module">
-        import { supabase } from './app.js';
+        import { supabase, normalizeRole } from './app.js';
 
 const btnBack = document.getElementById('btnBack');
          const btnRegistrarCapital = document.getElementById('btnRegistrarCapital');
@@ -840,6 +840,9 @@ const btnBack = document.getElementById('btnBack');
          const budgetValueDisplay = document.getElementById('budgetValueDisplay');
          const tableContent = document.getElementById('tableContent');
          const billsCount = document.getElementById('billsCount');
+         const budgetStatusBox = document.getElementById('budgetStatusBox');
+
+         let isUserRole = false;
 
         // Modal Budget
         const budgetModal = document.getElementById('budgetModal');
@@ -1008,6 +1011,12 @@ const btnBack = document.getElementById('btnBack');
         }
 
         async function loadBudget() {
+            if (isUserRole) {
+                budgetValueDisplay.style.display = 'none';
+                btnRegistrarCapital.style.display = 'none';
+                return;
+            }
+
             budgetValueDisplay.textContent = 'Cargando...';
             btnRegistrarCapital.style.display = 'none';
 
@@ -1044,9 +1053,15 @@ const btnBack = document.getElementById('btnBack');
                 </div>
             `;
 
-            const { data, error } = await supabase
+            let billsQuery = supabase
                 .from('bills')
-                .select('created_at, reference, cost, type')
+                .select('created_at, reference, cost, type');
+
+            if (isUserRole) {
+                billsQuery = billsQuery.eq('type', 'Ganancia');
+            }
+
+            const { data, error } = await billsQuery
                 .order('created_at', { ascending: false });
 
             if (error) {
@@ -1181,6 +1196,8 @@ return parts.join('');
 
           // Modal Capital
         function openBudgetModal() {
+            if (isUserRole) return;
+
             hideBudgetAlert();
             budgetForm.reset();
             budgetModal.classList.add('active');
@@ -1200,6 +1217,8 @@ return parts.join('');
 
         // Modal Gasto (Bill)
         function openBillModal() {
+            if (isUserRole) return;
+
             hideBillAlert();
             billForm.reset();
             billModal.classList.add('active');
@@ -1352,6 +1371,8 @@ document.addEventListener('keydown', (e) => {
         // Guardar o Actualizar Capital
         budgetForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (isUserRole) return;
+
             hideBudgetAlert();
 
             const rawVal = budgetInputvalue.value;
@@ -1401,6 +1422,8 @@ document.addEventListener('keydown', (e) => {
         // Guardar Gasto y restar al capital (capital actual - valor gasto)
         billForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (isUserRole) return;
+
             hideBillAlert();
 
             const referenceVal = billReferenceInput.value.trim();
@@ -1606,7 +1629,7 @@ document.addEventListener('keydown', (e) => {
         // Load user profile and apply role-based restrictions
         async function loadWorkspaceUser() {
             const { data: { session } } = await supabase.auth.getSession();
-            if (!session?.user) return;
+            if (!session?.user) return false;
 
             const { data: profile, error } = await supabase
                 .from('users')
@@ -1622,30 +1645,36 @@ document.addEventListener('keydown', (e) => {
             if (avatar) avatar.textContent = name.charAt(0).toUpperCase();
             if (nameEl) nameEl.textContent = name;
 
-            // Apply role-based restrictions (hide for 'usuario' role)
-            const isUserRole = String(role || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === 'usuario';
-            const restrictedModules = ['usuarios', 'productos', 'financiera', 'compras'];
+            isUserRole = normalizeRole(role) === 'usuario';
             if (isUserRole) {
-                restrictedModules.forEach(module => {
-                    const item = document.querySelector(`.workspace-drawer-item[href="${module}.html"]`);
-                    if (item) item.style.display = 'none';
-                });
+                budgetStatusBox.style.display = 'none';
+                budgetValueDisplay.style.display = 'none';
+                btnRegistrarCapital.style.display = 'none';
+                btnRegistrarGasto.style.display = 'none';
+                btnRegistrarCapital.disabled = true;
+                btnRegistrarGasto.disabled = true;
+                btnRegistrarCapital.removeEventListener('click', openBudgetModal);
+                btnRegistrarGasto.removeEventListener('click', openBillModal);
             }
+
+            return isUserRole;
         }
-        loadWorkspaceUser();
 
          document.addEventListener('DOMContentLoaded', async () => {
              const { data: { session } } = await supabase.auth.getSession();
 
-             if (!session) {
-                 window.location.href = 'index.html';
-                 return;
-             }
+              if (!session) {
+                  window.location.href = 'index.html';
+                  return;
+              }
 
-             await loadBudget();
-             await loadBills();
-             await loadMovements();
-             await loadProductsForReport();
+              await loadWorkspaceUser();
+              await loadBudget();
+              await loadBills();
+              if (!isUserRole) {
+                  await loadMovements();
+              }
+              await loadProductsForReport();
          });
 
          async function loadProductsForReport() {
