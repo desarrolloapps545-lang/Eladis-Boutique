@@ -854,7 +854,7 @@
 
                         <div class="modal-actions" style="margin-top: 20px;">
                             <button type="button" class="btn-modal-back" id="cancelSaleBtn">Cancelar</button>
-                            <button type="button" class="btn-modal-next" id="btnNextToClient" disabled style="background: var(--primary); color: white;">Continuar →</button>
+                            <button type="button" class="btn-modal-next" id="btnNextToClient" style="background: var(--primary); color: white;">Continuar →</button>
                         </div>
                     </div>
 
@@ -1132,7 +1132,7 @@
                     $ 0
                 </div>
                 <div class="sale-row-remove" style="display: flex; justify-content: center;">
-                    <button type="button" class="btn-remove-row" aria-label="Eliminar producto" style="width: 32px; height: 32px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; transition: var(--transition); opacity: 0.5; pointer-events: none;">
+                    <button type="button" class="btn-remove-row" aria-label="Eliminar producto" style="width: 32px; height: 32px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; transition: var(--transition);">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;">
                             <line x1="18" y1="6" x2="6" y2="18"/>
                             <line x1="6" y1="6" x2="18" y2="18"/>
@@ -1444,7 +1444,7 @@
                 const size = sizeSelect.value;
                 const price = Number(priceInput.dataset.price) || 0;
                 const amount = parseInt(amountInput.value, 10) || 0;
-                const subtotal = Number(subtotalEl.textContent.replace(/[^0-9.-]/g, '')) || 0;
+                const subtotal = price * amount;
 
                 if (!reference || !size || price <= 0 || amount <= 0) {
                     showSaleAlert('Todos los productos deben tener referencia, talla, precio y cantidad válidos.');
@@ -1473,9 +1473,8 @@
             try {
                 let grandTotal = 0;
 
-                // Process each sale item
+                // Verify stock for all items
                 for (const item of saleItems) {
-                    // Verify stock
                     const { data: invRows, error: invFetchErr } = await supabase
                         .from('inventory')
                         .select('*')
@@ -1491,31 +1490,42 @@
                     if (totalAvailableNow < item.amount) {
                         throw new Error(`Stock insuficiente para ${item.reference} (${item.size}). Disponible: ${totalAvailableNow}`);
                     }
+                }
 
-                    // Insert sale record
-                    const { data: newSale, error: insertSaleError } = await supabase
-                        .from('sales')
-                        .insert({
-                            reference: item.reference,
-                            size: item.size,
-                            price: item.price,
-                            amount: item.amount,
-                            total_sale: item.subtotal,
-                            client_data: clientData,
-                            created_at: new Date().toISOString()
-                        })
-                        .select('id')
-                        .single();
+                // Calculate grand total
+                saleItems.forEach(item => grandTotal += item.subtotal);
 
-                    if (insertSaleError) {
-                        throw insertSaleError;
-                    }
+                // Insert a SINGLE sale record with all items as arrays
+                const { data: newSale, error: insertSaleError } = await supabase
+                    .from('sales')
+                    .insert({
+                        reference: saleItems.map(i => i.reference),
+                        size: saleItems.map(i => i.size),
+                        price: saleItems.map(i => i.price),
+                        amount: saleItems.map(i => i.amount),
+                        total_sale: grandTotal,
+                        client_data: clientData,
+                        created_at: new Date().toISOString()
+                    })
+                    .select('id')
+                    .single();
 
-                    const newSaleId = newSale?.id;
+                if (insertSaleError) {
+                    throw insertSaleError;
+                }
 
-                    // Deduct from inventory
+                const newSaleId = newSale?.id;
+
+                // Deduct from inventory for each item
+                for (const item of saleItems) {
+                    const { data: invRows } = await supabase
+                        .from('inventory')
+                        .select('*')
+                        .eq('reference', item.reference)
+                        .eq('size', item.size);
+
                     let remainingToDeduct = item.amount;
-                    for (const invRow of invRows) {
+                    for (const invRow of (invRows || [])) {
                         if (remainingToDeduct <= 0) break;
                         const rowAmount = Number(invRow.amount) || 0;
                         if (rowAmount <= 0) continue;
@@ -1546,8 +1556,6 @@
                             throw new Error('Error al descontar inventario: ' + updateErr.message);
                         }
                     }
-
-                    grandTotal += item.subtotal;
                 }
 
                 // Update capital
