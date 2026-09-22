@@ -67,10 +67,37 @@
             cursor: not-allowed;
         }
 
-        .btn-add-sales svg {
-            width: 18px;
-            height: 18px;
-        }
+         .btn-add-sales svg {
+             width: 18px;
+             height: 18px;
+         }
+
+         .btn-add-sales-secondary {
+             padding: 10px 20px;
+             background: transparent;
+             color: var(--secondary);
+             border: 1px solid var(--secondary);
+             border-radius: var(--radius-md);
+             font-size: 14px;
+             font-weight: 600;
+             cursor: pointer;
+             transition: var(--transition);
+             display: flex;
+             align-items: center;
+             gap: 8px;
+         }
+
+         .btn-add-sales-secondary:hover {
+             background: var(--secondary);
+             color: white;
+             transform: translateY(-1px);
+             box-shadow: var(--shadow-md);
+         }
+
+         .btn-add-sales-secondary svg {
+             width: 18px;
+             height: 18px;
+         }
 
         .btn-back-sales {
             padding: 10px 20px;
@@ -680,6 +707,12 @@
                     </svg>
                     Registrar venta
                 </button>
+                <button class="btn-add-sales-secondary" id="btnVentaPersonalizada">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14.7 6.294a4.5 4.5 0 0 1 2.42 2.42L21 14.272V20a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h7l2 2h5l3 3Z"/>
+                    </svg>
+                    Venta Personalizada
+                </button>
                 <button class="btn-back-sales" id="btnBack">← Regresar</button>
             </div>
         </header>
@@ -927,10 +960,136 @@
                     </div>
                 </form>
             </div>
-        </div>
-    </div>
+         </div>
+     </div>
 
-    <!-- Modal Datos del Cliente (Visor de JSONB) -->
+     <!-- Modal Venta Personalizada - 2 Pasos -->
+     <div id="customSaleModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="customSaleModalTitle">
+         <div class="modal-overlay" id="customSaleModalOverlay"></div>
+         <div class="modal-content sale-modal-content" style="max-width: 900px;">
+             <div class="modal-header">
+                 <h2 id="customSaleModalTitle">Venta Personalizada</h2>
+                 <button type="button" class="modal-close" id="closeCustomSaleModal" aria-label="Cerrar">
+                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                         <line x1="18" y1="6" x2="6" y2="18"/>
+                         <line x1="6" y1="6" x2="18" y2="18"/>
+                     </svg>
+                 </button>
+             </div>
+             <div class="modal-body" style="padding: 24px; text-align: left; max-height: 70vh; overflow-y: auto;">
+                 <div id="customSaleModalAlert" class="modal-alert"></div>
+
+                 <div class="step-indicators" style="display: flex; justify-content: center; margin-bottom: 20px;">
+                     <div class="step-badge active" id="customStepBadge1" style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                         <span class="step-badge-num" style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600;">1</span>
+                         <span style="font-size: 12px; font-weight: 500; color: var(--text-primary);">Productos</span>
+                     </div>
+                     <div class="step-divider" style="width: 80px; height: 2px; background: var(--border); margin-top: 15px;"></div>
+                     <div class="step-badge" id="customStepBadge2" style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                         <span class="step-badge-num" style="width: 32px; height: 32px; border-radius: 50%; background: var(--background); color: var(--text-muted); display: flex; align-items: center; justify-content: center; font-weight: 600; border: 2px solid var(--border);">2</span>
+                         <span style="font-size: 12px; font-weight: 500; color: var(--text-muted);">Cliente</span>
+                     </div>
+                 </div>
+
+                 <form id="customSaleForm" novalidate>
+                     <!-- Paso 1: Productos -->
+                     <div class="sale-step active" id="customSaleStep1">
+                         <fieldset style="margin-bottom: 20px; padding: 16px; background: var(--background); border-radius: var(--radius-md); border: 1px solid var(--border);">
+                             <legend style="font-weight: 600; color: var(--text-primary); margin-bottom: 12px; font-size: 14px;">Productos de la Venta</legend>
+                              <div style="display: grid; grid-template-columns: 1fr 2.5fr 1fr 1fr 1fr 1fr 60px; gap: 8px; padding: 8px 12px; background: var(--card-bg); border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
+                                  <div>Categoría</div>
+                                  <div>Producto</div>
+                                  <div>Talla</div>
+                                  <div>Precio Unit.</div>
+                                  <div>Cantidad</div>
+                                  <div>Subtotal</div>
+                                  <div></div>
+                              </div>
+
+                             <div id="customSaleProductRows"></div>
+
+                             <div id="customNoProductsMessage" style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 14px; display: none;">
+                                 No hay productos agregados.
+                             </div>
+                         </fieldset>
+
+                         <!-- Total General -->
+                         <div style="display: flex; justify-content: flex-end; align-items: center; gap: 16px; padding: 16px; background: var(--card-bg); border-radius: var(--radius-md); border: 1px solid var(--border);">
+                             <div style="font-size: 14px; color: var(--text-secondary);">
+                                 Total a cobrar:
+                             </div>
+                             <div id="customGrandTotalDisplay" style="font-size: 22px; font-weight: 700; color: var(--primary);">
+                                 $ 0
+                             </div>
+                         </div>
+
+                         <div class="modal-actions" style="margin-top: 20px;">
+                             <button type="button" class="btn-modal-back" id="customCancelSaleBtn">Cancelar</button>
+                             <button type="button" class="btn-modal-next" id="btnCustomNextToClient" style="background: var(--primary); color: white;">Continuar →</button>
+                         </div>
+                     </div>
+
+                     <!-- Paso 2: Datos del Cliente -->
+                     <div class="sale-step" id="customSaleStep2" style="display: none;">
+                         <div style="margin-bottom: 20px; padding: 16px; background: var(--background); border-radius: var(--radius-md); border: 1px solid var(--border);">
+                             <legend style="font-weight: 600; color: var(--text-primary); margin-bottom: 12px; font-size: 14px; display: block;">Resumen de la Venta</legend>
+                             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
+                                 <div style="padding: 12px; background: var(--card-bg); border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                                     <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Productos</div>
+                                     <div id="customSummaryProductCount" style="font-weight: 600; color: var(--primary); font-size: 18px;">0</div>
+                                 </div>
+                                 <div style="padding: 12px; background: var(--card-bg); border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                                     <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Total a cobrar</div>
+                                     <div id="customSummaryGrandTotal" style="font-weight: 700; color: var(--primary); font-size: 18px;">$ 0</div>
+                                 </div>
+                             </div>
+                         </div>
+
+                         <fieldset style="margin-bottom: 20px; padding: 16px; background: var(--background); border-radius: var(--radius-md); border: 1px solid var(--border);">
+                             <legend style="font-weight: 600; color: var(--text-primary); margin-bottom: 12px; font-size: 14px;">Datos del Cliente</legend>
+                             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                                 <div class="sale-form-group">
+                                     <label for="customClientFullName">Nombre completo *</label>
+                                     <input type="text" id="customClientFullName" placeholder="Nombre completo del cliente" required>
+                                 </div>
+                                 <div class="sale-form-group">
+                                     <label for="customClientPhoneInput">Celular *</label>
+                                     <input type="tel" id="customClientPhoneInput" placeholder="Ej. 3001234567 (solo números)" inputmode="numeric" required>
+                                 </div>
+                                 <div class="sale-form-group">
+                                     <label for="customClientAddressInput">Dirección *</label>
+                                     <input type="text" id="customClientAddressInput" placeholder="Dirección de entrega o residencia" required>
+                                 </div>
+                                 <div class="sale-form-group">
+                                     <label for="customClientPaymentSelect">Tipo de pago *</label>
+                                     <select id="customClientPaymentSelect" required>
+                                         <option value="">Selecciona tipo de pago...</option>
+                                         <option value="Contra entrega">Contra entrega</option>
+                                         <option value="Transferencia">Transferencia</option>
+                                     </select>
+                                 </div>
+                             </div>
+                         </fieldset>
+
+                         <div class="modal-actions" style="margin-top: 20px;">
+                             <button type="button" class="btn-modal-back" id="customBtnBackToStep1">← Volver</button>
+                             <button type="submit" class="btn-modal-submit" id="btnSubmitCustomSale">
+                                 <span id="btnSubmitCustomSaleText">Confirmar Venta</span>
+                                 <span id="btnSubmitCustomSaleLoader" style="display:none;">
+                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;animation:spin 0.8s linear infinite;">
+                                         <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+                                         <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+                                     </svg>
+                                 </span>
+                             </button>
+                         </div>
+                     </div>
+                 </form>
+             </div>
+         </div>
+     </div>
+
+     <!-- Modal Datos del Cliente (Visor de JSONB) -->
     <div id="clientModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="clientModalTitle">
         <div class="modal-overlay" id="clientModalOverlay"></div>
         <div class="modal-content client-modal-content">
@@ -1064,6 +1223,22 @@
         const btnSubmitSaleLoader = document.getElementById('btnSubmitSaleLoader');
         const saleProductRows = document.getElementById('saleProductRows');
         const grandTotalDisplay = document.getElementById('grandTotalDisplay');
+
+         // Modal Venta Personalizada
+         const customSaleModal = document.getElementById('customSaleModal');
+         const customSaleModalOverlay = document.getElementById('customSaleModalOverlay');
+         const closeCustomSaleModal = document.getElementById('closeCustomSaleModal');
+         const customCancelSaleBtn = document.getElementById('customCancelSaleBtn');
+         const customSaleForm = document.getElementById('customSaleForm');
+         const customSaleModalAlert = document.getElementById('customSaleModalAlert');
+          const customSaleProductRows = document.getElementById('customSaleProductRows');
+          const customGrandTotalDisplay = document.getElementById('customGrandTotalDisplay');
+          const customNoProductsMessage = document.getElementById('customNoProductsMessage');
+         const btnCustomNextToClient = document.getElementById('btnCustomNextToClient');
+         const customBtnBackToStep1 = document.getElementById('customBtnBackToStep1');
+         const btnSubmitCustomSale = document.getElementById('btnSubmitCustomSale');
+         const btnSubmitCustomSaleText = document.getElementById('btnSubmitCustomSaleText');
+         const btnSubmitCustomSaleLoader = document.getElementById('btnSubmitCustomSaleLoader');
 
          // Modal Visor de Cliente
          const clientModal = document.getElementById('clientModal');
@@ -1478,6 +1653,7 @@
         }
 
         btnRegistrarVenta.addEventListener('click', openCreateSaleModal);
+        btnVentaPersonalizada.addEventListener('click', openCustomSaleModal);
         closeCreateSaleModal.addEventListener('click', closeCreateSaleModalFn);
         cancelSaleBtn.addEventListener('click', closeCreateSaleModalFn);
         createSaleModalOverlay.addEventListener('click', closeCreateSaleModalFn);
@@ -1486,6 +1662,9 @@
             if (e.key === 'Escape') {
                 if (createSaleModal.classList.contains('active')) {
                     closeCreateSaleModalFn();
+                }
+                if (customSaleModal.classList.contains('active')) {
+                    closeCustomSaleModalFn();
                 }
                 if (clientModal.classList.contains('active')) {
                     closeClientModalFn();
@@ -3062,6 +3241,359 @@ async function openEditSaleModal(id, index) {
                 alert(err.message || 'Error al eliminar la venta');
             }
         }
+
+         // ===== Venta Personalizada =====
+         let customProductCounter = 0;
+
+          function createCustomProductRow(productData = null) {
+              customProductCounter++;
+              const row = document.createElement('div');
+              row.className = 'sale-product-row';
+              row.dataset.rowId = `customRow_${customProductCounter}`;
+              row.style.cssText = 'display: grid; grid-template-columns: 1fr 2.5fr 1fr 1fr 1fr 1fr 60px; gap: 8px; align-items: end; padding: 8px 12px; background: var(--card-bg); border-radius: var(--radius-sm); border: 1px solid var(--border);';
+
+              row.innerHTML = `
+                 <div class="sale-row-category">
+                     <input type="text" class="custom-row-category-input" value="Personalizado" readonly style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px; background: var(--background); color: var(--text-primary);" required>
+                 </div>
+                 <div class="sale-row-product">
+                     <input type="text" class="custom-row-product-input" placeholder="Nombre del producto" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px; background: var(--background); color: var(--text-primary);" autocomplete="off" required>
+                 </div>
+                 <div class="sale-row-size">
+                     <input type="text" class="custom-row-size-input" placeholder="Talla" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px; background: var(--background); color: var(--text-primary);" required>
+                 </div>
+                 <div class="sale-row-price">
+                     <input type="text" class="custom-row-price-input" placeholder="$ 0" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px; background: var(--background); color: var(--text-primary); text-align: right;" required>
+                 </div>
+                 <div class="sale-row-amount">
+                     <input type="number" class="custom-row-amount-input" min="1" step="1" placeholder="1" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px; text-align: center;" required>
+                 </div>
+                 <div class="sale-row-subtotal" style="font-weight: 600; color: var(--primary); text-align: right; padding: 10px 12px; font-size: 13px;">
+                     $ 0
+                 </div>
+                 <div class="sale-row-remove" style="display: flex; justify-content: center;">
+                     <button type="button" class="btn-remove-row" aria-label="Eliminar producto" style="width: 32px; height: 32px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; transition: var(--transition);">
+                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;">
+                             <line x1="18" y1="6" x2="6" y2="18"/>
+                             <line x1="6" y1="6" x2="18" y2="18"/>
+                         </svg>
+                     </button>
+                 </div>
+             `;
+
+             const removeBtn = row.querySelector('.btn-remove-row');
+             removeBtn.addEventListener('click', () => {
+                 row.remove();
+                 updateCustomGrandTotal();
+                 checkCustomEmptyProducts();
+             });
+
+             const priceInput = row.querySelector('.custom-row-price-input');
+             const amountInput = row.querySelector('.custom-row-amount-input');
+             const sizeInput = row.querySelector('.custom-row-size-input');
+
+             priceInput.addEventListener('input', (e) => {
+                 formatCustomPriceInput(e.target);
+                 calculateCustomSubtotal(row);
+                 updateCustomGrandTotal();
+             });
+
+             amountInput.addEventListener('input', () => {
+                 calculateCustomSubtotal(row);
+                 updateCustomGrandTotal();
+             });
+
+             sizeInput.addEventListener('input', () => {
+                 calculateCustomSubtotal(row);
+                 updateCustomGrandTotal();
+             });
+
+             return row;
+         }
+
+         function formatCustomPriceInput(input) {
+             const raw = input.value.replace(/[^0-9]/g, '');
+             if (raw === '') {
+                 input.value = '';
+                 return;
+             }
+             let formatted = '';
+             let count = 0;
+             for (let i = raw.length - 1; i >= 0; i--) {
+                 if (count > 0 && count % 3 === 0) {
+                     formatted = '.' + formatted;
+                 }
+                 formatted = raw[i] + formatted;
+                 count++;
+             }
+             input.value = formatted;
+         }
+
+         function calculateCustomSubtotal(row) {
+             const priceInput = row.querySelector('.custom-row-price-input');
+             const amountInput = row.querySelector('.custom-row-amount-input');
+             const subtotalEl = row.querySelector('.sale-row-subtotal');
+
+             const price = Number(priceInput.value.replace(/\./g, '')) || 0;
+             const amount = parseInt(amountInput.value, 10) || 0;
+
+             if (price > 0 && amount > 0) {
+                 subtotalEl.textContent = formatCurrency(price * amount);
+             } else {
+                 subtotalEl.textContent = '$ 0';
+             }
+         }
+
+         function updateCustomGrandTotal() {
+             const rows = customSaleProductRows.querySelectorAll('.sale-product-row');
+             let total = 0;
+             rows.forEach(row => {
+                 const priceInput = row.querySelector('.custom-row-price-input');
+                 const amountInput = row.querySelector('.custom-row-amount-input');
+                 const price = Number(priceInput.value.replace(/\./g, '')) || 0;
+                 const amount = parseInt(amountInput.value, 10) || 0;
+                 if (price > 0 && amount > 0) {
+                     total += price * amount;
+                 }
+             });
+             customGrandTotalDisplay.textContent = formatCurrency(total);
+         }
+
+          function checkCustomEmptyProducts() {
+              const rows = customSaleProductRows.querySelectorAll('.sale-product-row');
+              if (rows.length === 0) {
+                  customNoProductsMessage.style.display = 'block';
+                  const newRow = createCustomProductRow();
+                  customSaleProductRows.appendChild(newRow);
+                  customNoProductsMessage.style.display = 'none';
+              } else {
+                  customNoProductsMessage.style.display = 'none';
+              }
+          }
+
+         function openCustomSaleModal() {
+             hideCustomSaleAlert();
+             customSaleForm.reset();
+             customSaleProductRows.innerHTML = '';
+             customProductCounter = 0;
+             addCustomProductRow();
+             updateCustomGrandTotal();
+             customSaleModal.classList.add('active');
+         }
+
+         function closeCustomSaleModalFn() {
+             customSaleModal.classList.remove('active');
+             hideCustomSaleAlert();
+             customSaleForm.reset();
+             customSaleProductRows.innerHTML = '';
+             customProductCounter = 0;
+         }
+
+         function addCustomProductRow() {
+             const row = createCustomProductRow();
+             customSaleProductRows.appendChild(row);
+             checkCustomEmptyProducts();
+         }
+
+         function showCustomSaleAlert(msg, type = 'error') {
+             customSaleModalAlert.className = `modal-alert ${type}`;
+             customSaleModalAlert.textContent = msg;
+             customSaleModalAlert.style.display = 'block';
+         }
+
+         function hideCustomSaleAlert() {
+             customSaleModalAlert.className = 'modal-alert';
+             customSaleModalAlert.textContent = '';
+             customSaleModalAlert.style.display = 'none';
+         }
+
+         function updateCustomStep2Summary() {
+             const rows = customSaleProductRows.querySelectorAll('.sale-product-row');
+             let count = 0;
+             let total = 0;
+             rows.forEach(row => {
+                 const priceInput = row.querySelector('.custom-row-price-input');
+                 const amountInput = row.querySelector('.custom-row-amount-input');
+                 const price = Number(priceInput.value.replace(/\./g, '')) || 0;
+                 const amount = parseInt(amountInput.value, 10) || 0;
+                 if (price > 0 && amount > 0) {
+                     count += amount;
+                     total += price * amount;
+                 }
+             });
+             document.getElementById('customSummaryProductCount').textContent = count;
+             document.getElementById('customSummaryGrandTotal').textContent = formatCurrency(total);
+         }
+
+         // Step navigation for custom sale
+         function goToCustomStep(step) {
+             hideCustomSaleAlert();
+             const step1 = document.getElementById('customSaleStep1');
+             const step2 = document.getElementById('customSaleStep2');
+             step1.style.display = step === 1 ? 'block' : 'none';
+             step2.style.display = step === 2 ? 'block' : 'none';
+             if (step === 2) {
+                 updateCustomStep2Summary();
+             }
+         }
+
+         btnCustomNextToClient.addEventListener('click', () => goToCustomStep(2));
+         customBtnBackToStep1.addEventListener('click', () => goToCustomStep(1));
+         closeCustomSaleModal.addEventListener('click', closeCustomSaleModalFn);
+         customCancelSaleBtn.addEventListener('click', closeCustomSaleModalFn);
+         customSaleModalOverlay.addEventListener('click', closeCustomSaleModalFn);
+
+         customSaleModal.addEventListener('click', (e) => {
+             if (e.target === customSaleModal) {
+                 closeCustomSaleModalFn();
+             }
+         });
+
+         customSaleForm.addEventListener('submit', async (e) => {
+             e.preventDefault();
+             hideCustomSaleAlert();
+
+             // Validate product rows
+             const rows = customSaleProductRows.querySelectorAll('.sale-product-row');
+             if (rows.length === 0) {
+                 showCustomSaleAlert('Debe agregar al menos un producto a la venta.');
+                 return;
+             }
+
+             const saleItems = [];
+             let hasErrors = false;
+
+             for (const row of rows) {
+                 const productInput = row.querySelector('.custom-row-product-input');
+                 const sizeInput = row.querySelector('.custom-row-size-input');
+                 const priceInput = row.querySelector('.custom-row-price-input');
+                 const amountInput = row.querySelector('.custom-row-amount-input');
+
+                 const reference = productInput.value.trim();
+                 const size = sizeInput.value.trim();
+                 const price = Number(priceInput.value.replace(/\./g, '')) || 0;
+                 const amount = parseInt(amountInput.value, 10) || 0;
+                 const subtotal = price * amount;
+
+                 if (!reference || !size || price <= 0 || amount <= 0) {
+                     showCustomSaleAlert('Todos los productos deben tener nombre, talla, precio y cantidad válidos.');
+                     hasErrors = true;
+                     return;
+                 }
+
+                 saleItems.push({ reference, size, price, amount, subtotal });
+             }
+
+             if (hasErrors) return;
+
+             const fullName = document.getElementById('customClientFullName').value.trim();
+             const phone = document.getElementById('customClientPhoneInput').value.trim();
+             const address = document.getElementById('customClientAddressInput').value.trim();
+             const paymentType = document.getElementById('customClientPaymentSelect').value;
+
+             if (!fullName) {
+                 showCustomSaleAlert('Por favor ingresa el nombre completo del cliente.');
+                 return;
+             }
+             if (!phone || phone.length < 7) {
+                 showCustomSaleAlert('Por favor ingresa un número de celular válido (solo números).');
+                 return;
+             }
+             if (!address) {
+                 showCustomSaleAlert('Por favor ingresa la dirección de entrega o residencia.');
+                 return;
+             }
+             if (!paymentType) {
+                 showCustomSaleAlert('Por favor selecciona el tipo de pago.');
+                 return;
+             }
+
+             const clientData = {
+                 nombre: fullName,
+                 celular: phone,
+                 direccion: address,
+                 tipoPago: paymentType
+             };
+
+             let grandTotal = 0;
+             saleItems.forEach(item => grandTotal += item.subtotal);
+
+             btnSubmitCustomSale.disabled = true;
+             btnSubmitCustomSaleText.style.display = 'none';
+             btnSubmitCustomSaleLoader.style.display = 'inline-flex';
+
+             try {
+                 const refsArray = '{"' + saleItems.map(i => i.reference.replace(/"/g, '\\"')).join('","') + '"}';
+                 const sizesArray = '{"' + saleItems.map(i => i.size.replace(/"/g, '\\"')).join('","') + '"}';
+                 const pricesArray = '{' + saleItems.map(i => i.price).join(',') + '}';
+                 const amountsArray = '{' + saleItems.map(i => i.amount).join(',') + '}';
+
+                 const { data: newSale, error: insertSaleError } = await supabase
+                     .from('sales')
+                     .insert({
+                         reference: refsArray,
+                         size: sizesArray,
+                         price: pricesArray,
+                         amount: amountsArray,
+                         total_sale: grandTotal,
+                         earnings: {},
+                         client_data: clientData,
+                         created_at: new Date().toISOString()
+                     })
+                     .select('id')
+                     .single();
+
+                 if (insertSaleError) {
+                     throw insertSaleError;
+                 }
+
+                 const newSaleId = newSale?.id;
+
+                 // Update capital
+                 const { data: budgetRows, error: budgetFetchErr } = await supabase
+                     .from('budget')
+                     .select('id, value')
+                     .limit(1);
+
+                 if (!budgetFetchErr && budgetRows && budgetRows.length > 0) {
+                     const budgetRecord = budgetRows[0];
+                     const newCapital = (Number(budgetRecord.value) || 0) + grandTotal;
+                     await supabase
+                         .from('budget')
+                         .update({ value: newCapital })
+                         .eq('id', budgetRecord.id);
+                 }
+
+                 // Save to movements table
+                 const movementData = {
+                     type: 'Venta',
+                     source_id: newSaleId || null,
+                     source_type: 'sale',
+                     sale_data: {
+                         items: saleItems,
+                         total_sale: grandTotal,
+                         client_data: clientData
+                     },
+                     created_at: new Date().toISOString()
+                 };
+                 const { error: movementError } = await supabase
+                     .from('movements')
+                     .insert(movementData);
+                 if (movementError) {
+                     console.error('Error saving movement:', movementError);
+                 }
+
+                 closeCustomSaleModalFn();
+                 await loadSales();
+             } catch (err) {
+                 console.error('Error al registrar venta personalizada:', err);
+                 showCustomSaleAlert(err.message || 'Error al registrar la venta. Intenta nuevamente.');
+             } finally {
+                 btnSubmitCustomSale.disabled = false;
+                 btnSubmitCustomSaleText.style.display = 'inline';
+                 btnSubmitCustomSaleLoader.style.display = 'none';
+             }
+         });
 
         document.addEventListener('DOMContentLoaded', async () => {
             const { data: { session } } = await supabase.auth.getSession();
