@@ -2832,6 +2832,17 @@ async function downloadMiniInvoice(saleId, index, saleData = null) {
             // Header: Empresa
             drawText('Eladis Boutique', width / 2, y, { size: 22, weight: '700', color: '#1a1a2e', align: 'center' });
             y += 28;
+            
+            // Título: Mini Factura o Mini Factura Personalizado
+            const isCustomSale = sale.client_data && sale.client_data.is_custom;
+            if (isCustomSale) {
+                const firstItemName = items.length > 0 ? items[0].reference : 'producto';
+                drawText(`Mini Factura Personalizado (${firstItemName})`, width / 2, y, { size: 14, weight: '600', color: '#6b7280', align: 'center' });
+                y += 22;
+            } else {
+                drawText('Mini Factura', width / 2, y, { size: 14, weight: '600', color: '#6b7280', align: 'center' });
+                y += 22;
+            }
             y = drawDivider(y + 12);
 
             // Sección: Información de la Venta
@@ -2871,10 +2882,11 @@ async function downloadMiniInvoice(saleId, index, saleData = null) {
             // Copiar píxeles exactos del canvas origen (que está en 2x) al canvas final (también 2x)
             finalCtx.drawImage(canvas, 0, 0, width * scale, finalHeight * scale, 0, 0, width * scale, finalHeight * scale);
 
-            // Descargar como JPG
-            const link = document.createElement('a');
-            const safeRef = (items[0]?.reference || 'venta').replace(/[^a-zA-Z0-9]/g, '_');
-            link.download = `mini-factura-${safeRef}-${Date.now()}.jpg`;
+              // Descargar como JPG
+              const link = document.createElement('a');
+              const isCustomDownload = client && client.is_custom;
+              const safeRef = (items[0]?.reference || 'venta').replace(/[^a-zA-Z0-9]/g, '_');
+              link.download = isCustomDownload ? `mini-factura-personalizado-${safeRef}-${Date.now()}.jpg` : `mini-factura-${safeRef}-${Date.now()}.jpg`;
             link.href = finalCanvas.toDataURL('image/jpeg', 0.95);
             link.click();
         }
@@ -3508,12 +3520,13 @@ async function openEditSaleModal(id, index) {
                  return;
              }
 
-             const clientData = {
-                 nombre: fullName,
-                 celular: phone,
-                 direccion: address,
-                 tipoPago: paymentType
-             };
+              const clientData = {
+                  nombre: fullName,
+                  celular: phone,
+                  direccion: address,
+                  tipoPago: paymentType,
+                  is_custom: true
+              };
 
              let grandTotal = 0;
              saleItems.forEach(item => grandTotal += item.subtotal);
@@ -3564,18 +3577,20 @@ async function openEditSaleModal(id, index) {
                          .eq('id', budgetRecord.id);
                  }
 
-                 // Save to movements table
-                 const movementData = {
-                     type: 'Venta',
-                     source_id: newSaleId || null,
-                     source_type: 'sale',
-                     sale_data: {
-                         items: saleItems,
-                         total_sale: grandTotal,
-                         client_data: clientData
-                     },
-                     created_at: new Date().toISOString()
-                 };
+                  // Save to movements table
+                  const movementData = {
+                      type: 'Venta',
+                      source_id: newSaleId || null,
+                      source_type: 'sale',
+                      sale_data: {
+                          items: saleItems,
+                          total_sale: grandTotal,
+                          client_data: clientData,
+                          is_custom: true,
+                          category: 'Personalizado'
+                      },
+                      created_at: new Date().toISOString()
+                  };
                  const { error: movementError } = await supabase
                      .from('movements')
                      .insert(movementData);

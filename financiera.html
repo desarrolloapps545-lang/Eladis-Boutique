@@ -1876,7 +1876,7 @@ productsList = data || [];
                  return;
              }
 
-             salesList = data || [];
+              salesList = (data || []).filter(sale => !(sale.client_data && sale.client_data.is_custom));
 
              // Also load manual Ganancia bills and merge into the report as individual earnings entries
              const { data: billData, error: billErr } = await supabase
