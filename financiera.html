@@ -362,6 +362,7 @@
              .financiera-header {
                  flex-direction: column;
                  align-items: stretch;
+                 gap: 12px;
              }
 
              .budget-status-box {
@@ -397,9 +398,13 @@
              font-size: 16px;
          }
 
-         .reporte-ganancias-table .bills-table {
-             min-width: 100%;
-         }
+        .reporte-ganancias-table {
+            overflow-x: auto;
+        }
+
+        .reporte-ganancias-table .bills-table {
+            min-width: 100%;
+        }
 
          .reporte-ganancias-table .bills-table thead th {
              font-size: 12px;
@@ -523,21 +528,20 @@
     </div>
     <div class="financiera-container">
         <header class="financiera-header">
-            <!-- Workspace Menu Button (far left) -->
-            <button type="button" class="workspace-menu-btn" id="workspaceMenuBtn" aria-label="Abrir menú de espacios de trabajo" aria-expanded="false">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="7" height="7" rx="1"/>
-                    <rect x="14" y="3" width="7" height="7" rx="1"/>
-                    <rect x="3" y="14" width="7" height="7" rx="1"/>
-                    <rect x="14" y="14" width="7" height="7" rx="1"/>
-                </svg>
-            </button>
             <div class="dashboard-logo">
                 <img src="img/logo_eladis_boutique.png" alt="Eladis Boutique" style="width: 40px; height: 40px; object-fit: contain;">
                 <h1>Eladis Boutique</h1>
             </div>
 
-            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <div class="header-actions-scroll" style="display:flex; gap:12px; align-items:center;">
+                <button type="button" class="workspace-menu-btn" id="workspaceMenuBtn" aria-label="Abrir menú de espacios de trabajo" aria-expanded="false">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7" rx="1"/>
+                        <rect x="14" y="3" width="7" height="7" rx="1"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1"/>
+                        <rect x="14" y="14" width="7" height="7" rx="1"/>
+                    </svg>
+                </button>
                 <div class="budget-status-box" id="budgetStatusBox">
                     <span class="budget-info">Capital actual: <strong class="budget-value" id="budgetValueDisplay">Cargando...</strong></span>
                     <button class="btn-action-budget" id="btnRegistrarCapital" style="display: none;">Registrar capital actual</button>

@@ -89,7 +89,7 @@
             border-radius: 20px;
             font-size: 13px;
             color: var(--text-muted);
-            margin_left: 8px;
+            margin-left: 8px;
         }
 
         .history-filter-bar {
@@ -312,6 +312,7 @@
         @media (max-width: 600px) {
             .history-header {
                 flex-direction: column;
+                gap: 12px;
             }
 
             .history-filter-bar {
@@ -330,20 +331,19 @@
     </div>
     <div class="history-container">
         <header class="history-header">
-            <!-- Workspace Menu Button (far left) -->
-            <button type="button" class="workspace-menu-btn" id="workspaceMenuBtn" aria-label="Abrir menú de espacios de trabajo" aria-expanded="false">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="7" height="7" rx="1"/>
-                    <rect x="14" y="3" width="7" height="7" rx="1"/>
-                    <rect x="3" y="14" width="7" height="7" rx="1"/>
-                    <rect x="14" y="14" width="7" height="7" rx="1"/>
-                </svg>
-            </button>
             <div class="dashboard-logo">
                 <img src="img/logo_eladis_boutique.png" alt="Eladis Boutique" style="width: 40px; height: 40px; object-fit: contain;">
                 <h1>Eladis Boutique</h1>
             </div>
-            <div style="display:flex; gap:12px; align-items:center;">
+            <div class="header-actions-scroll" style="display:flex; gap:12px; align-items:center;">
+                <button type="button" class="workspace-menu-btn" id="workspaceMenuBtn" aria-label="Abrir menú de espacios de trabajo" aria-expanded="false">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7" rx="1"/>
+                        <rect x="14" y="3" width="7" height="7" rx="1"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1"/>
+                        <rect x="14" y="14" width="7" height="7" rx="1"/>
+                    </svg>
+                </button>
                 <button class="btn-back-history" id="btnBack">← Regresar</button>
             </div>
         </header>

@@ -399,6 +399,7 @@
         @media (max-width: 600px) {
             .purchases-header {
                 flex-direction: column;
+                gap: 12px;
             }
         }
     </style>
@@ -412,20 +413,19 @@
     </div>
     <div class="purchases-container">
         <header class="purchases-header">
-            <!-- Workspace Menu Button (far left) -->
-            <button type="button" class="workspace-menu-btn" id="workspaceMenuBtn" aria-label="Abrir menú de espacios de trabajo" aria-expanded="false">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="7" height="7" rx="1"/>
-                    <rect x="14" y="3" width="7" height="7" rx="1"/>
-                    <rect x="3" y="14" width="7" height="7" rx="1"/>
-                    <rect x="14" y="14" width="7" height="7" rx="1"/>
-                </svg>
-            </button>
             <div class="dashboard-logo">
                 <img src="img/logo_eladis_boutique.png" alt="Eladis Boutique" style="width: 40px; height: 40px; object-fit: contain;">
                 <h1>Eladis Boutique</h1>
             </div>
-            <div style="display:flex; gap:12px; align-items:center;">
+            <div class="header-actions-scroll" style="display:flex; gap:12px; align-items:center;">
+                <button type="button" class="workspace-menu-btn" id="workspaceMenuBtn" aria-label="Abrir menú de espacios de trabajo" aria-expanded="false">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7" rx="1"/>
+                        <rect x="14" y="3" width="7" height="7" rx="1"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1"/>
+                        <rect x="14" y="14" width="7" height="7" rx="1"/>
+                    </svg>
+                </button>
                 <button class="btn-add-purchases" id="btnRegistrarCompra">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="12" y1="5" x2="12" y2="19"/>

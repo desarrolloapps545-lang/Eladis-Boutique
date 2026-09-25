@@ -663,6 +663,7 @@
         @media (max-width: 600px) {
             .sales-header {
                 flex-direction: column;
+                gap: 12px;
             }
 
             .step-indicators {
@@ -686,20 +687,19 @@
     </div>
     <div class="sales-container">
         <header class="sales-header">
-            <!-- Workspace Menu Button (far left) -->
-            <button type="button" class="workspace-menu-btn" id="workspaceMenuBtn" aria-label="Abrir menú de espacios de trabajo" aria-expanded="false">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="7" height="7" rx="1"/>
-                    <rect x="14" y="3" width="7" height="7" rx="1"/>
-                    <rect x="3" y="14" width="7" height="7" rx="1"/>
-                    <rect x="14" y="14" width="7" height="7" rx="1"/>
-                </svg>
-            </button>
             <div class="dashboard-logo">
                 <img src="img/logo_eladis_boutique.png" alt="Eladis Boutique" style="width: 40px; height: 40px; object-fit: contain;">
                 <h1>Eladis Boutique</h1>
             </div>
-            <div style="display:flex; gap:12px; align-items:center;">
+            <div class="header-actions-scroll">
+                <button type="button" class="workspace-menu-btn" id="workspaceMenuBtn" aria-label="Abrir menú de espacios de trabajo" aria-expanded="false">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7" rx="1"/>
+                        <rect x="14" y="3" width="7" height="7" rx="1"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1"/>
+                        <rect x="14" y="14" width="7" height="7" rx="1"/>
+                    </svg>
+                </button>
                 <button class="btn-add-sales" id="btnRegistrarVenta">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="12" y1="5" x2="12" y2="19"/>
@@ -2829,21 +2829,30 @@ async function downloadMiniInvoice(saleId, index, saleData = null) {
                 return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
             };
 
-            // Header: Empresa
-            drawText('Eladis Boutique', width / 2, y, { size: 22, weight: '700', color: '#1a1a2e', align: 'center' });
-            y += 28;
-            
-            // Título: Mini Factura o Mini Factura Personalizado
-            const isCustomSale = sale.client_data && sale.client_data.is_custom;
-            if (isCustomSale) {
-                const firstItemName = items.length > 0 ? items[0].reference : 'producto';
-                drawText(`Mini Factura Personalizado (${firstItemName})`, width / 2, y, { size: 14, weight: '600', color: '#6b7280', align: 'center' });
-                y += 22;
-            } else {
-                drawText('Mini Factura', width / 2, y, { size: 14, weight: '600', color: '#6b7280', align: 'center' });
-                y += 22;
-            }
-            y = drawDivider(y + 12);
+             // Header: Logo + Empresa
+             const logoImg = new Image();
+             logoImg.src = 'img/logo_eladis_boutique.png';
+             await new Promise(resolve => {
+                 if (logoImg.complete) resolve();
+                 else logoImg.onload = resolve;
+             });
+             const logoSize = 24;
+             ctx.drawImage(logoImg, padding, y, logoSize, logoSize);
+             drawText('Eladis Boutique', padding + logoSize + 8, y + 6, { size: 22, weight: '700', color: '#1a1a2e', align: 'left' });
+             y += 28;
+             
+             // Título: Mini Factura o Mini Factura Personalizado
+             const isCustomSale = sale.client_data && sale.client_data.is_custom;
+             const clientName = client?.nombre || '';
+             const productName = items.length > 0 ? items[0].reference : 'producto';
+             if (isCustomSale) {
+                 drawText(`Mini Factura Personalizado (${productName}) (${clientName})`, width / 2, y, { size: 14, weight: '600', color: '#6b7280', align: 'center' });
+                 y += 22;
+             } else {
+                 drawText(`Mini Factura (${productName}) (${clientName})`, width / 2, y, { size: 14, weight: '600', color: '#6b7280', align: 'center' });
+                 y += 22;
+             }
+             y = drawDivider(y + 12);
 
             // Sección: Información de la Venta
             y = drawSectionHeader('INFORMACIÓN DE LA VENTA', y);
@@ -2886,7 +2895,10 @@ async function downloadMiniInvoice(saleId, index, saleData = null) {
               const link = document.createElement('a');
               const isCustomDownload = client && client.is_custom;
               const safeRef = (items[0]?.reference || 'venta').replace(/[^a-zA-Z0-9]/g, '_');
-              link.download = isCustomDownload ? `mini-factura-personalizado-${safeRef}-${Date.now()}.jpg` : `mini-factura-${safeRef}-${Date.now()}.jpg`;
+              const safeClient = (client?.nombre || 'cliente').replace(/[^a-zA-Z0-9]/g, '_');
+              link.download = isCustomDownload
+                  ? `mini-factura-personalizado-${safeRef}-${safeClient}-${Date.now()}.jpg`
+                  : `mini-factura-${safeRef}-${safeClient}-${Date.now()}.jpg`;
             link.href = finalCanvas.toDataURL('image/jpeg', 0.95);
             link.click();
         }

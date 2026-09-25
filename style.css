@@ -41,6 +41,7 @@ body {
     padding: 20px;
     color: var(--text-primary);
     line-height: 1.6;
+    overflow-x: hidden;
 }
 
 .login-container {
@@ -878,5 +879,869 @@ body.page-loading > .history-container {
     .page-loading-logo {
         width: 72px;
         height: 72px;
+    }
+}
+
+/* ===== Responsive Modal Sizes ===== */
+.modal-content {
+    max-width: 560px;
+    width: 95%;
+}
+
+.sale-modal-content,
+.client-modal-content,
+.fin-modal-content {
+    max-width: 720px;
+    width: 95%;
+}
+
+@media (min-width: 769px) {
+    .sale-modal-content {
+        max-width: 900px;
+    }
+}
+
+/* ===== Responsive Tables ===== */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.bills-table,
+.sale-products-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.bills-table th,
+.bills-table td,
+.sale-products-table th,
+.sale-products-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+
+.actions-cell {
+    text-align: center;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .bills-table,
+    .sale-products-table {
+        font-size: 12px;
+    }
+    .bills-table th,
+    .bills-table td,
+    .sale-products-table th,
+    .sale-products-table td {
+        padding: 6px 8px;
+    }
+}
+
+/* ===== Responsive Product Grid Rows ===== */
+.sale-product-row {
+    display: grid;
+    grid-template-columns: 2.5fr 1fr 1fr 1fr 1fr 60px;
+    gap: 8px;
+    align-items: end;
+    padding: 8px 12px;
+    background: var(--card-bg);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+}
+
+@media (max-width: 768px) {
+    .sale-product-row {
+        grid-template-columns: 1fr 1fr 1fr 1fr 60px;
+        gap: 6px;
+    }
+}
+
+/* ===== Responsive Form Groups ===== */
+.sale-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sale-form-group label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.sale-form-group input,
+.sale-form-group select {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    background: var(--background);
+    color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+    .sale-form-group input,
+    .sale-form-group select {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+}
+
+/* ===== Responsive Grid Layouts ===== */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+}
+
+.workspace-content {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 24px;
+}
+
+@media (max-width: 768px) {
+    .workspace-content {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+}
+
+/* ===== Responsive Header ===== */
+.dashboard-header,
+.sales-header,
+.purchases-header,
+.inventory-header,
+.products-header,
+.financiera-header,
+.users-header,
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+@media (max-width: 640px) {
+    .dashboard-header,
+    .sales-header,
+    .purchases-header,
+    .inventory-header,
+    .products-header,
+    .financiera-header,
+    .users-header,
+    .history-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+/* ===== Responsive Step Indicators ===== */
+.step-indicators {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 480px) {
+    .step-indicators {
+        gap: 8px;
+    }
+}
+
+/* ===== Responsive Search Filters ===== */
+.search-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 640px) {
+    .search-filters {
+        flex-direction: column;
+    }
+}
+
+/* ===== Responsive Combobox ===== */
+.fin-product-combobox {
+    position: relative;
+}
+
+/* ===== Responsive Modal Actions ===== */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+@media (max-width: 640px) {
+    .modal-actions {
+        flex-direction: column;
+    }
+}
+
+/* ===== Responsive Alert Messages ===== */
+.modal-alert {
+    width: 100%;
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    text-align: center;
+}
+
+/* ===== Responsive SVG Icons ===== */
+.action-icon {
+    width: 18px;
+    height: 18px;
+}
+
+@media (max-width: 480px) {
+    .action-icon {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+/* ===== Responsive Scrollbar for Tables ===== */
+.table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ===== Ensure Modals Fit on Small Screens ===== */
+@media (max-width: 768px) {
+    .modal-content,
+    .sale-modal-content,
+    .client-modal-content {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 8px;
+        border-radius: var(--radius-md);
+    }
+    .modal-body {
+        padding: 20px 16px;
+    }
+    .modal-header,
+    .modal-footer {
+        padding: 16px;
+    }
+    .step-badge-num {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 12px;
+    }
+    .sale-product-row {
+        grid-template-columns: 1fr 1fr 1fr 60px !important;
+        gap: 6px;
+    }
+    .sale-form-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .step-indicators {
+        gap: 4px;
+    }
+    .btn-modal-submit,
+    .btn-modal-back {
+        width: 100%;
+    }
+}
+
+/* ===== Responsive Layout Helpers (Global) ===== */
+.header-actions-scroll {
+    overflow-x: auto;
+    overflow-y: visible;
+    padding-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: nowrap;
+}
+.header-actions-scroll::-webkit-scrollbar {
+    height: 6px;
+}
+.header-actions-scroll::-webkit-scrollbar-track {
+    background: var(--border);
+    border-radius: 3px;
+}
+.header-actions-scroll::-webkit-scrollbar-thumb {
+    background: var(--text-muted);
+    border-radius: 3px;
+}
+.header-actions-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--text-primary);
+}
+.header-actions-scroll button,
+.header-actions-scroll .budget-status-box,
+.header-actions-scroll .user-info {
+    flex-shrink: 0;
+}
+
+/* ===== Responsive Summary Cards ===== */
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 640px) {
+    .summary-cards {
+        gap: 12px;
+    }
+}
+
+/* ===== Global Header Responsive Scroll ===== */
+@media (max-width: 768px) {
+    .dashboard-header,
+    .sales-header,
+    .purchases-header,
+    .inventory-header,
+    .products-header,
+    .users-header,
+    .history-header,
+    .financiera-header {
+        padding: 12px 16px;
+    }
+
+    .dashboard-header .dashboard-logo,
+    .sales-header .dashboard-logo,
+    .purchases-header .dashboard-logo,
+    .inventory-header .dashboard-logo,
+    .products-header .dashboard-logo,
+    .users-header .dashboard-logo,
+    .history-header .dashboard-logo,
+    .financiera-header .dashboard-logo {
+        flex-shrink: 0;
+    }
+
+    .dashboard-header .dashboard-logo h1,
+    .sales-header .dashboard-logo h1,
+    .purchases-header .dashboard-logo h1,
+    .inventory-header .dashboard-logo h1,
+    .products-header .dashboard-logo h1,
+    .users-header .dashboard-logo h1,
+    .history-header .dashboard-logo h1,
+    .financiera-header .dashboard-logo h1 {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 600px) {
+    .dashboard-header,
+    .sales-header,
+    .purchases-header,
+    .inventory-header,
+    .products-header,
+    .users-header,
+    .history-header,
+    .financiera-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .dashboard-header .dashboard-logo,
+    .sales-header .dashboard-logo,
+    .purchases-header .dashboard-logo,
+    .inventory-header .dashboard-logo,
+    .products-header .dashboard-logo,
+    .users-header .dashboard-logo,
+    .history-header .dashboard-logo,
+    .financiera-header .dashboard-logo {
+        margin-bottom: 0;
+    }
+}
+
+/* ===== Global Table Responsive Scroll ===== */
+.table-responsive {
+    overflow-x: auto;
+    overflow-y: visible;
+    width: 100%;
+}
+.table-responsive::-webkit-scrollbar {
+    height: 6px;
+}
+.table-responsive::-webkit-scrollbar-track {
+    background: var(--border);
+    border-radius: 3px;
+}
+.table-responsive::-webkit-scrollbar-thumb {
+    background: var(--text-muted);
+    border-radius: 3px;
+}
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: var(--text-primary);
+}
+.table-responsive table {
+    min-width: 600px;
+    width: 100%;
+    border-collapse: collapse;
+}
+.table-responsive th,
+.table-responsive td {
+    white-space: nowrap;
+}
+
+/* =========================================================
+   Global Workspace Responsive Fixes
+   ========================================================= */
+
+/*
+ * CRITICAL: body is display:flex, so every direct child is a flex item.
+ * Flex items default to min-width:auto, which lets them grow to the full
+ * intrinsic width of their content (a wide table). That is what pushes the
+ * layout past the viewport and disables overflow-x on the table wrappers.
+ * min-width:0 + width:100% re-establishes the constraint so the wrappers
+ * actually become scrollable.
+ */
+.dashboard-container,
+.sales-container,
+.purchases-container,
+.inventory-container,
+.products-container,
+.financiera-container,
+.users-container,
+.history-container {
+    min-width: 0;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    align-self: stretch;
+}
+
+html {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+body {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+/* Main content: never allow it to be wider than the viewport */
+.dashboard-main,
+.sales-main,
+.purchases-main,
+.inventory-main,
+.products-main,
+.financiera-main,
+.users-main,
+.history-main {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+}
+
+/* Prevent workspace drawer from causing horizontal overflow */
+.workspace-drawer {
+    max-width: 100vw;
+}
+
+.workspace-drawer-overlay {
+    max-width: 100vw;
+}
+
+/* Header actions scroll: ensure it never overflows the header */
+.header-actions-scroll {
+    max-width: 100%;
+    min-width: 0;
+    flex-shrink: 1;
+}
+
+/* =========================================================
+   Horizontal scroll for every workspace table
+   ========================================================= */
+.sales-table-wrapper,
+.purchases-table-wrapper,
+.inventory-table-wrapper,
+.users-table-wrapper,
+.bills-table-wrapper,
+.history-table-wrapper,
+.products-table-wrapper,
+.table-responsive,
+.table-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+/* Visible, tappable scrollbar so the affordance is obvious */
+.sales-table-wrapper::-webkit-scrollbar,
+.purchases-table-wrapper::-webkit-scrollbar,
+.inventory-table-wrapper::-webkit-scrollbar,
+.users-table-wrapper::-webkit-scrollbar,
+.bills-table-wrapper::-webkit-scrollbar,
+.history-table-wrapper::-webkit-scrollbar,
+.products-table-wrapper::-webkit-scrollbar,
+.table-responsive::-webkit-scrollbar,
+.table-scroll::-webkit-scrollbar {
+    height: 8px;
+}
+
+.sales-table-wrapper::-webkit-scrollbar-track,
+.purchases-table-wrapper::-webkit-scrollbar-track,
+.inventory-table-wrapper::-webkit-scrollbar-track,
+.users-table-wrapper::-webkit-scrollbar-track,
+.bills-table-wrapper::-webkit-scrollbar-track,
+.history-table-wrapper::-webkit-scrollbar-track,
+.products-table-wrapper::-webkit-scrollbar-track,
+.table-responsive::-webkit-scrollbar-track,
+.table-scroll::-webkit-scrollbar-track {
+    background: var(--border);
+    border-radius: 4px;
+}
+
+.sales-table-wrapper::-webkit-scrollbar-thumb,
+.purchases-table-wrapper::-webkit-scrollbar-thumb,
+.inventory-table-wrapper::-webkit-scrollbar-thumb,
+.users-table-wrapper::-webkit-scrollbar-thumb,
+.bills-table-wrapper::-webkit-scrollbar-thumb,
+.history-table-wrapper::-webkit-scrollbar-thumb,
+.products-table-wrapper::-webkit-scrollbar-thumb,
+.table-responsive::-webkit-scrollbar-thumb,
+.table-scroll::-webkit-scrollbar-thumb {
+    background: var(--text-muted);
+    border-radius: 4px;
+}
+
+.sales-table-wrapper::-webkit-scrollbar-thumb:hover,
+.purchases-table-wrapper::-webkit-scrollbar-thumb:hover,
+.inventory-table-wrapper::-webkit-scrollbar-thumb:hover,
+.users-table-wrapper::-webkit-scrollbar-thumb:hover,
+.bills-table-wrapper::-webkit-scrollbar-thumb:hover,
+.history-table-wrapper::-webkit-scrollbar-thumb:hover,
+.products-table-wrapper::-webkit-scrollbar-thumb:hover,
+.table-responsive::-webkit-scrollbar-thumb:hover,
+.table-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+}
+
+/* Firefox */
+.sales-table-wrapper,
+.purchases-table-wrapper,
+.inventory-table-wrapper,
+.users-table-wrapper,
+.bills-table-wrapper,
+.history-table-wrapper,
+.products-table-wrapper,
+.table-responsive,
+.table-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--text-muted) var(--border);
+}
+
+/* Table minimum widths: this is what creates the scrollable overflow.
+   width:100% keeps the table filling the card on wide screens;
+   min-width forces overflow (and therefore scrolling) on narrow screens. */
+.sales-table,
+.purchases-table,
+.history-table,
+.products-table,
+.bills-table,
+.inventory-table,
+.users-table {
+    width: 100%;
+}
+
+.sales-table,
+.purchases-table {
+    min-width: 850px;
+}
+
+.history-table,
+.products-table,
+.bills-table {
+    min-width: 700px;
+}
+
+.inventory-table {
+    min-width: 500px;
+}
+
+.users-table {
+    min-width: 500px;
+}
+
+/* Cells never wrap, so rows stay readable while scrolling sideways */
+.sales-table-wrapper th,
+.sales-table-wrapper td,
+.purchases-table-wrapper th,
+.purchases-table-wrapper td,
+.inventory-table-wrapper th,
+.inventory-table-wrapper td,
+.users-table-wrapper th,
+.users-table-wrapper td,
+.bills-table-wrapper th,
+.bills-table-wrapper td,
+.history-table-wrapper th,
+.history-table-wrapper td,
+.products-table-wrapper th,
+.products-table-wrapper td {
+    white-space: nowrap;
+}
+
+/* =========================================================
+   Compact tables on reduced screens
+   ========================================================= */
+@media (max-width: 768px) {
+    .sales-table-wrapper table,
+    .purchases-table-wrapper table,
+    .inventory-table-wrapper table,
+    .users-table-wrapper table,
+    .bills-table-wrapper table,
+    .history-table-wrapper table,
+    .products-table-wrapper table {
+        font-size: 12px;
+    }
+
+    .sales-table-wrapper th,
+    .sales-table-wrapper td,
+    .purchases-table-wrapper th,
+    .purchases-table-wrapper td,
+    .inventory-table-wrapper th,
+    .inventory-table-wrapper td,
+    .users-table-wrapper th,
+    .users-table-wrapper td,
+    .bills-table-wrapper th,
+    .bills-table-wrapper td,
+    .history-table-wrapper th,
+    .history-table-wrapper td,
+    .products-table-wrapper th,
+    .products-table-wrapper td {
+        padding: 8px 10px;
+    }
+}
+
+/* =========================================================
+   Center the information that lives OUTSIDE the tables
+   (titles, counters, descriptions, filters, empty states)
+   ========================================================= */
+@media (max-width: 768px) {
+    .dashboard-main,
+    .sales-main,
+    .purchases-main,
+    .inventory-main,
+    .products-main,
+    .financiera-main,
+    .users-main,
+    .history-main {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .sales-section-header,
+    .purchases-section-header,
+    .inventory-section-header,
+    .products-section-header,
+    .financiera-section-header,
+    .users-section-header,
+    .history-section-header,
+    .welcome-section {
+        text-align: center;
+        margin-bottom: 16px;
+    }
+
+    .sales-section-header h2,
+    .purchases-section-header h2,
+    .inventory-section-header h2,
+    .products-section-header h2,
+    .financiera-section-header h2,
+    .users-section-header h2,
+    .history-section-header h2,
+    .welcome-section h2 {
+        font-size: 20px;
+        margin-bottom: 4px;
+    }
+
+    .sales-section-header p,
+    .purchases-section-header p,
+    .inventory-section-header p,
+    .products-section-header p,
+    .financiera-section-header p,
+    .users-section-header p,
+    .history-section-header p,
+    .welcome-section p {
+        font-size: 14px;
+    }
+
+    /* Counter pill sits inline, centered under the title */
+    .sales-count,
+    .purchases-count,
+    .inventory-count,
+    .product-count,
+    .user-count,
+    .history-count,
+    .bills-count {
+        margin-left: 0;
+        margin-top: 8px;
+        display: inline-block;
+    }
+
+    /* Filter bars: stack and center their controls */
+    .inventory-filter-bar,
+    .history-filter-bar,
+    .products-filter-bar,
+    .search-filters,
+    .summary-cards {
+        flex-direction: column;
+        align-items: stretch;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .inventory-filter-bar .filter-group,
+    .history-filter-bar .filter-group,
+    .products-filter-bar .filter-group,
+    .search-filters .filter-group {
+        max-width: 100% !important;
+        width: 100%;
+        text-align: center;
+    }
+
+    .inventory-filter-bar .filter-group label,
+    .history-filter-bar .filter-group label,
+    .products-filter-bar .filter-group label {
+        text-align: center;
+    }
+
+    .inventory-filter-bar .filter-group:last-child,
+    .history-filter-bar .filter-group:last-child {
+        display: flex;
+        justify-content: center;
+    }
+
+    /* Empty / loading states stay centered inside the card */
+    .sales-empty,
+    .purchases-empty,
+    .inventory-empty,
+    .products-empty,
+    .users-empty,
+    .bills-empty,
+    .loading-container {
+        text-align: center;
+        padding: 32px 16px;
+    }
+
+    /* Totals / report summaries read better centered on phones */
+    .reporte-ganancias-total {
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-main,
+    .sales-main,
+    .purchases-main,
+    .inventory-main,
+    .products-main,
+    .financiera-main,
+    .users-main,
+    .history-main {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .sales-table-wrapper th,
+    .sales-table-wrapper td,
+    .purchases-table-wrapper th,
+    .purchases-table-wrapper td,
+    .inventory-table-wrapper th,
+    .inventory-table-wrapper td,
+    .users-table-wrapper th,
+    .users-table-wrapper td,
+    .bills-table-wrapper th,
+    .bills-table-wrapper td,
+    .history-table-wrapper th,
+    .history-table-wrapper td,
+    .products-table-wrapper th,
+    .products-table-wrapper td {
+        padding: 7px 8px;
+        font-size: 11.5px;
+    }
+}
+
+/* =========================================================
+   Modals must never cause page-level horizontal overflow
+   ========================================================= */
+.modal {
+    overflow-x: hidden;
+}
+
+.modal-content {
+    max-width: 100vw;
+}
+
+/* =========================================================
+   Desktop only: pin the workspace menu button to the far left
+   of the header. The responsive layout (<=768px) is untouched,
+   so the button keeps scrolling with the other actions there.
+
+   :has() is used so pages without the button (dashboard.html)
+   are not affected, and it also raises specificity above the
+   per-page `padding: 20px 40px` shorthand.
+   ========================================================= */
+@media (min-width: 769px) {
+    .dashboard-header,
+    .sales-header,
+    .purchases-header,
+    .inventory-header,
+    .products-header,
+    .financiera-header,
+    .users-header,
+    .history-header {
+        position: relative;
+    }
+
+    /* Reserve the left gutter so the logo does not sit under the button */
+    .dashboard-header:has(.workspace-menu-btn),
+    .sales-header:has(.workspace-menu-btn),
+    .purchases-header:has(.workspace-menu-btn),
+    .inventory-header:has(.workspace-menu-btn),
+    .products-header:has(.workspace-menu-btn),
+    .financiera-header:has(.workspace-menu-btn),
+    .users-header:has(.workspace-menu-btn),
+    .history-header:has(.workspace-menu-btn) {
+        padding-left: 76px;
+    }
+
+    .header-actions-scroll > .workspace-menu-btn {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 2;
+    }
+}
+
+/* Reclaim the body gutter on phones so tables get the full width */
+@media (max-width: 768px) {
+    body {
+        padding-left: 0;
+        padding-right: 0;
     }
 }
