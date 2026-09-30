@@ -697,7 +697,7 @@
     </div>
 
     <script type="module">
-        import { supabase, showPageLoading, hidePageLoading } from './app.js';
+        import { supabase, showPageLoading, hidePageLoading, formatDateOnlyLocal, bogotaTimestamp } from './app.js';
 
         showPageLoading();
 
@@ -760,25 +760,7 @@
         }
 
         function formatDateOnly(timestamp) {
-            if (!timestamp) return '—';
-            try {
-                if (typeof timestamp === 'string' && timestamp.includes('T')) {
-                    const datePart = timestamp.split('T')[0];
-                    const [year, month, day] = datePart.split('-');
-                    if (year && month && day) {
-                        return `${day}/${month}/${year}`;
-                    }
-                }
-                const dateObj = new Date(timestamp);
-                if (isNaN(dateObj.getTime())) return timestamp;
-                return dateObj.toLocaleDateString('es-CO', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric'
-                });
-            } catch {
-                return String(timestamp).split('T')[0] || timestamp;
-            }
+            return formatDateOnlyLocal(timestamp);
         }
 
         function escapeHtml(text) {
@@ -1665,7 +1647,7 @@
             }
 
             const grandTotal = updateGrandTotalPurchase();
-            const now = new Date().toISOString();
+            const now = bogotaTimestamp();
 
             btnSubmitPurchase.disabled = true;
             btnSubmitPurchaseText.style.display = 'none';
@@ -1794,7 +1776,7 @@
                          amount: item.amount,
                          total_purchase: item.price * item.amount
                      },
-                     created_at: new Date().toISOString()
+                     created_at: bogotaTimestamp()
                  }));
                 const { error: movementError } = await supabase
                     .from('movements')

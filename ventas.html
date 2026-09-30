@@ -1196,7 +1196,7 @@
     </div>
 
     <script type="module">
-        import { supabase, showPageLoading, hidePageLoading } from './app.js';
+        import { supabase, showPageLoading, hidePageLoading, formatDateOnlyLocal, bogotaTimestamp } from './app.js';
 
         showPageLoading();
 
@@ -1752,7 +1752,7 @@ const clientData = {
                 tipoPago: document.getElementById('clientPaymentSelect').value
             };
 
-            const now = new Date().toISOString();
+            const now = bogotaTimestamp();
 
             btnSubmitSale.disabled = true;
             btnSubmitSaleText.style.display = 'none';
@@ -1815,7 +1815,7 @@ const clientData = {
                          total_sale: grandTotal,
                          earnings: earningsObj,
                          client_data: clientData,
-                         created_at: new Date().toISOString()
+                         created_at: bogotaTimestamp()
                      })
                      .select('id')
                      .single();
@@ -1898,7 +1898,7 @@ const clientData = {
                         total_sale: grandTotal,
                         client_data: clientData
                     },
-                    created_at: new Date().toISOString()
+                    created_at: bogotaTimestamp()
                 };
                 const { error: movementError } = await supabase
                     .from('movements')
@@ -1922,7 +1922,7 @@ const clientData = {
                         tipoPago: clientData.tipoPago,
                         payment: clientData.tipoPago
                     },
-                    created_at: new Date().toISOString()
+                    created_at: bogotaTimestamp()
                 };
                 setTimeout(() => downloadMiniInvoice(newSale?.id || 0, 0, saleDataForInvoice), 500);
             } catch (err) {
@@ -2439,7 +2439,7 @@ editSaleForm.addEventListener('submit', async (e) => {
                          total_sale: grandTotal,
                          sale_id: id
                      },
-                     created_at: new Date().toISOString()
+                     created_at: bogotaTimestamp()
                  };
                  const { error: movementUpdateError } = await supabase
                      .from('movements')
@@ -2532,19 +2532,7 @@ editSaleForm.addEventListener('submit', async (e) => {
 
         // Formatear solo fecha sin hora (created_at)
         function formatDate(dateStr) {
-            if (!dateStr) return '—';
-            try {
-                const d = new Date(dateStr);
-                if (isNaN(d.getTime())) {
-                    return dateStr.substring(0, 10);
-                }
-                const day = String(d.getDate()).padStart(2, '0');
-                const month = String(d.getMonth() + 1).padStart(2, '0');
-                const year = d.getFullYear();
-                return `${day}/${month}/${year}`;
-            } catch {
-                return dateStr.substring(0, 10);
-            }
+            return formatDateOnlyLocal(dateStr);
         }
 
         async function loadSales() {
@@ -2823,11 +2811,7 @@ async function downloadMiniInvoice(saleId, index, saleData = null) {
                 return y + 12;
             };
 
-            const formatDate = (iso) => {
-                if (!iso) return '—';
-                const d = new Date(iso);
-                return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
-            };
+            const formatDate = (iso) => formatDateOnlyLocal(iso);
 
              // Header: Logo + Empresa
              const logoImg = new Image();
@@ -3563,7 +3547,7 @@ async function openEditSaleModal(id, index) {
                          total_sale: grandTotal,
                          earnings: {},
                          client_data: clientData,
-                         created_at: new Date().toISOString()
+                         created_at: bogotaTimestamp()
                      })
                      .select('id')
                      .single();
@@ -3601,7 +3585,7 @@ async function openEditSaleModal(id, index) {
                           is_custom: true,
                           category: 'Personalizado'
                       },
-                      created_at: new Date().toISOString()
+                      created_at: bogotaTimestamp()
                   };
                  const { error: movementError } = await supabase
                      .from('movements')

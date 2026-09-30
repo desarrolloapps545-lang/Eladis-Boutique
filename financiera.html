@@ -885,7 +885,7 @@
     </div>
 
     <script type="module">
-        import { supabase, normalizeRole, showPageLoading, hidePageLoading } from './app.js';
+        import { supabase, normalizeRole, showPageLoading, hidePageLoading, formatDateOnlyLocal, localDateKey, bogotaTimestamp } from './app.js';
 
         showPageLoading();
 
@@ -968,25 +968,7 @@ const btnBack = document.getElementById('btnBack');
         }
 
         function formatDateOnly(timestamp) {
-            if (!timestamp) return '—';
-            try {
-                if (typeof timestamp === 'string' && timestamp.includes('T')) {
-                    const datePart = timestamp.split('T')[0];
-                    const [year, month, day] = datePart.split('-');
-                    if (year && month && day) {
-                        return `${day}/${month}/${year}`;
-                    }
-                }
-                const dateObj = new Date(timestamp);
-                if (isNaN(dateObj.getTime())) return timestamp;
-                return dateObj.toLocaleDateString('es-CO', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric'
-                });
-            } catch {
-                return String(timestamp).split('T')[0] || timestamp;
-            }
+            return formatDateOnlyLocal(timestamp);
         }
 
         function escapeHtml(text) {
@@ -1548,7 +1530,7 @@ btnRegistrarGasto.addEventListener('click', openBillModal);
             btnSaveBillLoader.style.display = 'inline-flex';
 
             try {
-                const now = new Date().toISOString();
+                const now = bogotaTimestamp();
 
                   // 1. Registrar el gasto en la tabla bills
                   const { data: insertedBill, error: insertBillErr } = await supabase
@@ -1634,7 +1616,7 @@ btnRegistrarGasto.addEventListener('click', openBillModal);
              btnSaveGainLoader.style.display = 'inline-flex';
 
              try {
-                 const now = new Date().toISOString();
+                 const now = bogotaTimestamp();
 
                   // 1. Registrar la ganancia en la tabla bills
                   const { data: insertedBill, error: insertBillErr } = await supabase
@@ -1913,7 +1895,7 @@ productsList = data || [];
 
              let filtered = salesList.filter(sale => {
                  if (dateFilter) {
-                     const saleDate = sale.created_at ? sale.created_at.split('T')[0] : '';
+                      const saleDate = localDateKey(sale.created_at);
                      if (saleDate !== dateFilter) return false;
                  }
 

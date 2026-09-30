@@ -47,6 +47,83 @@ export async function getCurrentUserProfile() {
     };
 }
 
+// ===== Date helpers =====
+// La base de datos esta configurada en America/Bogota, asi que los registros
+// se guardan con la hora de Colombia y el offset explicito (UTC-5). Colombia
+// no aplica horario de verano desde 1993, por eso el offset es fijo.
+// Guardar el offset hace que el valor sea inequivoco: no depende de la zona
+// horaria del equipo desde el que se registra, ni de la del que lo consulta.
+export const APP_TIME_ZONE = 'America/Bogota';
+const APP_UTC_OFFSET_MINUTES = -300;
+
+function utcOffsetSuffix(minutes) {
+    const sign = minutes <= 0 ? '-' : '+';
+    const abs = Math.abs(minutes);
+    const hours = String(Math.floor(abs / 60)).padStart(2, '0');
+    const mins = String(abs % 60).padStart(2, '0');
+    return `${sign}${hours}:${mins}`;
+}
+
+const APP_UTC_OFFSET_SUFFIX = utcOffsetSuffix(APP_UTC_OFFSET_MINUTES);
+
+const appDateFormatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: APP_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+});
+
+function appDateKey(timestamp) {
+    const dateObj = new Date(timestamp);
+    if (isNaN(dateObj.getTime())) return '';
+    const parts = {};
+    for (const part of appDateFormatter.formatToParts(dateObj)) {
+        if (part.type === 'year' || part.type === 'month' || part.type === 'day') {
+            parts[part.type] = part.value;
+        }
+    }
+    return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
+// Momento actual (o el indicado) en hora de Colombia, listo para guardar.
+// Usa el reloj del dispositivo como instante y lo expresa en hora de Bogota,
+// para que un registro hecho a las 10:00 pm se guarde como 10:00 pm.
+export function bogotaTimestamp(date = new Date()) {
+    const shifted = new Date(date.getTime() + APP_UTC_OFFSET_MINUTES * 60000);
+    return shifted.toISOString().replace(/Z$/, APP_UTC_OFFSET_SUFFIX);
+}
+
+export function formatDateOnlyLocal(timestamp) {
+    if (!timestamp) return '—';
+    const key = appDateKey(timestamp);
+    if (!key) {
+        const match = String(timestamp).match(/^(\d{4})-(\d{2})-(\d{2})/);
+        return match ? `${match[3]}/${match[2]}/${match[1]}` : String(timestamp);
+    }
+    const [year, month, day] = key.split('-');
+    return `${day}/${month}/${year}`;
+}
+
+export function localDateKey(timestamp) {
+    return appDateKey(timestamp);
+}
+
+export function bogotaDayStart(dateStr) {
+    const [y, m, d] = String(dateStr).split('-').map(Number);
+    if (!y || !m || !d) return String(dateStr);
+    return new Date(Date.UTC(y, m - 1, d))
+        .toISOString()
+        .replace(/Z$/, APP_UTC_OFFSET_SUFFIX);
+}
+
+export function bogotaDayEnd(dateStr) {
+    const [y, m, d] = String(dateStr).split('-').map(Number);
+    if (!y || !m || !d) return String(dateStr);
+    return new Date(Date.UTC(y, m - 1, d + 1))
+        .toISOString()
+        .replace(/Z$/, APP_UTC_OFFSET_SUFFIX);
+}
+
 const PAGE_LOADING_DURATION = 1200;
 let pageLoadingStartedAt = 0;
 let pageLoadingHideTimer = null;

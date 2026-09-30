@@ -828,7 +828,7 @@
     </div>
 
     <script type="module">
-        import { supabase, showPageLoading, hidePageLoading } from './app.js';
+        import { supabase, showPageLoading, hidePageLoading, bogotaTimestamp } from './app.js';
 
         showPageLoading();
 
@@ -1077,7 +1077,7 @@
             let hasError = false;
             let errorMsg = '';
 
-            const now = new Date().toISOString();
+            const now = bogotaTimestamp();
             const observation = document.getElementById('inventoryObservation').value.trim();
 
             rows.forEach((row, i) => {
@@ -1549,7 +1549,7 @@
                 return;
             }
 
-            const now = new Date().toISOString();
+            const now = bogotaTimestamp();
             const observation = document.getElementById('outInventoryObservation').value.trim();
 
             btnSaveOutInventory.disabled = true;
@@ -1922,7 +1922,7 @@
                             entries: [{ reference: reference, size: size, amount: amount, amount_old: oldAmount }],
                             observation: 'Edición de inventario'
                         },
-                        created_at: new Date().toISOString()
+                        created_at: bogotaTimestamp()
                     };
 
                     // Try to update an existing movement first; if none exists, insert a new one

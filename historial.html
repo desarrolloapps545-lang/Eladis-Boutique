@@ -486,7 +486,7 @@
     </div>
 
     <script type="module">
-        import { supabase, showPageLoading, hidePageLoading } from './app.js';
+        import { supabase, showPageLoading, hidePageLoading, formatDateOnlyLocal, bogotaDayStart, bogotaDayEnd } from './app.js';
 
         showPageLoading();
 
@@ -508,19 +508,7 @@
         }
 
         function formatDate(dateStr) {
-            if (!dateStr) return '—';
-            try {
-                const d = new Date(dateStr);
-                if (isNaN(d.getTime())) {
-                    return dateStr.substring(0, 10);
-                }
-                const day = String(d.getDate()).padStart(2, '0');
-                const month = String(d.getMonth() + 1).padStart(2, '0');
-                const year = d.getFullYear();
-                return `${day}/${month}/${year}`;
-            } catch {
-                return dateStr.substring(0, 10);
-            }
+            return formatDateOnlyLocal(dateStr);
         }
 
         function escapeHtml(text) {
@@ -627,12 +615,10 @@
             const dateTo = dateToFilter.value;
 
             if (dateFrom) {
-                query = query.gte('created_at', dateFrom);
+                query = query.gte('created_at', bogotaDayStart(dateFrom));
             }
             if (dateTo) {
-                const nextDay = new Date(dateTo);
-                nextDay.setDate(nextDay.getDate() + 1);
-                query = query.lt('created_at', nextDay.toISOString());
+                query = query.lt('created_at', bogotaDayEnd(dateTo));
             }
 
             const { data, error } = await query;
