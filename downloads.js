@@ -56,29 +56,29 @@ export async function downloadMiniInvoice(saleId, index, saleData = null, ctx = 
 
     // Funciones helper para dibujar
     const drawText = (text, x, y, options = {}) => {
-        ctxDraw.font = `${options.weight || '400'} ${options.size || 18}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+        ctxDraw.font = `${options.weight || '400'} ${options.size || 23}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
         ctxDraw.fillStyle = options.color || '#1a1a2e';
         ctxDraw.textAlign = options.align || 'left';
         ctxDraw.fillText(text, x, y);
     };
 
     const drawSectionHeader = (text, y) => {
-        drawText(text, width / 2, y, { size: 24, weight: '600', color: '#374151', align: 'center' });
-        return y + 35;
+        drawText(text, width / 2, y, { size: 28, weight: '600', color: '#374151', align: 'center' });
+        return y + 39;
     };
 
     const drawCenteredRow = (label, value, y) => {
         drawText(`${label} ${value}`, width / 2, y, {
-            size: 24, weight: '500', color: '#1a1a2e', align: 'center'
+            size: 28, weight: '500', color: '#1a1a2e', align: 'center'
         });
-        return y + 35;
+        return y + 39;
     };
 
     const drawCenteredValue = (value, y) => {
         drawText(value, width / 2, y, {
-            size: 24, weight: '500', color: '#1a1a2e', align: 'center'
+            size: 28, weight: '500', color: '#1a1a2e', align: 'center'
         });
-        return y + 30;
+        return y + 34;
     };
 
     const formatDate = (iso) => formatDateOnlyLocal(iso);
