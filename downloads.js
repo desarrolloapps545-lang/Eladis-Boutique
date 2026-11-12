@@ -64,21 +64,21 @@ export async function downloadMiniInvoice(saleId, index, saleData = null, ctx = 
 
     const drawSectionHeader = (text, y) => {
         drawText(text, width / 2, y, { size: 28, weight: '600', color: '#374151', align: 'center' });
-        return y + 39;
+        return y + 26;
     };
 
     const drawCenteredRow = (label, value, y) => {
         drawText(`${label} ${value}`, width / 2, y, {
             size: 28, weight: '500', color: '#1a1a2e', align: 'center'
         });
-        return y + 39;
+        return y + 26;
     };
 
     const drawCenteredValue = (value, y) => {
         drawText(value, width / 2, y, {
             size: 28, weight: '500', color: '#1a1a2e', align: 'center'
         });
-        return y + 34;
+        return y + 26;
     };
 
     const formatDate = (iso) => formatDateOnlyLocal(iso);
