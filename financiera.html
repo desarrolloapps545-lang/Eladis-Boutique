@@ -1,0 +1,2192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eladis Boutique - Gestión Financiera</title>
+    <link rel="icon" type="image/png" href="img/logo_eladis_boutique.png">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .financiera-container {
+            min-height: 100vh;
+            background: var(--background);
+        }
+
+        .financiera-header {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .financiera-header .dashboard-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .financiera-header .dashboard-logo svg {
+            width: 40px;
+            height: 40px;
+            color: var(--primary);
+        }
+
+        .financiera-header .dashboard-logo h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .budget-status-box {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: var(--background);
+            padding: 8px 16px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .budget-info {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .budget-value {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 16px;
+        }
+
+        .btn-action-budget {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-action-budget:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+         .btn-action-budget:disabled {
+             opacity: 0.7;
+             cursor: not-allowed;
+          }
+
+         .btn-back-financiera {
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-back-financiera:hover {
+            background: var(--background);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .financiera-main {
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .financiera-section-header {
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .financiera-section-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .financiera-section-header p {
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        .bills-count {
+            display: inline-block;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-left: 8px;
+        }
+
+        .bills-table-wrapper {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .bills-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 700px;
+        }
+
+        .bills-table thead th {
+            background: var(--background);
+            padding: 16px 24px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .bills-table tbody td {
+            padding: 16px 24px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .bills-table tbody td.cost-cell {
+            font-weight: 700;
+            color: var(--error);
+        }
+
+        .bills-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .bills-table tbody tr:hover {
+            background: var(--background);
+        }
+
+        .bills-empty {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--text-muted);
+        }
+
+        .bills-empty svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+
+        .bills-empty p {
+            font-size: 15px;
+        }
+
+        .loading-container {
+            text-align: center;
+            padding: 60px 24px;
+        }
+
+        .spinner-lg {
+            width: 36px;
+            height: 36px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Modal Styles */
+        .budget-modal-content,
+        .bill-modal-content {
+            max-width: 440px;
+            width: 90%;
+        }
+
+        .bill-modal-content {
+            max-width: 580px;
+        }
+
+        .modal-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+            text-align: left;
+            flex: 1;
+        }
+
+        .modal-form-row {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .modal-form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .modal-form-group input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            color: var(--text-primary);
+            background: var(--card-bg);
+            transition: var(--transition);
+            box-sizing: border-box;
+        }
+
+        .modal-form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(45, 55, 72, 0.15);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+
+        .btn-modal-cancel {
+            padding: 12px 20px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-modal-cancel:hover {
+            background: var(--background);
+            border-color: var(--text-secondary);
+        }
+
+        .btn-modal-submit {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: var(--transition);
+            min-width: 140px;
+        }
+
+        .btn-modal-submit:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .modal-alert {
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: none;
+            line-height: 1.4;
+        }
+
+        .modal-alert.error {
+            display: block;
+            background: var(--error-bg);
+            color: var(--error);
+            border: 1px solid var(--error);
+        }
+
+        @media (max-width: 768px) {
+            .financiera-header {
+                padding: 16px 20px;
+            }
+
+            .financiera-main {
+                padding: 20px;
+            }
+
+            .modal-form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+        }
+
+@media (max-width: 600px) {
+             .financiera-header {
+                 flex-direction: column;
+                 align-items: stretch;
+                 gap: 12px;
+             }
+
+             .budget-status-box {
+                 flex-direction: column;
+                 align-items: stretch;
+             }
+         }
+
+         /* Reporte Ganancias Modal */
+         .modal-lg .modal-content {
+             max-width: 900px;
+             width: 95%;
+         }
+
+         .reporte-ganancias-filters {
+             display: flex;
+             gap: 12px;
+             flex-wrap: wrap;
+             margin-bottom: 16px;
+         }
+
+         .reporte-ganancias-filters .modal-form-group {
+             flex: 1;
+             min-width: 150px;
+             margin-bottom: 0;
+         }
+
+         .reporte-ganancias-total {
+             text-align: left;
+             font-weight: 700;
+             color: var(--text-primary);
+             margin-bottom: 12px;
+             font-size: 16px;
+         }
+
+        .reporte-ganancias-table {
+            overflow-x: auto;
+        }
+
+        .reporte-ganancias-table .bills-table {
+            min-width: 100%;
+        }
+
+         .reporte-ganancias-table .bills-table thead th {
+             font-size: 12px;
+             padding: 12px 16px;
+         }
+
+         .reporte-ganancias-table .bills-table tbody td {
+             padding: 12px 16px;
+             font-size: 13px;
+         }
+
+         /* Reporte Ganancias - Custom Select Styling */
+         .reporte-ganancias-filters select {
+             width: 100%;
+             padding: 10px 12px;
+             border: 2px solid var(--border);
+             border-radius: var(--radius-md);
+             font-size: 14px;
+             color: var(--text-primary);
+             background: var(--card-bg);
+             transition: var(--transition);
+             appearance: auto;
+             cursor: pointer;
+         }
+
+         .reporte-ganancias-filters select:focus {
+             outline: none;
+             border-color: var(--primary);
+             box-shadow: 0 0 0 3px rgba(45, 55, 72, 0.15);
+         }
+
+         .reporte-ganancias-filters select:hover {
+             border-color: var(--primary);
+         }
+
+          /* Reporte Ganancias - Product Combobox (input + dropdown) */
+          .fin-product-combobox {
+              position: relative;
+              width: 100%;
+          }
+
+          .fin-product-combobox input {
+              width: 100%;
+              padding: 10px 40px 10px 12px;
+              border: 2px solid var(--border);
+              border-radius: var(--radius-md);
+              font-size: 14px;
+              color: var(--text-primary);
+              background: var(--card-bg);
+              transition: var(--transition);
+              box-sizing: border-box;
+              appearance: none;
+          }
+
+          .fin-product-combobox input:focus {
+              outline: none;
+              border-color: var(--primary);
+              box-shadow: 0 0 0 3px rgba(45, 55, 72, 0.15);
+          }
+
+          .fin-product-combobox input::placeholder {
+              color: var(--text-muted);
+              font-style: italic;
+          }
+
+          .fin-product-combobox-icon {
+              position: absolute;
+              right: 12px;
+              top: 50%;
+              transform: translateY(-50%);
+              width: 16px;
+              height: 16px;
+              color: var(--text-muted);
+              pointer-events: none;
+          }
+
+          .fin-product-combobox-dropdown {
+              display: none;
+              position: absolute;
+              top: 100%;
+              left: 0;
+              right: 0;
+              margin-top: 4px;
+              background: var(--card-bg);
+              border: 1px solid var(--border);
+              border-radius: var(--radius-md);
+              box-shadow: var(--shadow-lg);
+              max-height: 250px;
+              overflow-y: auto;
+              z-index: 50;
+          }
+
+          .fin-product-combobox-option {
+              padding: 10px 12px;
+              cursor: pointer;
+              font-size: 13px;
+              color: var(--text-primary);
+              border-bottom: 1px solid var(--border);
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+          }
+
+          .fin-product-combobox-option:last-child {
+              border-bottom: none;
+          }
+
+          .fin-product-combobox-option:hover,
+          .fin-product-combobox-option.highlighted {
+              background: var(--background);
+              color: var(--primary);
+          }
+      </style>
+</head>
+<body class="page-loading">
+    <div class="page-loading-screen" role="status" aria-live="polite">
+        <div class="page-loading-content">
+            <img class="page-loading-logo" src="img/logo_eladis_boutique.png" alt="Eladis Boutique">
+            <div class="page-loading-spinner"></div>
+        </div>
+    </div>
+    <div class="financiera-container">
+        <header class="financiera-header">
+            <div class="dashboard-logo">
+                <img src="img/logo_eladis_boutique.png" alt="Eladis Boutique" style="width: 40px; height: 40px; object-fit: contain;">
+                <h1>Eladis Boutique</h1>
+            </div>
+
+            <div class="header-actions-scroll" style="display:flex; gap:12px; align-items:center;">
+                <button type="button" class="workspace-menu-btn" id="workspaceMenuBtn" aria-label="Abrir menú de espacios de trabajo" aria-expanded="false">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7" rx="1"/>
+                        <rect x="14" y="3" width="7" height="7" rx="1"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1"/>
+                        <rect x="14" y="14" width="7" height="7" rx="1"/>
+                    </svg>
+                </button>
+                <div class="budget-status-box" id="budgetStatusBox">
+                    <span class="budget-info">Capital actual: <strong class="budget-value" id="budgetValueDisplay">Cargando...</strong></span>
+                    <button class="btn-action-budget" id="btnRegistrarCapital" style="display: none;">Registrar capital actual</button>
+                </div>
+                <button class="btn-action-budget" id="btnRegistrarGasto">Registrar gasto</button>
+                <button class="btn-action-budget" id="btnRegistrarGanancia">Registrar ganancia</button>
+                <button class="btn-action-budget" id="btnReporteGanancias">Reporte de ganancias</button>
+                <button class="btn-back-financiera" id="btnBack">← Regresar</button>
+            </div>
+        </header>
+
+        <!-- Workspace Drawer -->
+        <div class="workspace-drawer" id="workspaceDrawer" role="navigation" aria-label="Espacios de trabajo">
+            <div class="workspace-drawer-header">
+                <img src="img/logo_eladis_boutique.png" alt="Eladis Boutique" style="width: 71px; height: 71px; object-fit: contain;">
+                <h3>Eladis Boutique</h3>
+                <button type="button" class="workspace-drawer-close" id="workspaceDrawerClose" aria-label="Cerrar menú">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="workspace-drawer-content">
+                <div class="workspace-drawer-section">
+                    <div class="workspace-drawer-section-title">Navegación</div>
+                    <a href="dashboard.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7" rx="1"/>
+                            <rect x="14" y="3" width="7" height="7" rx="1"/>
+                            <rect x="3" y="14" width="7" height="7" rx="1"/>
+                            <rect x="14" y="14" width="7" height="7" rx="1"/>
+                        </svg>
+                        Dashboard
+                    </a>
+                    <a href="productos.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                            <line x1="7" y1="7" x2="7.01" y2="7"/>
+                        </svg>
+                        Productos
+                    </a>
+                    <a href="inventario.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                            <line x1="7" y1="7" x2="7.01" y2="7"/>
+                        </svg>
+                        Inventario
+                    </a>
+                    <a href="ventas.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="9" cy="21" r="1"/>
+                            <circle cx="20" cy="21" r="1"/>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 1-2 1.61H9.72a2 2 0 0 1-2-1.61L23 6H6"/>
+                        </svg>
+                        Ventas
+                    </a>
+                    <a href="compras.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <path d="M16 10a4 4 0 0 1-8 0"/>
+                        </svg>
+                        Compras
+                    </a>
+                    <a href="financiera.html" class="workspace-drawer-item active-workspace" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                        Gestión Financiera
+                    </a>
+                    <a href="usuarios.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        Usuarios
+                    </a>
+                    <a href="historial.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 8v4l2 2"/>
+                        </svg>
+                        Historial
+                    </a>
+                </div>
+            </div>
+            <div class="workspace-drawer-footer">
+                <div class="workspace-drawer-user">
+                    <div class="workspace-drawer-user-avatar" id="workspaceUserAvatar">EB</div>
+                    <div class="workspace-drawer-user-info">
+                        <div class="workspace-drawer-user-name" id="workspaceUserName">Usuario</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="workspace-drawer-overlay" id="workspaceDrawerOverlay"></div>
+
+        <main class="financiera-main">
+            <section class="financiera-section-header">
+                <div>
+                    <h2>
+                        Movimientos financieros
+                        <span class="bills-count" id="billsCount">0</span>
+                    </h2>
+                    <p>Historial de ganancias y gastos registrados en la tienda.</p>
+                </div>
+            </section>
+
+            <div class="bills-table-wrapper">
+                <div id="tableContent">
+                    <div class="loading-container">
+                        <div class="spinner-lg"></div>
+                        <p style="color: var(--text-muted);">Cargando movimientos...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Registrar Capital -->
+    <div id="budgetModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="budgetModalTitle">
+        <div class="modal-overlay" id="budgetModalOverlay"></div>
+        <div class="modal-content budget-modal-content">
+            <div class="modal-header">
+                <h2 id="budgetModalTitle">Registrar capital actual</h2>
+                <button type="button" class="modal-close" id="closeBudgetModal" aria-label="Cerrar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 24px; text-align: left;">
+                <div id="budgetModalAlert" class="modal-alert"></div>
+                <form id="budgetForm" novalidate>
+                    <div class="modal-form-group">
+                        <label for="budgetInputValue">Valor del capital</label>
+                        <input type="text" id="budgetInputValue" placeholder="Ej. 5000000" inputmode="decimal" required class="price-input">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-modal-cancel" id="cancelBudgetBtn">Cancelar</button>
+                        <button type="submit" class="btn-modal-submit" id="btnSaveBudget">
+                            <span id="btnSaveBudgetText">Guardar</span>
+                            <span id="btnSaveBudgetLoader" style="display:none;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;animation:spin 0.8s linear infinite;">
+                                    <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+                                    <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Registrar Gasto -->
+    <div id="billModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="billModalTitle">
+        <div class="modal-overlay" id="billModalOverlay"></div>
+        <div class="modal-content bill-modal-content">
+            <div class="modal-header">
+                <h2 id="billModalTitle">Registrar gasto</h2>
+                <button type="button" class="modal-close" id="closeBillModal" aria-label="Cerrar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 24px; text-align: left;">
+                <div id="billModalAlert" class="modal-alert"></div>
+                <form id="billForm" novalidate>
+                    <div class="modal-form-row">
+                        <div class="modal-form-group">
+                            <label for="billReferenceInput">Gasto (Referencia)</label>
+                            <input type="text" id="billReferenceInput" placeholder="Ej. Pago de alquiler" required>
+                        </div>
+                        <div class="modal-form-group">
+                            <label for="billCostInput">Valor (Costo)</label>
+                            <input type="text" id="billCostInput" placeholder="Ej. 500000" inputmode="decimal" required class="price-input">
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-modal-cancel" id="cancelBillBtn">Cancelar</button>
+                        <button type="submit" class="btn-modal-submit" id="btnSaveBill">
+                            <span id="btnSaveBillText">Registrar Gasto</span>
+                            <span id="btnSaveBillLoader" style="display:none;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;animation:spin 0.8s linear infinite;">
+                                    <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+                                    <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Registrar Ganancia -->
+    <div id="gainModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="gainModalTitle">
+        <div class="modal-overlay" id="gainModalOverlay"></div>
+        <div class="modal-content bill-modal-content">
+            <div class="modal-header">
+                <h2 id="gainModalTitle">Registrar ganancia</h2>
+                <button type="button" class="modal-close" id="closeGainModal" aria-label="Cerrar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 24px; text-align: left;">
+                <div id="gainModalAlert" class="modal-alert"></div>
+                <form id="gainForm" novalidate>
+                    <div class="modal-form-row">
+                        <div class="modal-form-group">
+                            <label for="gainReferenceInput">Concepto</label>
+                            <input type="text" id="gainReferenceInput" placeholder="Ej. Venta del día" required>
+                        </div>
+                        <div class="modal-form-group">
+                            <label for="gainAmountInput">Valor (Ganancia)</label>
+                            <input type="text" id="gainAmountInput" placeholder="Ej. 500000" inputmode="decimal" required class="price-input">
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-modal-cancel" id="cancelGainBtn">Cancelar</button>
+                        <button type="submit" class="btn-modal-submit" id="btnSaveGain">
+                            <span id="btnSaveGainText">Registrar Ganancia</span>
+                            <span id="btnSaveGainLoader" style="display:none;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;animation:spin 0.8s linear infinite;">
+                                    <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+                                    <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+     </div>
+
+     <!-- Modal Editar Bill (Gasto/Ganancia) -->
+     <div id="editBillModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="editBillModalTitle">
+         <div class="modal-overlay" id="editBillModalOverlay"></div>
+         <div class="modal-content bill-modal-content">
+             <div class="modal-header">
+                 <h2 id="editBillModalTitle">Editar movimiento</h2>
+                 <button type="button" class="modal-close" id="closeEditBillModal" aria-label="Cerrar">
+                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                         <line x1="18" y1="6" x2="6" y2="18"/>
+                         <line x1="6" y1="6" x2="18" y2="18"/>
+                     </svg>
+                 </button>
+             </div>
+             <div class="modal-body" style="padding: 24px; text-align: left;">
+                 <div id="editBillModalAlert" class="modal-alert"></div>
+                 <form id="editBillForm" novalidate>
+                     <input type="hidden" id="editBillIdInput">
+                     <input type="hidden" id="editBillTypeInput">
+                     <div class="modal-form-row">
+                         <div class="modal-form-group">
+                             <label for="editBillReferenceInput">Concepto</label>
+                             <input type="text" id="editBillReferenceInput" placeholder="Ej. Pago de alquiler" required>
+                         </div>
+                         <div class="modal-form-group">
+                             <label for="editBillCostInput">Valor</label>
+                             <input type="text" id="editBillCostInput" placeholder="Ej. 500000" inputmode="decimal" required class="price-input">
+                         </div>
+                     </div>
+                     <div class="modal-actions">
+                         <button type="button" class="btn-modal-cancel" id="cancelEditBillBtn">Cancelar</button>
+                         <button type="submit" class="btn-modal-submit" id="btnSaveEditBill">
+                             <span id="btnSaveEditBillText">Guardar cambios</span>
+                             <span id="btnSaveEditBillLoader" style="display:none;">
+                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;animation:spin 0.8s linear infinite;">
+                                     <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+                                     <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+                                 </svg>
+                             </span>
+                         </button>
+                     </div>
+                 </form>
+             </div>
+         </div>
+     </div>
+
+     <!-- Modal Reporte de Ganancias -->
+    <div id="reporteGananciasModal" class="modal modal-lg" role="dialog" aria-modal="true" aria-labelledby="reporteGananciasTitle">
+        <div class="modal-overlay" id="reporteGananciasOverlay"></div>
+        <div class="modal-content" style="max-width: 900px; width: 95%;">
+            <div class="modal-header">
+                <h2 id="reporteGananciasTitle">Reporte de Ganancias</h2>
+                <button type="button" class="modal-close" id="closeReporteGananciasModal" aria-label="Cerrar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 24px; text-align: left;">
+                <div class="reporte-ganancias-filters">
+                    <div class="modal-form-group">
+                        <label for="reporteGananciasFilterDate">Fecha</label>
+                        <input type="date" id="reporteGananciasFilterDate">
+                    </div>
+                    <div class="modal-form-group">
+                        <label for="reporteGananciasFilterCategory">Categoría</label>
+                        <select id="reporteGananciasFilterCategory">
+                            <option value="">Todas las categorías</option>
+                        </select>
+                    </div>
+                    <div class="modal-form-group">
+                        <label for="reporteGananciasFilterProduct">Producto</label>
+                        <div class="fin-product-combobox">
+                            <input type="text" id="reporteGananciasFilterProduct" placeholder="Buscar o seleccionar producto..." autocomplete="off">
+                            <svg class="fin-product-combobox-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 9l6 6 6-6"/>
+                            </svg>
+                            <div class="fin-product-combobox-dropdown"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="reporte-ganancias-total">
+                    Total ganancias: <span id="reporteGananciasTotal">$ 0</span>
+                </div>
+                <div id="reporteGananciasContent" class="reporte-ganancias-table">
+                    <div class="bills-empty">
+                        <p>No hay ganancias registradas.</p>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-modal-cancel" id="cancelReporteGananciasBtn">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase, normalizeRole, showPageLoading, hidePageLoading, formatDateOnlyLocal, localDateKey, bogotaTimestamp } from './app.js';
+
+        showPageLoading();
+
+const btnBack = document.getElementById('btnBack');
+         const btnRegistrarCapital = document.getElementById('btnRegistrarCapital');
+         const btnRegistrarGasto = document.getElementById('btnRegistrarGasto');
+         const btnRegistrarGanancia = document.getElementById('btnRegistrarGanancia');
+         const btnReporteGanancias = document.getElementById('btnReporteGanancias');
+         const budgetValueDisplay = document.getElementById('budgetValueDisplay');
+         const tableContent = document.getElementById('tableContent');
+         const billsCount = document.getElementById('billsCount');
+         const budgetStatusBox = document.getElementById('budgetStatusBox');
+
+         let isUserRole = false;
+
+        // Modal Budget
+        const budgetModal = document.getElementById('budgetModal');
+        const budgetModalOverlay = document.getElementById('budgetModalOverlay');
+        const closeBudgetModal = document.getElementById('closeBudgetModal');
+        const cancelBudgetBtn = document.getElementById('cancelBudgetBtn');
+        const budgetForm = document.getElementById('budgetForm');
+        const budgetInputvalue = document.getElementById('budgetInputValue');
+        const budgetModalAlert = document.getElementById('budgetModalAlert');
+        const btnSaveBudget = document.getElementById('btnSaveBudget');
+        const btnSaveBudgetText = document.getElementById('btnSaveBudgetText');
+        const btnSaveBudgetLoader = document.getElementById('btnSaveBudgetLoader');
+
+        // Modal Bill (Gasto)
+        const billModal = document.getElementById('billModal');
+        const billModalOverlay = document.getElementById('billModalOverlay');
+        const closeBillModal = document.getElementById('closeBillModal');
+        const cancelBillBtn = document.getElementById('cancelBillBtn');
+        const billForm = document.getElementById('billForm');
+        const billReferenceInput = document.getElementById('billReferenceInput');
+        const billCostInput = document.getElementById('billCostInput');
+        const billModalAlert = document.getElementById('billModalAlert');
+        const btnSaveBill = document.getElementById('btnSaveBill');
+        const btnSaveBillText = document.getElementById('btnSaveBillText');
+        const btnSaveBillLoader = document.getElementById('btnSaveBillLoader');
+
+        // Modal Gain (Ganancia)
+        const gainModal = document.getElementById('gainModal');
+        const gainModalOverlay = document.getElementById('gainModalOverlay');
+        const closeGainModal = document.getElementById('closeGainModal');
+        const cancelGainBtn = document.getElementById('cancelGainBtn');
+        const gainForm = document.getElementById('gainForm');
+        const gainReferenceInput = document.getElementById('gainReferenceInput');
+        const gainAmountInput = document.getElementById('gainAmountInput');
+        const gainModalAlert = document.getElementById('gainModalAlert');
+        const btnSaveGain = document.getElementById('btnSaveGain');
+        const btnSaveGainText = document.getElementById('btnSaveGainText');
+        const btnSaveGainLoader = document.getElementById('btnSaveGainLoader');
+
+         // Modal Reporte de Ganancias
+         const reporteGananciasModal = document.getElementById('reporteGananciasModal');
+         const reporteGananciasOverlay = document.getElementById('reporteGananciasOverlay');
+         const closeReporteGananciasModal = document.getElementById('closeReporteGananciasModal');
+         const cancelReporteGananciasBtn = document.getElementById('cancelReporteGananciasBtn');
+         const reporteGananciasForm = document.getElementById('reporteGananciasForm');
+         const reporteGananciasContent = document.getElementById('reporteGananciasContent');
+         const reporteGananciasTotal = document.getElementById('reporteGananciasTotal');
+         const reporteGananciasFilterDate = document.getElementById('reporteGananciasFilterDate');
+         const reporteGananciasFilterCategory = document.getElementById('reporteGananciasFilterCategory');
+         const reporteGananciasFilterProduct = document.getElementById('reporteGananciasFilterProduct');
+         const reporteGananciasProductDropdown = document.querySelector('.fin-product-combobox-dropdown');
+
+          let currentBudgetRecordId = null;
+          let currentBudgetValue = 0;
+          let movementsList = [];
+          let salesList = [];
+          let productsList = [];
+          let categoriesList = [];
+          let billsList = [];
+
+        function formatCurrency(value) {
+            if (value === null || value === undefined || value === '') return '—';
+            const num = typeof value === 'string' ? parseFloat(value.replace(/[^0-9.-]/g, '')) : Number(value);
+            if (isNaN(num)) return '—';
+            return '$ ' + num.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+        }
+
+        function formatDateOnly(timestamp) {
+            return formatDateOnlyLocal(timestamp);
+        }
+
+        function escapeHtml(text) {
+            if (text === null || text === undefined) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showBudgetAlert(msg) {
+            budgetModalAlert.textContent = msg;
+            budgetModalAlert.style.display = 'block';
+        }
+
+        function hideBudgetAlert() {
+            budgetModalAlert.textContent = '';
+            budgetModalAlert.style.display = 'none';
+        }
+
+        function showBillAlert(msg) {
+            billModalAlert.textContent = msg;
+            billModalAlert.style.display = 'block';
+        }
+
+         function hideBillAlert() {
+             billModalAlert.textContent = '';
+             billModalAlert.style.display = 'none';
+         }
+
+         function showGainAlert(msg) {
+             gainModalAlert.textContent = msg;
+             gainModalAlert.style.display = 'block';
+         }
+
+         function hideGainAlert() {
+             gainModalAlert.textContent = '';
+             gainModalAlert.style.display = 'none';
+         }
+
+         document.querySelectorAll('.price-input').forEach(input => {
+               input.addEventListener('input', (e) => {
+                   const target = e.target;
+                   const cursor = target.selectionStart;
+                   const digitsBeforeCursor = target.value.substring(0, cursor).replace(/[^0-9]/g, '').length;
+                   formatPrice(target);
+                   const raw = target.value.replace(/[^0-9]/g, '');
+                   if (raw.length === digitsBeforeCursor) {
+                       target.setSelectionRange(target.value.length, target.value.length);
+                   } else if (digitsBeforeCursor === 0) {
+                       target.setSelectionRange(0, 0);
+                   } else {
+                       let digitCount = 0;
+                       let newPos = 0;
+                       for (let i = 0; i < target.value.length; i++) {
+                           if (/[0-9]/.test(target.value[i])) {
+                               digitCount++;
+                               if (digitCount === digitsBeforeCursor) {
+                                   newPos = i + 1;
+                               }
+                           }
+                       }
+                       target.setSelectionRange(newPos, newPos);
+                   }
+               });
+           });
+
+        function formatPrice(input) {
+            const raw = input.value.replace(/[^0-9]/g, '');
+            if (raw === '') {
+                input.value = '';
+                return;
+            }
+            let formatted = '';
+            let count = 0;
+            for (let i = raw.length - 1; i >= 0; i--) {
+                if (count > 0 && count % 3 === 0) {
+                    formatted = '.' + formatted;
+                }
+                formatted = raw[i] + formatted;
+                count++;
+            }
+            input.value = formatted;
+        }
+
+        function parsePrice(raw) {
+            return parseFloat(raw.replace(/\./g, '')) || 0;
+        }
+
+        async function loadBudget() {
+            if (isUserRole) {
+                budgetValueDisplay.style.display = 'none';
+                btnRegistrarCapital.style.display = 'none';
+                return;
+            }
+
+            budgetValueDisplay.textContent = 'Cargando...';
+            btnRegistrarCapital.style.display = 'none';
+
+            const { data, error } = await supabase
+                .from('budget')
+                .select('id, value')
+                .limit(1);
+
+            if (error) {
+                console.error('Error al cargar budget:', error);
+                budgetValueDisplay.textContent = 'Error';
+                return;
+            }
+
+            if (data && data.length > 0) {
+                const record = data[0];
+                currentBudgetRecordId = record.id;
+                currentBudgetValue = Number(record.value) || 0;
+                budgetValueDisplay.textContent = formatCurrency(currentBudgetValue);
+                btnRegistrarCapital.style.display = 'none';
+            } else {
+                currentBudgetRecordId = null;
+                currentBudgetValue = 0;
+                budgetValueDisplay.textContent = 'No registrado';
+                btnRegistrarCapital.style.display = 'inline-flex';
+            }
+        }
+
+        async function loadBills() {
+            tableContent.innerHTML = `
+                <div class="loading-container">
+                    <div class="spinner-lg"></div>
+                    <p style="color: var(--text-muted);">Cargando movimientos...</p>
+                </div>
+            `;
+
+             let billsQuery = supabase
+                 .from('bills')
+                 .select('id, created_at, reference, cost, type');
+
+            if (isUserRole) {
+                billsQuery = billsQuery.eq('type', 'Ganancia');
+            }
+
+            const { data, error } = await billsQuery
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Error al cargar bills:', error);
+                tableContent.innerHTML = `<div class="bills-empty"><p>Error al cargar los movimientos. Intenta de nuevo.</p></div>`;
+                return;
+            }
+
+             billsCount.textContent = data ? data.length : 0;
+             billsList = data || [];
+
+            if (!data || data.length === 0) {
+                tableContent.innerHTML = `
+                    <div class="bills-empty">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <line x1="12" y1="1" x2="12" y2="23"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                        <p>No hay movimientos registrados.</p>
+                    </div>
+                `;
+                return;
+            }
+
+              let html = `
+                  <table class="bills-table">
+                      <thead>
+                          <tr>
+                              <th>Fecha</th>
+                              <th>Tipo</th>
+                              <th>Concepto</th>
+                              <th>Valor</th>`;
+              if (!isUserRole) {
+                  html += `<th>Acciones</th>`;
+              }
+              html += `
+                          </tr>
+                      </thead>
+                      <tbody>
+              `;
+
+             data.forEach(item => {
+                 const formattedDate = formatDateOnly(item.created_at);
+                 const formattedCost = formatCurrency(item.cost);
+                  const actionButtons = isUserRole ? '' : `
+                      <td class="cost-cell" style="text-align: center;">
+                          <button class="btn-action btn-edit" data-id="${item.id || ''}" data-type="${escapeHtml(item.type || '')}" data-reference="${escapeHtml(item.reference || '')}" data-cost="${item.cost || 0}" aria-label="Editar">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                              </svg>
+                          </button>
+                          <button class="btn-action btn-delete" data-id="${item.id || ''}" data-type="${escapeHtml(item.type || '')}" aria-label="Eliminar">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                  <polyline points="3 6 5 6 21 6"/>
+                                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                              </svg>
+                          </button>
+                      </td>`;
+
+                 html += `
+                     <tr>
+                         <td>${escapeHtml(formattedDate)}</td>
+                         <td>${escapeHtml(item.type || '—')}</td>
+                         <td>${escapeHtml(item.reference || '—')}</td>
+                         <td class="cost-cell">${escapeHtml(formattedCost)}</td>
+                         ${actionButtons}
+                     </tr>
+                 `;
+              });
+
+              html += '</tbody></table>';
+              tableContent.innerHTML = html;
+
+              if (!isUserRole) {
+                  tableContent.querySelectorAll('.btn-edit').forEach(btn => {
+                      btn.addEventListener('click', () => openEditBillModal(
+                          btn.dataset.id,
+                          btn.dataset.type,
+                          btn.dataset.reference,
+                          btn.dataset.cost
+                      ));
+                  });
+                  tableContent.querySelectorAll('.btn-delete').forEach(btn => {
+                      btn.addEventListener('click', () => deleteBill(btn.dataset.id, btn.dataset.type));
+                  });
+              }
+          }
+
+         async function loadMovements() {
+             const { data, error } = await supabase
+                 .from('movements')
+                 .select('*')
+                 .order('created_at', { ascending: false });
+
+             if (error) {
+                 console.error('Error loading movements:', error);
+                 return;
+             }
+
+             movementsList = data || [];
+         }
+
+         function getMovementDetail(movement) {
+             const data = movement.sale_data || movement.movement_data || movement.purchase_data || movement.inventory_data || movement.bill_data || {};
+             const parts = [];
+
+             if (data.items) {
+                 const items = Array.isArray(data.items) ? data.items : [data.items];
+                 items.forEach((item, i) => {
+                     if (i > 0) parts.push('<br>');
+                     let itemDetail = `<strong>${escapeHtml(item.reference || '—')}</strong> - Tall. ${escapeHtml(item.size || '—')} - ${item.amount || 0} x ${formatCurrency(item.price || 0)} = ${formatCurrency((item.price || 0) * (item.amount || 0))}`;
+                     parts.push(itemDetail);
+                 });
+                 if (data.total_sale) {
+                     parts.push(`<br><strong>Total:</strong> ${formatCurrency(data.total_sale)}`);
+                 }
+                 if (data.client_data && data.client_data.nombre) {
+                     parts.push(`<br><strong>Cliente:</strong> ${escapeHtml(data.client_data.nombre)}`);
+                 }
+             } else if (data.reference) {
+                 parts.push(`<strong>${escapeHtml(data.reference)}</strong>`);
+                 if (data.size) {
+                     parts.push(` - Tall. ${escapeHtml(data.size)}`);
+                 }
+                 if (data.amount) {
+                     parts.push(` - ${data.amount} uds`);
+                 }
+                 if (data.purchase_price) {
+                     parts.push(` x ${formatCurrency(data.purchase_price)}`);
+                 }
+                 if (data.total_purchase) {
+                     parts.push(` = <strong>${formatCurrency(data.total_purchase)}</strong>`);
+                 } else if (data.total_sale) {
+                     parts.push(` = <strong>${formatCurrency(data.total_sale)}</strong>`);
+                 } else if (data.cost) {
+                     parts.push(` = <strong>${formatCurrency(data.cost)}</strong>`);
+                 } else if (data.amount) {
+                     parts.push(` = <strong>${formatCurrency(data.amount)}</strong>`);
+                 }
+             } else if (data.entries) {
+                 const entries = Array.isArray(data.entries) ? data.entries : [data.entries];
+                 entries.forEach((entry, i) => {
+                     if (i > 0) parts.push('<br>');
+                     parts.push(`<strong>${escapeHtml(entry.reference || '—')}</strong> - Tall. ${escapeHtml(entry.size || '—')} - ${entry.amount || 0} uds`);
+                 });
+             }
+
+             if (data.observation) {
+                 parts.push(`<br><strong>Observación:</strong> ${escapeHtml(data.observation)}`);
+             }
+
+return parts.join('');
+          }
+
+          function getSaleItems(sale) {
+              if (!sale.bill_data || !sale.bill_data.items) return [];
+              const items = Array.isArray(sale.bill_data.items) ? sale.bill_data.items : [sale.bill_data.items];
+              return items.map(item => ({
+                  reference: item.reference || '',
+                  size: item.size || '',
+                  amount: item.amount || 0,
+                  price: item.price || 0,
+                  purchase_price: item.purchase_price || 0
+              }));
+          }
+
+          // Modal Capital
+        function openBudgetModal() {
+            if (isUserRole) return;
+
+            hideBudgetAlert();
+            budgetForm.reset();
+            budgetModal.classList.add('active');
+            budgetInputvalue.focus();
+        }
+
+        function closeBudgetModalFn() {
+            budgetModal.classList.remove('active');
+            hideBudgetAlert();
+            budgetForm.reset();
+        }
+
+        btnRegistrarCapital.addEventListener('click', openBudgetModal);
+        closeBudgetModal.addEventListener('click', closeBudgetModalFn);
+        cancelBudgetBtn.addEventListener('click', closeBudgetModalFn);
+        budgetModalOverlay.addEventListener('click', closeBudgetModalFn);
+
+        // Modal Gasto (Bill)
+        function openBillModal() {
+            if (isUserRole) return;
+
+            hideBillAlert();
+            billForm.reset();
+            billModal.classList.add('active');
+            billReferenceInput.focus();
+        }
+
+        function closeBillModalFn() {
+            billModal.classList.remove('active');
+            hideBillAlert();
+            billForm.reset();
+        }
+
+// Modal Reporte de Ganancias
+         function openReporteGananciasModal() {
+             reporteGananciasModal.classList.add('active');
+             loadSalesForReport();
+         }
+
+         function closeReporteGananciasModalFn() {
+             reporteGananciasModal.classList.remove('active');
+         }
+
+         btnReporteGanancias.addEventListener('click', openReporteGananciasModal);
+         closeReporteGananciasModal.addEventListener('click', closeReporteGananciasModalFn);
+         cancelReporteGananciasBtn.addEventListener('click', closeReporteGananciasModalFn);
+         reporteGananciasOverlay.addEventListener('click', closeReporteGananciasModalFn);
+
+         reporteGananciasModal.addEventListener('click', (e) => {
+             if (e.target === reporteGananciasModal) {
+                 closeReporteGananciasModalFn();
+             }
+         });
+
+          reporteGananciasFilterDate.addEventListener('change', filterReporteGanancias);
+          reporteGananciasFilterCategory.addEventListener('change', () => {
+              renderProductDropdown(reporteGananciasFilterProduct.value);
+              filterReporteGanancias();
+          });
+
+          reporteGananciasFilterProduct.addEventListener('input', (e) => {
+              renderProductDropdown(e.target.value);
+              filterReporteGanancias();
+          });
+
+          reporteGananciasFilterProduct.addEventListener('focus', () => {
+              renderProductDropdown(reporteGananciasFilterProduct.value);
+          });
+
+          reporteGananciasFilterProduct.addEventListener('keydown', (e) => {
+              if (e.key === 'ArrowDown') {
+                  e.preventDefault();
+                  const opts = reporteGananciasProductDropdown.querySelectorAll('.fin-product-combobox-option');
+                  if (opts.length === 0) return;
+                  const current = reporteGananciasProductDropdown.querySelector('.fin-product-combobox-option.highlighted');
+                  const next = current ? current.nextElementSibling : opts[0];
+                  if (next) {
+                      if (current) current.classList.remove('highlighted');
+                      next.classList.add('highlighted');
+                      next.scrollIntoView({ block: 'nearest' });
+                  }
+              } else if (e.key === 'ArrowUp') {
+                  e.preventDefault();
+                  const current = reporteGananciasProductDropdown.querySelector('.fin-product-combobox-option.highlighted');
+                  if (!current) return;
+                  const prev = current.previousElementSibling;
+                  current.classList.remove('highlighted');
+                  if (prev) {
+                      prev.classList.add('highlighted');
+                      prev.scrollIntoView({ block: 'nearest' });
+                  }
+              } else if (e.key === 'Enter') {
+                  const highlighted = reporteGananciasProductDropdown.querySelector('.fin-product-combobox-option.highlighted');
+                  if (highlighted && reporteGananciasProductDropdown.style.display !== 'none') {
+                      e.preventDefault();
+                      selectProductOption(highlighted);
+                  }
+              } else if (e.key === 'Escape') {
+                  reporteGananciasProductDropdown.style.display = 'none';
+              }
+          });
+
+          function selectProductOption(opt) {
+              reporteGananciasFilterProduct.value = opt.dataset.value;
+              reporteGananciasProductDropdown.style.display = 'none';
+              reporteGananciasProductDropdown.querySelectorAll('.fin-product-combobox-option').forEach(o => o.classList.remove('highlighted'));
+              filterReporteGanancias();
+          }
+
+          document.addEventListener('click', (e) => {
+              if (!reporteGananciasFilterProduct.contains(e.target) && !reporteGananciasProductDropdown.contains(e.target)) {
+                  reporteGananciasProductDropdown.style.display = 'none';
+              }
+          });
+
+btnRegistrarGasto.addEventListener('click', openBillModal);
+
+         function openGainModal() {
+             hideGainAlert();
+             gainForm.reset();
+             gainModal.classList.add('active');
+             gainReferenceInput.focus();
+         }
+
+         function closeGainModalFn() {
+             gainModal.classList.remove('active');
+             hideGainAlert();
+             gainForm.reset();
+         }
+
+         btnRegistrarGanancia.addEventListener('click', openGainModal);
+         closeGainModal.addEventListener('click', closeGainModalFn);
+         cancelGainBtn.addEventListener('click', closeGainModalFn);
+         gainModalOverlay.addEventListener('click', closeGainModalFn);
+
+         budgetModal.addEventListener('click', (e) => {
+             if (e.target === budgetModal) {
+                 closeBudgetModalFn();
+             }
+         });
+
+         billModal.addEventListener('click', (e) => {
+             if (e.target === billModal) {
+                 closeBillModalFn();
+             }
+         });
+
+         gainModal.addEventListener('click', (e) => {
+             if (e.target === gainModal) {
+                 closeGainModalFn();
+             }
+         });
+
+ document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    if (budgetModal.classList.contains('active')) {
+                        closeBudgetModalFn();
+                    }
+                    if (billModal.classList.contains('active')) {
+                        closeBillModalFn();
+                    }
+                    if (gainModal.classList.contains('active')) {
+                        closeGainModalFn();
+                    }
+                    if (reporteGananciasModal.classList.contains('active')) {
+                        closeReporteGananciasModalFn();
+                    }
+                    const _editBillModal = document.getElementById('editBillModal');
+                    if (_editBillModal && _editBillModal.classList.contains('active')) {
+                        if (typeof closeEditBillModalFn === 'function') closeEditBillModalFn();
+                    }
+                }
+            });
+
+        // Guardar o Actualizar Capital
+        budgetForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (isUserRole) return;
+
+            hideBudgetAlert();
+
+            const rawVal = budgetInputvalue.value;
+            const valNum = parsePrice(rawVal);
+
+            if (isNaN(valNum) || valNum <= 0) {
+                showBudgetAlert('Ingresa un valor de capital válido mayor a 0.');
+                return;
+            }
+
+            btnSaveBudget.disabled = true;
+            btnSaveBudgetText.style.display = 'none';
+            btnSaveBudgetLoader.style.display = 'inline-flex';
+
+            try {
+                let error = null;
+
+                if (currentBudgetRecordId) {
+                    const { error: updateErr } = await supabase
+                        .from('budget')
+                        .update({ value: valNum })
+                        .eq('id', currentBudgetRecordId);
+                    error = updateErr;
+                } else {
+                    const { error: insertErr } = await supabase
+                        .from('budget')
+                        .insert({ value: valNum });
+                    error = insertErr;
+                }
+
+                if (error) {
+                    throw error;
+                }
+
+                closeBudgetModalFn();
+                await loadBudget();
+            } catch (err) {
+                console.error('Error al guardar el capital:', err);
+                showBudgetAlert(err.message || 'Error al guardar el capital. Intenta nuevamente.');
+            } finally {
+                btnSaveBudget.disabled = false;
+                btnSaveBudgetText.style.display = 'inline';
+                btnSaveBudgetLoader.style.display = 'none';
+            }
+        });
+
+        // Guardar Gasto y restar al capital (capital actual - valor gasto)
+        billForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (isUserRole) return;
+
+            hideBillAlert();
+
+            const referenceVal = billReferenceInput.value.trim();
+            const costVal = parsePrice(billCostInput.value);
+
+            if (!referenceVal) {
+                showBillAlert('Ingresa la referencia o concepto del gasto.');
+                return;
+            }
+
+            if (isNaN(costVal) || costVal <= 0) {
+                showBillAlert('Ingresa un valor de costo válido mayor a 0.');
+                return;
+            }
+
+            btnSaveBill.disabled = true;
+            btnSaveBillText.style.display = 'none';
+            btnSaveBillLoader.style.display = 'inline-flex';
+
+            try {
+                const now = bogotaTimestamp();
+
+                  // 1. Registrar el gasto en la tabla bills
+                  const { data: insertedBill, error: insertBillErr } = await supabase
+                      .from('bills')
+                      .insert({
+                          reference: referenceVal,
+                          cost: costVal,
+                          type: 'Gasto',
+                          created_at: now
+                      })
+                      .select()
+                      .single();
+
+                  if (insertBillErr) {
+                      throw insertBillErr;
+                  }
+
+                  // 2. Guardar en movements con type "Gasto" y datos en bill_data
+                  const { error: movementErr } = await supabase
+                      .from('movements')
+                      .insert({
+                          type: 'Gasto',
+                          source_id: insertedBill?.id || null,
+                          source_type: 'bill',
+                          bill_data: {
+                              reference: referenceVal,
+                              cost: costVal
+                          },
+                          created_at: now
+                      });
+
+                 if (movementErr) {
+                     console.error('Error saving movement:', movementErr);
+                 }
+
+                 // 3. Actualizar el capital restando el costo del gasto (capital actual - valor gasto)
+                 if (currentBudgetRecordId) {
+                     const newBudgetVal = currentBudgetValue - costVal;
+
+                     const { error: updateBudgetErr } = await supabase
+                         .from('budget')
+                         .update({ value: newBudgetVal })
+                         .eq('id', currentBudgetRecordId);
+
+                     if (updateBudgetErr) {
+                         throw new Error('El gasto se registró pero ocurrió un error al actualizar el capital: ' + updateBudgetErr.message);
+                     }
+                 }
+
+                 closeBillModalFn();
+                 await loadBudget();
+                 await loadBills();
+             } catch (err) {
+                 console.error('Error al registrar el gasto:', err);
+                 showBillAlert(err.message || 'Error al registrar el gasto. Intenta nuevamente.');
+             } finally {
+                 btnSaveBill.disabled = false;
+                 btnSaveBillText.style.display = 'inline';
+                 btnSaveBillLoader.style.display = 'none';
+             }
+         });
+
+         // Guardar Ganancia y sumar al capital (capital actual + valor ganancia)
+         gainForm.addEventListener('submit', async (e) => {
+             e.preventDefault();
+             hideGainAlert();
+
+             const referenceVal = gainReferenceInput.value.trim();
+             const amountVal = parsePrice(gainAmountInput.value);
+
+             if (!referenceVal) {
+                 showGainAlert('Ingresa el concepto de la ganancia.');
+                 return;
+             }
+
+             if (isNaN(amountVal) || amountVal <= 0) {
+                 showGainAlert('Ingresa un valor de ganancia válido mayor a 0.');
+                 return;
+             }
+
+             btnSaveGain.disabled = true;
+             btnSaveGainText.style.display = 'none';
+             btnSaveGainLoader.style.display = 'inline-flex';
+
+             try {
+                 const now = bogotaTimestamp();
+
+                  // 1. Registrar la ganancia en la tabla bills
+                  const { data: insertedBill, error: insertBillErr } = await supabase
+                      .from('bills')
+                      .insert({
+                          reference: referenceVal,
+                          cost: amountVal,
+                          type: 'Ganancia',
+                          created_at: now
+                      })
+                      .select()
+                      .single();
+
+                  if (insertBillErr) {
+                      throw insertBillErr;
+                  }
+
+                  // 2. Guardar en movements con type "Ganancia" y datos en bill_data
+                  const { error: movementErr } = await supabase
+                      .from('movements')
+                      .insert({
+                          type: 'Ganancia',
+                          source_id: insertedBill?.id || null,
+                          source_type: 'bill',
+                          bill_data: {
+                              reference: referenceVal,
+                              cost: amountVal
+                          },
+                          created_at: now
+                      });
+
+                 if (movementErr) {
+                     console.error('Error saving movement:', movementErr);
+                 }
+
+                 // 3. Sumar la ganancia al capital (capital actual + valor ganancia)
+                 if (currentBudgetRecordId) {
+                     const newBudgetVal = currentBudgetValue + amountVal;
+
+                     const { error: updateBudgetErr } = await supabase
+                         .from('budget')
+                         .update({ value: newBudgetVal })
+                         .eq('id', currentBudgetRecordId);
+
+                     if (updateBudgetErr) {
+                         throw new Error('La ganancia se registró pero ocurrió un error al actualizar el capital: ' + updateBudgetErr.message);
+                     }
+                 }
+
+                 closeGainModalFn();
+                 await loadBudget();
+                 await loadBills();
+             } catch (err) {
+                 console.error('Error al registrar la ganancia:', err);
+                 showGainAlert(err.message || 'Error al registrar la ganancia. Intenta nuevamente.');
+             } finally {
+                 btnSaveGain.disabled = false;
+                 btnSaveGainText.style.display = 'inline';
+                 btnSaveGainLoader.style.display = 'none';
+             }
+         });
+
+        btnBack.addEventListener('click', () => {
+            window.location.href = 'dashboard.html';
+        });
+
+        // Workspace Drawer
+        const workspaceMenuBtn = document.getElementById('workspaceMenuBtn');
+        const workspaceDrawer = document.getElementById('workspaceDrawer');
+        const workspaceDrawerOverlay = document.getElementById('workspaceDrawerOverlay');
+        const workspaceDrawerClose = document.getElementById('workspaceDrawerClose');
+
+        function openWorkspaceDrawer() {
+            workspaceDrawer.classList.add('active');
+            workspaceDrawerOverlay.classList.add('active');
+            workspaceMenuBtn.setAttribute('aria-expanded', 'true');
+        }
+
+        function closeWorkspaceDrawer() {
+            workspaceDrawer.classList.remove('active');
+            workspaceDrawerOverlay.classList.remove('active');
+            workspaceMenuBtn.setAttribute('aria-expanded', 'false');
+        }
+
+        workspaceMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (workspaceDrawer.classList.contains('active')) {
+                closeWorkspaceDrawer();
+            } else {
+                openWorkspaceDrawer();
+            }
+        });
+
+        workspaceDrawerClose.addEventListener('click', closeWorkspaceDrawer);
+        workspaceDrawerOverlay.addEventListener('click', closeWorkspaceDrawer);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && workspaceDrawer.classList.contains('active')) {
+                closeWorkspaceDrawer();
+                workspaceMenuBtn.focus();
+            }
+        });
+
+        // Load user profile and apply role-based restrictions
+        async function loadWorkspaceUser() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session?.user) {
+                hidePageLoading();
+                return false;
+            }
+
+            const { data: profile, error } = await supabase
+                .from('users')
+                .select('name, role')
+                .eq('user_id', session.user.id)
+                .maybeSingle();
+
+            const name = profile?.name || session.user.user_metadata?.name || 'Usuario';
+            const role = profile?.role || null;
+
+            const avatar = document.getElementById('workspaceUserAvatar');
+            const nameEl = document.getElementById('workspaceUserName');
+            if (avatar) avatar.textContent = name.charAt(0).toUpperCase();
+            if (nameEl) nameEl.textContent = name;
+
+            isUserRole = normalizeRole(role) === 'usuario';
+            if (isUserRole) {
+                const restrictedModules = ['usuarios', 'productos', 'compras', 'historial'];
+                restrictedModules.forEach(module => {
+                    const item = document.querySelector(`.workspace-drawer-item[href="${module}.html"]`);
+                    if (item) item.style.display = 'none';
+                });
+                budgetStatusBox.style.display = 'none';
+                budgetValueDisplay.style.display = 'none';
+                btnRegistrarCapital.style.display = 'none';
+                btnRegistrarGasto.style.display = 'none';
+                btnRegistrarCapital.disabled = true;
+                btnRegistrarGasto.disabled = true;
+                btnRegistrarCapital.removeEventListener('click', openBudgetModal);
+                btnRegistrarGasto.removeEventListener('click', openBillModal);
+            }
+            hidePageLoading();
+
+            return isUserRole;
+        }
+
+         document.addEventListener('DOMContentLoaded', async () => {
+             const { data: { session } } = await supabase.auth.getSession();
+
+              if (!session) {
+                  window.location.href = 'index.html';
+                  return;
+              }
+
+              await loadWorkspaceUser();
+              await loadBudget();
+              await loadBills();
+              if (!isUserRole) {
+                  await loadMovements();
+              }
+              await loadProductsForReport();
+         });
+
+         async function loadProductsForReport() {
+             const { data, error } = await supabase
+                 .from('products')
+                 .select('reference, categorie')
+                 .order('reference', { ascending: true });
+
+             if (error) {
+                 console.error('Error cargando productos:', error);
+                 return;
+             }
+
+productsList = data || [];
+              categoriesList = [...new Set(data.map(p => p.categorie).filter(Boolean))].sort();
+
+              let catOpts = '<option value="">Todas las categorías</option>';
+              categoriesList.forEach(cat => {
+                  catOpts += `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`;
+              });
+              reporteGananciasFilterCategory.innerHTML = catOpts;
+
+              renderProductDropdown('');
+          }
+
+         function renderProductDropdown(text) {
+             const categoryFilter = reporteGananciasFilterCategory.value;
+             const searchText = text.trim().toLowerCase();
+
+             // Special filter option: "Ganancias" shows only manually-entered Ganancia bills
+             if (searchText === 'ganancias' || searchText === 'g') {
+                 reporteGananciasProductDropdown.innerHTML = '<div class="fin-product-combobox-option" data-value="Ganancias">Ganancias</div>';
+                 reporteGananciasProductDropdown.style.display = 'block';
+                 reporteGananciasProductDropdown.querySelectorAll('.fin-product-combobox-option').forEach(opt => {
+                     opt.addEventListener('mousedown', (e) => {
+                         e.preventDefault();
+                         selectProductOption(opt);
+                     });
+                 });
+                 return;
+             }
+
+             let filtered = productsList;
+             if (categoryFilter) {
+                 filtered = filtered.filter(p => p.categorie === categoryFilter);
+             }
+             if (searchText) {
+                 filtered = filtered.filter(p => p.reference.toLowerCase().includes(searchText));
+             }
+
+             // Always include "Ganancias" as the first option
+             const options = ['<div class="fin-product-combobox-option" data-value="Ganancias">Ganancias</div>'];
+             filtered.forEach(prod => {
+                 options.push(`<div class="fin-product-combobox-option" data-value="${escapeHtml(prod.reference)}">${escapeHtml(prod.reference)}</div>`);
+             });
+
+             if (options.length <= 1) {
+                 reporteGananciasProductDropdown.innerHTML = '<div class="fin-product-combobox-option" style="cursor: default; color: var(--text-muted);">No se encontraron productos</div>';
+                 reporteGananciasProductDropdown.style.display = 'block';
+                 return;
+             }
+
+             reporteGananciasProductDropdown.innerHTML = options.join('');
+             reporteGananciasProductDropdown.style.display = 'block';
+
+             reporteGananciasProductDropdown.querySelectorAll('.fin-product-combobox-option').forEach(opt => {
+                 opt.addEventListener('mousedown', (e) => {
+                     e.preventDefault();
+                     selectProductOption(opt);
+                 });
+             });
+         }
+
+         async function loadSalesForReport() {
+             const { data, error } = await supabase
+                 .from('sales')
+                 .select('*')
+                 .order('created_at', { ascending: false });
+
+             if (error) {
+                 console.error('Error cargando sales:', error);
+                 return;
+             }
+
+              salesList = (data || []).filter(sale => !(sale.client_data && sale.client_data.is_custom));
+
+             // Also load manual Ganancia bills and merge into the report as individual earnings entries
+             const { data: billData, error: billErr } = await supabase
+                 .from('bills')
+                 .select('id, reference, cost, created_at, type')
+                 .eq('type', 'Ganancia')
+                 .order('created_at', { ascending: false });
+
+             if (!billErr && billData) {
+                 billData.forEach(bill => {
+                     salesList.push({
+                         id: `bill_${bill.id}`,
+                         created_at: bill.created_at,
+                         earnings: { [bill.reference || 'Ganancia']: Number(bill.cost) || 0 },
+                         _isBill: true
+                     });
+                 });
+             }
+             renderReporteGanancias();
+         }
+
+         function filterReporteGanancias() {
+             renderReporteGanancias();
+         }
+
+         function renderReporteGanancias() {
+             const dateFilter = reporteGananciasFilterDate.value;
+             const categoryFilter = reporteGananciasFilterCategory.value;
+             const productFilter = reporteGananciasFilterProduct.value.trim().toLowerCase();
+
+             let filtered = salesList.filter(sale => {
+                 if (dateFilter) {
+                      const saleDate = localDateKey(sale.created_at);
+                     if (saleDate !== dateFilter) return false;
+                 }
+
+                 if (categoryFilter) {
+                     const items = getSaleItems(sale);
+                     const hasCategory = items.some(item => {
+                         const prod = productsList.find(p => p.reference === item.reference);
+                         return prod && prod.categorie === categoryFilter;
+                     });
+                     if (!hasCategory) return false;
+                 }
+
+                 if (productFilter) {
+                     if (productFilter === 'ganancias') {
+                         // Filter only manually-entered Ganancia bills
+                         if (!sale._isBill) return false;
+                     } else {
+                         const items = getSaleItems(sale);
+                         const hasProduct = items.some(item =>
+                             item.reference.toLowerCase().includes(productFilter)
+                         );
+                         if (!hasProduct) return false;
+                     }
+                 }
+
+                 return true;
+             });
+
+             let totalEarnings = 0;
+             filtered.forEach(sale => {
+                 if (sale.earnings && typeof sale.earnings === 'object') {
+                     Object.values(sale.earnings).forEach(val => {
+                         totalEarnings += Number(val) || 0;
+                     });
+                 }
+             });
+
+             reporteGananciasTotal.textContent = formatCurrency(totalEarnings);
+
+             if (filtered.length === 0) {
+                 reporteGananciasContent.innerHTML = '<div class="bills-empty"><p>No hay ganancias registradas.</p></div>';
+                 return;
+             }
+
+             let html = `
+                 <table class="bills-table">
+                     <thead>
+                         <tr>
+                             <th>Fecha</th>
+                             <th>Producto</th>
+                             <th>Ganancia</th>
+                         </tr>
+                     </thead>
+                     <tbody>
+             `;
+
+              filtered.forEach(sale => {
+                  const date = formatDateOnly(sale.created_at);
+                  if (sale.earnings && typeof sale.earnings === 'object') {
+                      Object.entries(sale.earnings).forEach(([product, earn]) => {
+                          html += `
+                              <tr>
+                                  <td>${escapeHtml(date)}</td>
+                                  <td>${escapeHtml(product)}</td>
+                                  <td class="cost-cell">${formatCurrency(earn)}</td>
+                              </tr>
+                          `;
+                      });
+                  }
+              });
+
+              html += '</tbody></table>';
+              reporteGananciasContent.innerHTML = html;
+           }
+
+          let currentEditBillOriginalCost = 0;
+
+          // Modal Editar Bill (Gasto/Ganancia)
+          const editBillModal = document.getElementById('editBillModal');
+          const editBillModalOverlay = document.getElementById('editBillModalOverlay');
+          const closeEditBillModal = document.getElementById('closeEditBillModal');
+          const cancelEditBillBtn = document.getElementById('cancelEditBillBtn');
+          const editBillForm = document.getElementById('editBillForm');
+          const editBillReferenceInput = document.getElementById('editBillReferenceInput');
+          const editBillCostInput = document.getElementById('editBillCostInput');
+          const editBillTypeInput = document.getElementById('editBillTypeInput');
+          const editBillIdInput = document.getElementById('editBillIdInput');
+          const editBillModalAlert = document.getElementById('editBillModalAlert');
+          const btnSaveEditBill = document.getElementById('btnSaveEditBill');
+          const btnSaveEditBillText = document.getElementById('btnSaveEditBillText');
+          const btnSaveEditBillLoader = document.getElementById('btnSaveEditBillLoader');
+
+          function openEditBillModal(id, type, reference, cost) {
+              if (isUserRole) return;
+
+              currentEditBillOriginalCost = parseFloat(cost) || 0;
+              editBillModalAlert.style.display = 'none';
+              editBillIdInput.value = id;
+              editBillTypeInput.value = type;
+              editBillReferenceInput.value = reference;
+              setTimeout(() => {
+                  const raw = String(parseInt(cost) || 0);
+                  let formatted = '';
+                  let count = 0;
+                  for (let i = raw.length - 1; i >= 0; i--) {
+                      if (count > 0 && count % 3 === 0) {
+                          formatted = '.' + formatted;
+                      }
+                      formatted = raw[i] + formatted;
+                      count++;
+                  }
+                  editBillCostInput.value = formatted;
+              }, 50);
+              editBillModal.classList.add('active');
+              editBillReferenceInput.focus();
+          }
+
+          function closeEditBillModalFn() {
+              editBillModal.classList.remove('active');
+              editBillModalAlert.style.display = 'none';
+              editBillForm.reset();
+          }
+
+          closeEditBillModal.addEventListener('click', closeEditBillModalFn);
+          cancelEditBillBtn.addEventListener('click', closeEditBillModalFn);
+          editBillModalOverlay.addEventListener('click', closeEditBillModalFn);
+          editBillModal.addEventListener('click', (e) => {
+              if (e.target === editBillModal) {
+                  closeEditBillModalFn();
+              }
+          });
+
+          editBillForm.addEventListener('submit', async (e) => {
+              e.preventDefault();
+              if (isUserRole) return;
+
+              hideEditBillAlert();
+
+              const billId = editBillIdInput.value;
+              const type = editBillTypeInput.value;
+              const referenceVal = editBillReferenceInput.value.trim();
+              const costVal = parsePrice(editBillCostInput.value);
+
+              if (!referenceVal) {
+                  showEditBillAlert('Ingresa la referencia o concepto.');
+                  return;
+              }
+
+              if (isNaN(costVal) || costVal <= 0) {
+                  showEditBillAlert('Ingresa un valor válido mayor a 0.');
+                  return;
+              }
+
+              btnSaveEditBill.disabled = true;
+              btnSaveEditBillText.style.display = 'none';
+              btnSaveEditBillLoader.style.display = 'inline-flex';
+
+              try {
+                  const { error: updateErr } = await supabase
+                      .from('bills')
+                      .update({ reference: referenceVal, cost: costVal })
+                      .eq('id', billId);
+
+                  if (updateErr) throw updateErr;
+
+                  // Update the associated movement
+                  const { error: movementUpdateErr } = await supabase
+                      .from('movements')
+                      .update({
+                          type: type,
+                          bill_data: {
+                              reference: referenceVal,
+                              cost: costVal
+                          }
+                      })
+                      .eq('source_id', billId)
+                      .eq('source_type', 'bill');
+
+                  if (movementUpdateErr) {
+                      console.error('Error updating movement:', movementUpdateErr);
+                  }
+
+                  // Update capital
+                  const originalCost = parseFloat(currentEditBillOriginalCost) || 0;
+                  const capitalDiff = costVal - originalCost;
+                  if (capitalDiff !== 0 && currentBudgetRecordId) {
+                      const { data: budgetRows, error: budgetFetchErr } = await supabase
+                          .from('budget')
+                          .select('id, value')
+                          .limit(1);
+
+                      if (budgetRows && budgetRows.length > 0) {
+                          const newCapital = (Number(budgetRows[0].value) || 0);
+                          if (type === 'Gasto') {
+                              // For Gasto: edit changes capital by the difference (new - old)
+                              await supabase
+                                  .from('budget')
+                                  .update({ value: newCapital - capitalDiff })
+                                  .eq('id', budgetRows[0].id);
+                          } else if (type === 'Ganancia') {
+                              // For Ganancia: edit changes capital by the difference (new - old)
+                              await supabase
+                                  .from('budget')
+                                  .update({ value: newCapital + capitalDiff })
+                                  .eq('id', budgetRows[0].id);
+                          }
+                      }
+                  }
+
+                  closeEditBillModalFn();
+                  await loadBills();
+              } catch (err) {
+                  console.error('Error editing bill:', err);
+                  showEditBillAlert(err.message || 'Error al editar el movimiento.');
+              } finally {
+                  btnSaveEditBill.disabled = false;
+                  btnSaveEditBillText.style.display = 'inline';
+                  btnSaveEditBillLoader.style.display = 'none';
+              }
+          });
+
+          function showEditBillAlert(msg) {
+              editBillModalAlert.textContent = msg;
+              editBillModalAlert.className = 'modal-alert error';
+              editBillModalAlert.style.display = 'block';
+          }
+
+          function hideEditBillAlert() {
+              editBillModalAlert.textContent = '';
+              editBillModalAlert.style.display = 'none';
+          }
+
+          async function deleteBill(id, type) {
+              if (isUserRole) return;
+              if (!confirm(`¿Eliminar este ${type.toLowerCase()}?`)) return;
+
+              try {
+                  const { error: deleteErr } = await supabase
+                      .from('bills')
+                      .delete()
+                      .eq('id', id);
+
+                  if (deleteErr) throw deleteErr;
+
+                  // Delete the associated movement
+                  const { error: movementDeleteError } = await supabase
+                      .from('movements')
+                      .delete()
+                      .eq('source_id', id)
+                      .eq('source_type', 'bill');
+                  if (movementDeleteError) {
+                      console.error('Error deleting movement:', movementDeleteError);
+                  }
+
+                  // Update capital
+                  if (currentBudgetRecordId) {
+                      const { data: budgetRows, error: budgetFetchErr } = await supabase
+                          .from('budget')
+                          .select('id, value')
+                          .limit(1);
+
+                      if (!budgetFetchErr && budgetRows && budgetRows.length > 0) {
+                          const deleteBillRow = billsList.find(b => b.id == id);
+                          const billCost = Number(deleteBillRow?.cost) || 0;
+                          if (billCost > 0) {
+                              const newCapital = (Number(budgetRows[0].value) || 0);
+                              if (type === 'Gasto') {
+                                  // Removing a Gasto adds back to capital
+                                  await supabase
+                                      .from('budget')
+                                      .update({ value: newCapital + billCost })
+                                      .eq('id', budgetRows[0].id);
+                              } else if (type === 'Ganancia') {
+                                  // Removing a Ganancia subtracts from capital
+                                  await supabase
+                                      .from('budget')
+                                      .update({ value: newCapital - billCost })
+                                      .eq('id', budgetRows[0].id);
+                              }
+                          }
+                      }
+                  }
+
+                  await loadBills();
+                  await loadBudget();
+              } catch (err) {
+                  console.error('Error deleting bill:', err);
+                  alert(err.message || 'Error al eliminar el movimiento');
+              }
+          }
+
+     </script>
+</body>
+</html>

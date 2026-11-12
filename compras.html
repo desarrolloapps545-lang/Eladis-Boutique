@@ -1,0 +1,1983 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eladis Boutique - Compras</title>
+    <link rel="icon" type="image/png" href="img/logo_eladis_boutique.png">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .purchases-container {
+            min-height: 100vh;
+            background: var(--background);
+        }
+
+        .purchases-header {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .purchases-header .dashboard-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .purchases-header .dashboard-logo svg {
+            width: 40px;
+            height: 40px;
+            color: var(--primary);
+        }
+
+        .purchases-header .dashboard-logo h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .btn-add-purchases {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-add-purchases:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-add-purchases:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .btn-add-purchases svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .btn-back-purchases {
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-back-purchases:hover {
+            background: var(--background);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .purchases-main {
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .purchases-section-header {
+            margin-bottom: 24px;
+        }
+
+        .purchases-section-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .purchases-section-header p {
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        .purchases-count {
+            display: inline-block;
+            background: var(--background);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-left: 8px;
+        }
+
+        .purchases-table-wrapper {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .purchases-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 850px;
+        }
+
+        .purchases-table thead th {
+            background: var(--background);
+            padding: 16px 20px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .purchases-table tbody td {
+            padding: 16px 20px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .purchases-table tbody td.price-cell {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .purchases-table tbody td.total-cell {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .purchases-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .purchases-table tbody tr:hover {
+            background: var(--background);
+        }
+
+        .purchases-empty {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--text-muted);
+        }
+
+        .purchases-empty svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+
+        .purchases-empty p {
+            font-size: 15px;
+        }
+
+        .loading-container {
+            text-align: center;
+            padding: 60px 24px;
+        }
+
+        .spinner-lg {
+            width: 36px;
+            height: 36px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Modal Styles */
+        .purchase-modal-content {
+            max-width: 900px;
+            width: 92%;
+        }
+
+        .purchase-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .purchase-form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .purchase-form-group input,
+        .purchase-form-group select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            color: var(--text-primary);
+            background: var(--card-bg);
+            transition: var(--transition);
+            box-sizing: border-box;
+        }
+
+        .purchase-form-group input:focus,
+        .purchase-form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(45, 55, 72, 0.15);
+        }
+
+        .purchase-form-group select:disabled,
+        .purchase-form-group input:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: var(--background);
+        }
+
+        /* Display Boxes for Price and Total */
+        .price-display-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            margin-bottom: 16px;
+        }
+
+        .price-display-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .price-display-val {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .total-display-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: rgba(45, 55, 72, 0.05);
+            border: 2px solid var(--primary);
+            border-radius: var(--radius-md);
+            margin-top: 12px;
+        }
+
+        .total-display-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .total-display-val {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+
+        .btn-modal-cancel {
+            padding: 12px 20px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-modal-cancel:hover {
+            background: var(--background);
+            border-color: var(--text-secondary);
+        }
+
+        .btn-modal-submit {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: var(--transition);
+            min-width: 150px;
+        }
+
+        .btn-modal-submit:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-modal-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .modal-alert {
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: none;
+            line-height: 1.4;
+        }
+
+        .modal-alert.error {
+            display: block;
+            background: var(--error-bg);
+            color: var(--error);
+            border: 1px solid var(--error);
+        }
+
+        .modal-alert.success {
+            display: block;
+            background: var(--success-bg);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        @media (max-width: 768px) {
+            .purchases-header {
+                padding: 16px 20px;
+            }
+
+            .purchases-main {
+                padding: 20px;
+            }
+
+            .purchases-table thead th,
+            .purchases-table tbody td {
+                padding: 12px 14px;
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .purchases-header {
+                flex-direction: column;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body class="page-loading">
+    <div class="page-loading-screen" role="status" aria-live="polite">
+        <div class="page-loading-content">
+            <img class="page-loading-logo" src="img/logo_eladis_boutique.png" alt="Eladis Boutique">
+            <div class="page-loading-spinner"></div>
+        </div>
+    </div>
+    <div class="purchases-container">
+        <header class="purchases-header">
+            <div class="dashboard-logo">
+                <img src="img/logo_eladis_boutique.png" alt="Eladis Boutique" style="width: 40px; height: 40px; object-fit: contain;">
+                <h1>Eladis Boutique</h1>
+            </div>
+            <div class="header-actions-scroll" style="display:flex; gap:12px; align-items:center;">
+                <button type="button" class="workspace-menu-btn" id="workspaceMenuBtn" aria-label="Abrir menú de espacios de trabajo" aria-expanded="false">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7" rx="1"/>
+                        <rect x="14" y="3" width="7" height="7" rx="1"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1"/>
+                        <rect x="14" y="14" width="7" height="7" rx="1"/>
+                    </svg>
+                </button>
+                <button class="btn-add-purchases" id="btnRegistrarCompra">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Registrar compra
+                </button>
+                <button class="btn-back-purchases" id="btnBack">← Regresar</button>
+            </div>
+        </header>
+
+        <!-- Workspace Drawer -->
+        <div class="workspace-drawer" id="workspaceDrawer" role="navigation" aria-label="Espacios de trabajo">
+            <div class="workspace-drawer-header">
+                <img src="img/logo_eladis_boutique.png" alt="Eladis Boutique" style="width: 71px; height: 71px; object-fit: contain;">
+                <h3>Eladis Boutique</h3>
+                <button type="button" class="workspace-drawer-close" id="workspaceDrawerClose" aria-label="Cerrar menú">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="workspace-drawer-content">
+                <div class="workspace-drawer-section">
+                    <div class="workspace-drawer-section-title">Navegación</div>
+                    <a href="dashboard.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7" rx="1"/>
+                            <rect x="14" y="3" width="7" height="7" rx="1"/>
+                            <rect x="3" y="14" width="7" height="7" rx="1"/>
+                            <rect x="14" y="14" width="7" height="7" rx="1"/>
+                        </svg>
+                        Dashboard
+                    </a>
+                    <a href="productos.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                            <line x1="7" y1="7" x2="7.01" y2="7"/>
+                        </svg>
+                        Productos
+                    </a>
+                    <a href="inventario.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                            <line x1="7" y1="7" x2="7.01" y2="7"/>
+                        </svg>
+                        Inventario
+                    </a>
+                    <a href="ventas.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="9" cy="21" r="1"/>
+                            <circle cx="20" cy="21" r="1"/>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 1-2 1.61H9.72a2 2 0 0 1-2-1.61L23 6H6"/>
+                        </svg>
+                        Ventas
+                    </a>
+                    <a href="compras.html" class="workspace-drawer-item active-workspace" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <path d="M16 10a4 4 0 0 1-8 0"/>
+                        </svg>
+                        Compras
+                    </a>
+                    <a href="financiera.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                        Gestión Financiera
+                    </a>
+                    <a href="usuarios.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        Usuarios
+                    </a>
+                    <a href="historial.html" class="workspace-drawer-item" role="menuitem">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 8v4l2 2"/>
+                        </svg>
+                        Historial
+                    </a>
+                </div>
+            </div>
+            <div class="workspace-drawer-footer">
+                <div class="workspace-drawer-user">
+                    <div class="workspace-drawer-user-avatar" id="workspaceUserAvatar">EB</div>
+                    <div class="workspace-drawer-user-info">
+                        <div class="workspace-drawer-user-name" id="workspaceUserName">Usuario</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="workspace-drawer-overlay" id="workspaceDrawerOverlay"></div>
+
+        <main class="purchases-main">
+            <section class="purchases-section-header">
+                <h2>
+                    Compras
+                    <span class="purchases-count" id="purchasesCount">0</span>
+                </h2>
+                <p>Consulta el historial y registro de compras realizadas.</p>
+            </section>
+
+            <div class="purchases-table-wrapper">
+                <div id="tableContent">
+                    <div class="loading-container">
+                        <div class="spinner-lg"></div>
+                        <p style="color: var(--text-muted);">Cargando compras...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Registrar Compra -->
+    <div id="createPurchaseModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="createPurchaseModalTitle">
+        <div class="modal-overlay" id="createPurchaseModalOverlay"></div>
+        <div class="modal-content purchase-modal-content">
+            <div class="modal-header">
+                <h2 id="createPurchaseModalTitle">Registrar compra</h2>
+                <button type="button" class="modal-close" id="closeCreatePurchaseModal" aria-label="Cerrar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 24px; text-align: left;">
+                <div id="purchaseModalAlert" class="modal-alert"></div>
+
+<form id="createPurchaseForm" novalidate>
+                    <div class="purchase-products-section" style="margin-bottom: 20px; padding: 16px; background: var(--background); border-radius: var(--radius-md); border: 1px solid var(--border);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h3 style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin: 0;">productos de la Compra</h3>
+                            <button type="button" class="btn-add-row" id="btnAddPurchaseProductRow" style="padding: 8px 12px; font-size: 13px; background: var(--primary); color: white; border: none; border-radius: var(--radius-md); cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;">
+                                    <line x1="12" y1="5" x2="12" y2="19"/>
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                                Agregar producto
+                            </button>
+                        </div>
+
+                        <div class="purchase-products-header" style="display: grid; grid-template-columns: 1.3fr 2.5fr 1fr 1fr 1fr 1fr 60px; gap: 8px; padding: 8px 12px; background: var(--card-bg); border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
+                            <div>Categoría</div>
+                            <div>Producto</div>
+                            <div>Talla</div>
+                            <div>Precio Unit.</div>
+                            <div>Cantidad</div>
+                            <div>Subtotal</div>
+                            <div></div>
+                        </div>
+
+                        <div id="purchaseProductRows"></div>
+
+                        <div id="noPurchaseProductsMessage" style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 14px; display: none;">
+                            No hay productos agregados. Haz clic en " agregar producto" para comenzar.
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 16px; padding: 16px; background: var(--card-bg); border-radius: var(--radius-md); border: 1px solid var(--border);">
+                        <div style="font-size: 14px; color: var(--text-secondary);">
+                            Total a pagar:
+                        </div>
+                        <div id="grandTotalPurchaseDisplay" style="font-size: 22px; font-weight: 700; color: var(--primary);">
+                            $ 0
+                        </div>
+                    </div>
+
+                    <div class="modal-actions" style="margin-top: 20px;">
+                        <button type="button" class="btn-modal-cancel" id="cancelPurchaseBtn">cancelar</button>
+                        <button type="submit" class="btn-modal-submit" id="btnSubmitPurchase" disabled>
+                            <span id="btnSubmitPurchaseText">Registrar Compra</span>
+                            <span id="btnSubmitPurchaseLoader" style="display:none;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;animation:spin 0.8s linear infinite;">
+                                    <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+                                    <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                </form>
+</div>
+    </div>
+</div>
+
+    <!-- Modal Editar Compra -->
+    <div id="editPurchaseModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="editPurchaseTitle">
+        <div class="modal-overlay" id="editPurchaseModalOverlay"></div>
+        <div class="modal-content purchase-modal-content">
+            <div class="modal-header">
+                <h2 id="editPurchaseTitle">Editar compra</h2>
+                <button type="button" class="modal-close" id="closeEditPurchaseModal" aria-label="Cerrar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 24px; text-align: left;">
+                <div id="editPurchaseModalAlert" class="modal-alert"></div>
+
+<form id="editPurchaseForm" novalidate>
+                    <input type="hidden" id="editPurchaseId">
+                    <input type="hidden" id="editPurchaseIndex">
+                    <input type="hidden" id="editPurchaseOriginalData">
+                    <input type="hidden" id="editPurchaseOriginalTotal">
+
+                    <div class="purchase-products-section" style="margin-bottom: 20px; padding: 16px; background: var(--background); border-radius: var(--radius-md); border: 1px solid var(--border);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h3 style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin: 0;">productos de la Compra</h3>
+                            <button type="button" class="btn-add-row" id="btnAddEditPurchaseProductRow" style="padding: 8px 12px; font-size: 13px; background: var(--primary); color: white; border: none; border-radius: var(--radius-md); cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;">
+                                    <line x1="12" y1="5" x2="12" y2="19"/>
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                                Agregar producto
+                            </button>
+                        </div>
+
+                        <div class="edit-purchase-products-header" style="display: grid; grid-template-columns: 1.3fr 2.5fr 1fr 1fr 1fr 1fr 60px; gap: 8px; padding: 8px 12px; background: var(--card-bg); border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
+                            <div>Categoría</div>
+                            <div>Producto</div>
+                            <div>Talla</div>
+                            <div>Precio Unit.</div>
+                            <div>Cantidad</div>
+                            <div>Subtotal</div>
+                            <div></div>
+                        </div>
+
+                        <div id="editPurchaseProductRows"></div>
+
+                        <div id="noEditPurchaseProductsMessage" style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 14px; display: none;">
+                            No hay productos agregados. Haz clic en "Agregar producto" para comenzar.
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 16px; padding: 16px; background: var(--card-bg); border-radius: var(--radius-md); border: 1px solid var(--border);">
+                        <div style="font-size: 14px; color: var(--text-secondary);">
+                            Total de la compra:
+                        </div>
+                        <div id="editGrandTotalPurchaseDisplay" style="font-size: 22px; font-weight: 700; color: var(--primary);">
+                            $ 0
+                        </div>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn-modal-cancel" id="cancelEditPurchaseBtn">Cancelar</button>
+                        <button type="submit" class="btn-modal-submit" id="btnSaveEditPurchase">
+                            <span id="btnSaveEditPurchaseText">Guardar cambios</span>
+                            <span id="btnSaveEditPurchaseLoader" style="display:none;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;animation:spin 0.8s linear infinite;">
+                                    <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+                                    <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase, showPageLoading, hidePageLoading, formatDateOnlyLocal, bogotaTimestamp } from './app.js';
+
+        showPageLoading();
+
+        const btnRegistrarCompra = document.getElementById('btnRegistrarCompra');
+        const btnBack = document.getElementById('btnBack');
+        const tableContent = document.getElementById('tableContent');
+        const purchasesCount = document.getElementById('purchasesCount');
+
+// Modal Registrar Compra
+        const createPurchaseModal = document.getElementById('createPurchaseModal');
+        const createPurchaseModalOverlay = document.getElementById('createPurchaseModalOverlay');
+        const closeCreatePurchaseModal = document.getElementById('closeCreatePurchaseModal');
+        const cancelPurchaseBtn = document.getElementById('cancelPurchaseBtn');
+        const createPurchaseForm = document.getElementById('createPurchaseForm');
+        const purchaseModalAlert = document.getElementById('purchaseModalAlert');
+        const btnAddPurchaseProductRow = document.getElementById('btnAddPurchaseProductRow');
+        const purchaseProductRows = document.getElementById('purchaseProductRows');
+        const grandTotalPurchaseDisplay = document.getElementById('grandTotalPurchaseDisplay');
+        const noPurchaseProductsMessage = document.getElementById('noPurchaseProductsMessage');
+        const btnSubmitPurchase = document.getElementById('btnSubmitPurchase');
+        const btnSubmitPurchaseText = document.getElementById('btnSubmitPurchaseText');
+        const btnSubmitPurchaseLoader = document.getElementById('btnSubmitPurchaseLoader');
+
+        // Edit Purchase Modal Elements
+        const editPurchaseModal = document.getElementById('editPurchaseModal');
+        const editPurchaseModalOverlay = document.getElementById('editPurchaseModalOverlay');
+        const closeEditPurchaseModal = document.getElementById('closeEditPurchaseModal');
+        const cancelEditPurchaseBtn = document.getElementById('cancelEditPurchaseBtn');
+        const editPurchaseForm = document.getElementById('editPurchaseForm');
+        const editPurchaseId = document.getElementById('editPurchaseId');
+        const editPurchaseIndex = document.getElementById('editPurchaseIndex');
+         const editPurchaseOriginalData = document.getElementById('editPurchaseOriginalData');
+         const editPurchaseOriginalTotal = document.getElementById('editPurchaseOriginalTotal');
+        const editPurchaseProductRows = document.getElementById('editPurchaseProductRows');
+        const btnAddEditPurchaseProductRow = document.getElementById('btnAddEditPurchaseProductRow');
+        const noEditPurchaseProductsMessage = document.getElementById('noEditPurchaseProductsMessage');
+        const editGrandTotalPurchaseDisplay = document.getElementById('editGrandTotalPurchaseDisplay');
+        const savEditPurchase = document.getElementById('btnSaveEditPurchase');
+        const savEditPurchaseText = document.getElementById('btnSaveEditPurchaseText');
+        const savEditPurchaseLoader = document.getElementById('btnSaveEditPurchaseLoader');
+        const editPurchaseModalAlert = document.getElementById('editPurchaseModalAlert');
+        
+        // Form field elements for edit modal
+        const editPurchaseReference = document.getElementById('editPurchaseReference');
+        const editPurchaseSize = document.getElementById('editPurchaseSize');
+        const editPurchasePrice = document.getElementById('editPurchasePrice');
+        const editPurchaseAmount = document.getElementById('editPurchaseAmount');
+        const editPurchaseOriginalSize = document.getElementById('editPurchaseOriginalSize');
+        const editPurchaseOriginalAmount = document.getElementById('editPurchaseOriginalAmount');
+
+        let productsList = [];
+        let purchasesList = [];
+        let purchaseProductCounter = 0;
+
+        function formatCurrency(value) {
+            if (value === null || value === undefined || value === '') return '—';
+            const num = typeof value === 'string' ? parseFloat(value.replace(/[^0-9.-]/g, '')) : Number(value);
+            if (isNaN(num)) return '—';
+            return '$ ' + num.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+        }
+
+        function formatDateOnly(timestamp) {
+            return formatDateOnlyLocal(timestamp);
+        }
+
+        function escapeHtml(text) {
+            if (text === null || text === undefined) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Convertir array JS a literal de array de Postgres ('{"valor"}')
+        function pgArrayLiteral(arr) {
+            return '{' + (arr || []).map(v => String(v).replace(/\\/g, '\\\\').replace(/"/g, '\\"')).join(',') + '}';
+        }
+
+        // Parsear una cadena de array de Postgres a array JS
+        function parsePostgresArray(value) {
+            if (Array.isArray(value)) return value;
+            if (typeof value !== 'string' || !value) return value === null || value === undefined ? '' : value;
+            const str = value.trim();
+            if (str.startsWith('{') && str.endsWith('}')) {
+                return str.slice(1, -1).split(',').map(s => s.trim().replace(/^"|"$/g, '')).filter(Boolean);
+            }
+            return str;
+        }
+
+        // Parsear un campo jsonb a array JS (maneja strings, números y valores nulos)
+        function parseJsonbField(value) {
+            if (Array.isArray(value)) return value;
+            if (value === null || value === undefined) return [];
+            if (typeof value === 'number') return [value];
+            if (typeof value === 'string') {
+                if (!value.trim()) return [];
+                try {
+                    const parsed = JSON.parse(value);
+                    return Array.isArray(parsed) ? parsed : [parsed];
+                } catch {
+                    return [value];
+                }
+            }
+            return [value];
+        }
+
+        // Construir un array de ítems de compra normalizado desde un registro
+        function getPurchaseItems(purchase) {
+            const references = parsePostgresArray(purchase.reference);
+            const sizes = parsePostgresArray(purchase.size);
+            const amounts = parseJsonbField(purchase.amount);
+            const prices = parseJsonbField(purchase.purchase_price);
+
+            const refArr = Array.isArray(references) ? references : (references ? [references] : []);
+            const sizeArr = Array.isArray(sizes) ? sizes : (sizes ? [sizes] : []);
+
+            const maxLen = Math.max(refArr.length, sizeArr.length, amounts.length, prices.length, 0);
+            const items = [];
+            for (let i = 0; i < maxLen; i++) {
+                items.push({
+                    reference: refArr[i] || '',
+                    size: sizeArr[i] || '',
+                    amount: Number(amounts[i]) || 0,
+                    purchase_price: Number(prices[i]) || 0,
+                });
+            }
+            return items;
+        }
+
+        let currentEditPurchaseId = null;
+        let currentEditPurchaseIndex = null;
+        let editProductCounter = 0;
+
+        async function openEditPurchaseModal(id, index) {
+            const purchase = purchasesList[index];
+            if (!purchase) return;
+
+            currentEditPurchaseId = id;
+            currentEditPurchaseIndex = index;
+
+            editPurchaseId.value = id || '';
+            editPurchaseIndex.value = index;
+
+             // Obtener los ítems originales y almacenarlos como JSON en campo oculto
+             const originalItems = getPurchaseItems(purchase);
+             const originalTotalPurchase = Number(purchase.total_purchase) || 0;
+             editPurchaseOriginalTotal.value = originalTotalPurchase;
+            editPurchaseOriginalData.value = JSON.stringify(originalItems.map(item => ({
+                reference: item.reference,
+                size: item.size,
+                amount: item.amount,
+                purchase_price: item.purchase_price
+            })));
+
+            // Limpiar filas del modal de edición
+            editPurchaseProductRows.innerHTML = '';
+            editProductCounter = 0;
+            savEditPurchase.disabled = true;
+            updateEditGrandTotal();
+
+            // Cargar productos y luego crear una fila por cada ítem original
+            await loadProductsForPurchase();
+            originalItems.forEach((item, i) => {
+                addEditPurchaseProductRow(item);
+            });
+
+            // Si no hay ítems, agregar una fila vacía
+            if (originalItems.length === 0) {
+                addEditPurchaseProductRow(null);
+            }
+
+            updateEditPurchaseRowsVisibility();
+            editPurchaseModalAlert.style.display = 'none';
+            editPurchaseModal.classList.add('active');
+        }
+
+        function closeEditPurchaseModalFn() {
+            editPurchaseModal.classList.remove('active');
+            currentEditPurchaseId = null;
+            currentEditPurchaseIndex = null;
+            editPurchaseForm.reset();
+            editPurchaseProductRows.innerHTML = '';
+            editProductCounter = 0;
+        }
+
+        async function deletePurchase(id, index) {
+            const purchase = purchasesList[index];
+            if (!purchase) return;
+
+            const items = getPurchaseItems(purchase);
+            const summary = items.map(i => `${i.reference} (${i.size})`).join(', ');
+
+            if (!confirm(`¿Eliminar la compra de "${summary || purchase.id}"?`)) return;
+
+            try {
+                let query = supabase.from('purchases').delete();
+
+                if (id) {
+                    query = query.eq('id', id);
+                } else {
+                    query = query
+                        .eq('reference', pgArrayLiteral(parsePostgresArray(purchase.reference)))
+                        .eq('size', pgArrayLiteral(parsePostgresArray(purchase.size)))
+                        .eq('created_at', purchase.created_at);
+                }
+
+                 const { error } = await query;
+
+                 if (error) throw error;
+
+                 // Delete the associated movements
+                 const purchaseId = id || purchase.id;
+                 if (purchaseId) {
+                     const { error: movementDeleteError } = await supabase
+                         .from('movements')
+                         .delete()
+                         .eq('source_id', purchaseId)
+                         .eq('source_type', 'purchase');
+                     if (movementDeleteError) {
+                         console.error('Error deleting movement:', movementDeleteError);
+                     }
+                 }
+
+                 // 1. Decrease inventory stock for each product (subtract purchased quantity)
+                for (const item of items) {
+                    const { data: invData, error: invError } = await supabase
+                        .from('inventory')
+                        .select('*')
+                        .eq('reference', item.reference)
+                        .eq('size', item.size)
+                        .single();
+
+                    if (!invError && invData) {
+                        const newAmount = (Number(invData.amount) || 0) - item.amount;
+                        if (newAmount < 0) throw new Error(`No hay suficiente stock en inventario para "${item.reference}" (${item.size}).`);
+                        let updateQuery = supabase.from('inventory').update({ amount: newAmount });
+                        if (invData.id) {
+                            updateQuery = updateQuery.eq('id', invData.id);
+                        } else {
+                            updateQuery = updateQuery.eq('reference', item.reference).eq('size', item.size);
+                        }
+                        const { error: updateErr } = await updateQuery;
+                        if (updateErr) throw updateErr;
+                    } else if (invError && invError.code === 'PGRST116') {
+                        throw new Error(`No hay stock en inventario para "${item.reference}" (${item.size}).`);
+                    }
+                }
+
+                // 2. Increase capital (add purchase total back since expense is removed)
+                const purchaseTotal = Number(purchase.total_purchase) || 0;
+                if (purchaseTotal > 0) {
+                    const { data: budgetRows, error: budgetFetchErr } = await supabase
+                        .from('budget')
+                        .select('id, value')
+                        .limit(1);
+
+                    if (!budgetFetchErr && budgetRows && budgetRows.length > 0) {
+                        const budgetRecord = budgetRows[0];
+                        const newCapital = (Number(budgetRecord.value) || 0) + purchaseTotal;
+
+                        const { error: budgetUpdateErr } = await supabase
+                            .from('budget')
+                            .update({ value: newCapital })
+                            .eq('id', budgetRecord.id);
+
+                        if (budgetUpdateErr) throw budgetUpdateErr;
+                    }
+                }
+
+                await loadPurchases();
+            } catch (err) {
+                console.error('Error deleting purchase:', err);
+                alert(err.message || 'Error al eliminar la compra');
+            }
+        }
+
+        function showPurchaseAlert(msg, type = 'error') {
+            purchaseModalAlert.className = `modal-alert ${type}`;
+            purchaseModalAlert.textContent = msg;
+            purchaseModalAlert.style.display = 'block';
+        }
+
+        function hidePurchaseAlert() {
+            purchaseModalAlert.className = 'modal-alert';
+            purchaseModalAlert.textContent = '';
+            purchaseModalAlert.style.display = 'none';
+        }
+
+        async function loadProductsForPurchase() {
+            const { data, error } = await supabase
+                .from('products')
+                .select('reference, size, purchase_price, categorie')
+                .order('reference', { ascending: true });
+
+            if (error) {
+                console.error('Error cargando productos:', error);
+                return;
+            }
+
+            productsList = data || [];
+        }
+
+        function openCreatePurchaseModal() {
+            hidePurchaseAlert();
+            createPurchaseForm.reset();
+
+            purchaseProductRows.innerHTML = '';
+            purchaseProductCounter = 0;
+            btnSubmitPurchase.disabled = true;
+            updateGrandTotalPurchase();
+
+            loadProductsForPurchase().then(() => addPurchaseProductRow());
+            createPurchaseModal.classList.add('active');
+        }
+
+        function closeCreatePurchaseModalFn() {
+            createPurchaseModal.classList.remove('active');
+            hidePurchaseAlert();
+            createPurchaseForm.reset();
+        }
+
+        btnRegistrarCompra.addEventListener('click', openCreatePurchaseModal);
+        closeCreatePurchaseModal.addEventListener('click', closeCreatePurchaseModalFn);
+        cancelPurchaseBtn.addEventListener('click', closeCreatePurchaseModalFn);
+        createPurchaseModalOverlay.addEventListener('click', closeCreatePurchaseModalFn);
+
+        createPurchaseModal.addEventListener('click', (e) => {
+            if (e.target === createPurchaseModal) {
+                closeCreatePurchaseModalFn();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && createPurchaseModal.classList.contains('active')) {
+                closeCreatePurchaseModalFn();
+            }
+            if (e.key === 'Escape' && editPurchaseModal.classList.contains('active')) {
+                closeEditPurchaseModalFn();
+            }
+        });
+
+        // Edit Purchase Modal Event Listeners
+        closeEditPurchaseModal.addEventListener('click', closeEditPurchaseModalFn);
+        cancelEditPurchaseBtn.addEventListener('click', closeEditPurchaseModalFn);
+        editPurchaseModalOverlay.addEventListener('click', closeEditPurchaseModalFn);
+        editPurchaseModal.addEventListener('click', (e) => {
+            if (e.target === editPurchaseModal) {
+                closeEditPurchaseModalFn();
+            }
+        });
+
+        // Handle size change in edit purchase modal
+        if (editPurchaseSize) {
+            editPurchaseSize.addEventListener('change', async () => {
+                const reference = editPurchaseReference.value;
+                const size = editPurchaseSize.value;
+                await fetchEditPurchaseStock(reference, size);
+            });
+        }
+
+        // Calculate total in real-time for edit purchase modal
+        if (editPurchaseAmount) {
+            editPurchaseAmount.addEventListener('input', () => {
+                editPurchaseAmount.value = editPurchaseAmount.value.replace(/\D/g, '');
+                updateEditPurchaseTotal();
+            });
+        }
+
+        editPurchaseForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            editPurchaseModalAlert.style.display = 'none';
+
+            const id = editPurchaseId.value;
+            const index = parseInt(editPurchaseIndex.value, 10);
+            const amountVal = parseInt(editPurchaseAmount.value, 10);
+            const priceVal = parseFloat(editPurchasePrice.value.replace(/[^0-9.-]/g, '').replace(/\./g, '')) || 0;
+            const originalSize = editPurchaseOriginalSize.value;
+            const newSize = editPurchaseSize.value;
+            const originalAmount = parseInt(editPurchaseOriginalAmount.value, 10) || 0;
+
+            if (isNaN(amountVal) || amountVal <= 0) {
+                editPurchaseModalAlert.className = 'modal-alert error';
+                editPurchaseModalAlert.textContent = 'La cantidad debe ser un número entero mayor a 0.';
+                editPurchaseModalAlert.style.display = 'block';
+                return;
+            }
+
+            const reference = editPurchaseReference.value;
+            const totalVal = priceVal * amountVal;
+
+            savEditPurchase.disabled = true;
+            savEditPurchaseText.style.display = 'none';
+            savEditPurchaseLoader.style.display = 'inline-flex';
+
+            try {
+                // 1. Update the purchase record
+                let query = supabase
+                    .from('purchases')
+                    .update({ amount: amountVal, size: pgArrayLiteral([newSize]), total_purchase: totalVal });
+
+                if (id) {
+                    query = query.eq('id', id);
+                } else if (purchasesList[index]) {
+                    const purchase = purchasesList[index];
+                    query = query
+                        .eq('reference', pgArrayLiteral(parsePostgresArray(purchase.reference)))
+                        .eq('size', pgArrayLiteral(parsePostgresArray(purchase.size)))
+                        .eq('created_at', purchase.created_at);
+                } else {
+                    throw new Error('No se pudo identificar la compra a editar');
+                }
+
+                const { error } = await query;
+                if (error) throw error;
+
+                // 2. Handle inventory changes
+                if (newSize !== originalSize) {
+                    // Size changed: subtract original amount from old size, add new amount to new size
+                    // Subtract from original size (return items to inventory)
+                    const { data: oldInvData, error: oldInvError } = await supabase
+                        .from('inventory')
+                        .select('*')
+                        .eq('reference', reference)
+                        .eq('size', originalSize)
+                        .single();
+
+                    if (!oldInvError && oldInvData) {
+                        const newOldAmount = (Number(oldInvData.amount) || 0) - originalAmount;
+                        if (newOldAmount < 0) throw new Error(`No hay suficiente stock en talla ${originalSize} para devolver.`);
+                        let oldUpdateQuery = supabase.from('inventory').update({ amount: newOldAmount });
+                        if (oldInvData.id) {
+                            oldUpdateQuery = oldUpdateQuery.eq('id', oldInvData.id);
+                        } else {
+                            oldUpdateQuery = oldUpdateQuery.eq('reference', reference).eq('size', originalSize);
+                        }
+                        const { error: oldUpdateErr } = await oldUpdateQuery;
+                        if (oldUpdateErr) throw oldUpdateErr;
+                    } else if (oldInvError && oldInvError.code === 'PGRST116') {
+                        throw new Error(`No hay stock en talla ${originalSize} para devolver.`);
+                    }
+
+                    // Add to new size (increase inventory)
+                    const { data: newInvData, error: newInvError } = await supabase
+                        .from('inventory')
+                        .select('*')
+                        .eq('reference', reference)
+                        .eq('size', newSize)
+                        .single();
+
+                    if (!newInvError && newInvData) {
+                        const newNewAmount = (Number(newInvData.amount) || 0) + amountVal;
+                        let newUpdateQuery = supabase.from('inventory').update({ amount: newNewAmount });
+                        if (newInvData.id) {
+                            newUpdateQuery = newUpdateQuery.eq('id', newInvData.id);
+                        } else {
+                            newUpdateQuery = newUpdateQuery.eq('reference', reference).eq('size', newSize);
+                        }
+                        const { error: newUpdateErr } = await newUpdateQuery;
+                        if (newUpdateErr) throw newUpdateErr;
+                    } else if (newInvError && newInvError.code === 'PGRST116') {
+                        // Create new inventory entry
+                        const { error: createErr } = await supabase
+                            .from('inventory')
+                            .insert({ reference, size: newSize, amount: amountVal, categorie: null });
+                        if (createErr) throw createErr;
+                    } else {
+                        throw newInvError;
+                    }
+                } else {
+                    // Same size: adjust by difference (new amount - original amount)
+                    const diff = amountVal - originalAmount;
+                    if (diff !== 0) {
+                        const { data: invData, error: invError } = await supabase
+                            .from('inventory')
+                            .select('*')
+                            .eq('reference', reference)
+                            .eq('size', originalSize)
+                            .single();
+
+                        if (!invError && invData) {
+                            const newAmount = (Number(invData.amount) || 0) + diff;
+                            if (newAmount < 0) throw new Error(`Stock insuficiente. Solo hay ${Number(invData.amount) || 0} unidades disponibles.`);
+                            let updateQuery = supabase.from('inventory').update({ amount: newAmount });
+                            if (invData.id) {
+                                updateQuery = updateQuery.eq('id', invData.id);
+                            } else {
+                                updateQuery = updateQuery.eq('reference', reference).eq('size', originalSize);
+                            }
+                            const { error: updateErr } = await updateQuery;
+                            if (updateErr) throw updateErr;
+                        } else if (invError && invError.code === 'PGRST116') {
+                            throw new Error(`No hay stock en talla ${originalSize}.`);
+                        } else {
+                            throw invError;
+                        }
+                    }
+                }
+
+                // 3. Update capital (budget) - purchases subtract from capital
+                const originalTotal = parseFloat(editPurchaseOriginalTotal.value) || 0;
+                const capitalDiff = totalVal - originalTotal;
+                if (capitalDiff !== 0) {
+                    const { data: budgetRows, error: budgetFetchErr } = await supabase
+                        .from('budget')
+                        .select('id, value')
+                        .limit(1);
+
+                    if (budgetFetchErr) {
+                        console.error('Error al consultar el capital:', budgetFetchErr);
+                        throw new Error('La compra se actualizó pero ocurrió un error al consultar el capital: ' + budgetFetchErr.message);
+                    }
+
+                    if (budgetRows && budgetRows.length > 0) {
+                        const budgetRecord = budgetRows[0];
+                        // For purchases: higher total = more money spent = subtract from capital
+                        const newCapital = (Number(budgetRecord.value) || 0) - capitalDiff;
+
+                        const { error: budgetUpdateErr } = await supabase
+                            .from('budget')
+                            .update({ value: newCapital })
+                            .eq('id', budgetRecord.id);
+
+                        if (budgetUpdateErr) {
+                            console.error('Error al actualizar el capital:', budgetUpdateErr);
+                            throw new Error('La compra se actualizó pero ocurrió un error al actualizar el capital: ' + budgetUpdateErr.message);
+                        }
+                    }
+                }
+
+                closeEditPurchaseModalFn();
+                await loadPurchases();
+
+                 // Update the existing movement for this purchase instead of creating a new one
+                 const movementData = {
+                     type: 'Compra',
+                     purchase_data: {
+                         reference: reference,
+                         size: newSize,
+                         purchase_price: priceVal,
+                         amount: amountVal,
+                         total_purchase: totalVal
+                     }
+                 };
+                 const purchaseId = id || purchasesList[index]?.id;
+                 if (purchaseId) {
+                     const { error: movementUpdateError } = await supabase
+                         .from('movements')
+                         .update(movementData)
+                         .eq('source_id', purchaseId)
+                         .eq('source_type', 'purchase');
+                     if (movementUpdateError) {
+                         console.error('Error updating movement:', movementUpdateError);
+                     }
+                 }
+            } catch (err) {
+                console.error('Error updating purchase:', err);
+                editPurchaseModalAlert.className = 'modal-alert error';
+                editPurchaseModalAlert.textContent = err.message || 'Error al actualizar la compra';
+                editPurchaseModalAlert.style.display = 'block';
+            } finally {
+                savEditPurchase.disabled = false;
+                savEditPurchaseText.style.display = 'inline';
+                savEditPurchaseLoader.style.display = 'none';
+            }
+        });
+
+        function updateEditGrandTotal() {
+            const rows = getEditPurchaseRowData();
+            const grandTotal = rows.reduce((acc, r) => acc + (r.price * r.amount), 0);
+            editGrandTotalPurchaseDisplay.textContent = formatCurrency(grandTotal);
+            return grandTotal;
+        }
+
+        function updateEditPurchaseRowsVisibility() {
+            const hasRows = editPurchaseProductRows.children.length > 0;
+            noEditPurchaseProductsMessage.style.display = hasRows ? 'none' : 'block';
+        }
+
+        function getEditPurchaseRowData() {
+            const rows = [];
+            editPurchaseProductRows.querySelectorAll('.edit-purchase-product-row').forEach(rowEl => {
+                const productIdx = rowEl.querySelector('.row-product').value;
+                const sizeVal = rowEl.querySelector('.row-size').value.trim();
+                const amountVal = parseInt(rowEl.querySelector('.row-amount').value, 10);
+                const priceVal = parseFloat(rowEl.querySelector('.row-price').value.replace(/[^0-9.-]/g, '').replace(/\./g, '')) || 0;
+                const prod = productsList[productIdx];
+                if (!prod || !sizeVal || isNaN(amountVal) || amountVal <= 0) return;
+                rows.push({
+                    prod,
+                    size: sizeVal,
+                    amount: amountVal,
+                    price: priceVal
+                });
+            });
+            return rows;
+        }
+
+        function updateEditPurchaseTotal() {
+            const rows = getEditPurchaseRowData();
+            const total = rows.reduce((acc, r) => acc + (r.price * r.amount), 0);
+            editGrandTotalPurchaseDisplay.textContent = formatCurrency(total);
+            return total;
+        }
+
+        function addEditPurchaseProductRow(item = null) {
+            editProductCounter++;
+            const rowIndex = editProductCounter;
+
+            const row = document.createElement('div');
+            row.className = 'edit-purchase-product-row';
+            row.dataset.rowIndex = rowIndex;
+            row.style.cssText = 'display: grid; grid-template-columns: 1.3fr 2.5fr 1fr 1fr 1fr 1fr 60px; gap: 8px; padding: 8px 12px; align-items: center; border-bottom: 1px solid var(--border);';
+
+            const categories = [...new Set(
+                productsList
+                    .map(prod => String(prod.categorie ?? '').trim())
+                    .filter(Boolean)
+            )].sort((a, b) => a.localeCompare(b, 'es'));
+
+            let categoryOpts = '<option value="">Todas las categorías</option>';
+            categories.forEach(category => {
+                categoryOpts += `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`;
+            });
+
+            let productOpts = '<option value="">Producto...</option>';
+            productsList.forEach((prod, index) => {
+                productOpts += `<option value="${index}">${escapeHtml(prod.reference)}</option>`;
+            });
+
+            row.innerHTML = `
+                <select class="row-category" aria-label="Categoría" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; background: var(--card-bg); color: var(--text-primary);">${categoryOpts}</select>
+                <select class="row-product" aria-label="Producto" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; background: var(--card-bg); color: var(--text-primary);">${productOpts}</select>
+                <select class="row-size" disabled style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; background: var(--card-bg); color: var(--text-primary);"><option value="">—</option></select>
+                <input type="text" class="row-price" disabled placeholder="$0" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; box-sizing: border-box;">
+                <input type="number" class="row-amount" min="1" step="1" placeholder="Ej. 10" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; box-sizing: border-box;">
+                <div class="row-subtotal" style="font-size: 13px; font-weight: 600; color: var(--text-primary);">$ 0</div>
+                <button type="button" class="btn-remove-row" aria-label="Quitar producto" style="padding: 6px; background: transparent; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; color: var(--text-secondary); display: flex; align-items: center; justify-content: center;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            `;
+
+            editPurchaseProductRows.appendChild(row);
+            updateEditPurchaseRowsVisibility();
+
+            const categorySelect = row.querySelector('.row-category');
+            const productSelect = row.querySelector('.row-product');
+            const sizeSelect = row.querySelector('.row-size');
+            const priceInput = row.querySelector('.row-price');
+            const amountInput = row.querySelector('.row-amount');
+            const subtotalEl = row.querySelector('.row-subtotal');
+
+            if (item) {
+                categorySelect.value = item.prod?.categorie || '';
+                productSelect.value = productsList.findIndex(p => p.reference === item.reference);
+                sizeSelect.value = item.size;
+                sizeSelect.disabled = false;
+                priceInput.value = formatCurrency(item.purchase_price);
+                amountInput.value = item.amount;
+                subtotalEl.textContent = formatCurrency(item.purchase_price * item.amount);
+            }
+
+            function updateEditPurchaseProductOptions() {
+                const selectedCategory = categorySelect.value;
+                let filteredProductOpts = '<option value="">Producto...</option>';
+
+                productsList.forEach((prod, index) => {
+                    const productCategory = String(prod.categorie ?? '').trim();
+                    if (selectedCategory && productCategory !== selectedCategory) return;
+                    filteredProductOpts += `<option value="${index}">${escapeHtml(prod.reference)}</option>`;
+                });
+
+                productSelect.innerHTML = filteredProductOpts;
+                productSelect.value = '';
+                priceInput.value = '';
+                amountInput.value = '';
+                subtotalEl.textContent = '$ 0';
+                sizeSelect.innerHTML = '<option value="">—</option>';
+                sizeSelect.disabled = true;
+                updateEditGrandTotal();
+            }
+
+            categorySelect.addEventListener('change', updateEditPurchaseProductOptions);
+
+            productSelect.addEventListener('change', () => {
+                const selectedProd = productsList[productSelect.value];
+                amountInput.value = '';
+                subtotalEl.textContent = '$ 0';
+                updateEditGrandTotal();
+
+                if (selectedProd) {
+                    priceInput.value = formatCurrency(selectedProd.purchase_price);
+
+                    const sizes = parseSizes(selectedProd.size);
+                    if (sizes.length === 0) {
+                        sizeSelect.innerHTML = '<option value="">Sin tallas</option>';
+                        sizeSelect.disabled = true;
+                    } else {
+                        let sizeOpts = '<option value="">Talla...</option>';
+                        sizes.forEach(s => {
+                            sizeOpts += `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`;
+                        });
+                        sizeSelect.innerHTML = sizeOpts;
+                        sizeSelect.disabled = false;
+                    }
+                } else {
+                    priceInput.value = '';
+                    sizeSelect.innerHTML = '<option value="">—</option>';
+                    sizeSelect.disabled = true;
+                }
+            });
+
+            sizeSelect.addEventListener('change', () => {
+                if (sizeSelect.value) {
+                    amountInput.disabled = false;
+                    amountInput.focus();
+                } else {
+                    amountInput.disabled = true;
+                    amountInput.value = '';
+                    subtotalEl.textContent = '$ 0';
+                    updateEditGrandTotal();
+                }
+            });
+
+            amountInput.addEventListener('input', () => {
+                amountInput.value = amountInput.value.replace(/\D/g, '');
+                const val = parseInt(amountInput.value, 10);
+                const price = productsList[productSelect.value] ? (Number(productsList[productSelect.value].purchase_price) || 0) : 0;
+                subtotalEl.textContent = (!isNaN(val) && val > 0) ? formatCurrency(price * val) : '$ 0';
+                updateEditGrandTotal();
+            });
+
+            row.querySelector('.btn-remove-row').addEventListener('click', () => {
+                row.remove();
+                updateEditPurchaseRowsVisibility();
+                updateEditGrandTotal();
+            });
+
+            updateEditGrandTotal();
+        }
+
+        async function fetchEditPurchaseStock(reference, size) {
+            const { data, error } = await supabase
+                .from('inventory')
+                .select('*')
+                .eq('reference', reference)
+                .eq('size', size)
+                .single();
+
+            if (error && error.code !== 'PGRST116') {
+                console.error('Error fetching stock:', error);
+            }
+            // Stock info available in data if needed
+        }
+
+        // ===== Filas dinámicas de productos en el modal de registro =====
+        function parseSizes(sizeField) {
+            let sizes = [];
+            if (Array.isArray(sizeField)) {
+                sizes = sizeField;
+            } else if (typeof sizeField === 'string' && sizeField.trim()) {
+                try {
+                    const parsed = JSON.parse(sizeField);
+                    sizes = Array.isArray(parsed) ? parsed : [sizeField];
+                } catch {
+                    sizes = sizeField.split(',').map(s => s.trim()).filter(Boolean);
+                }
+            }
+            return sizes;
+        }
+
+        function addPurchaseProductRow() {
+            purchaseProductCounter++;
+            const rowIndex = purchaseProductCounter;
+
+            const row = document.createElement('div');
+            row.className = 'purchase-product-row';
+            row.dataset.rowIndex = rowIndex;
+            row.style.cssText = 'display: grid; grid-template-columns: 1.3fr 2.5fr 1fr 1fr 1fr 1fr 60px; gap: 8px; padding: 8px 12px; align-items: center; border-bottom: 1px solid var(--border);';
+
+            const categories = [...new Set(
+                productsList
+                    .map(prod => String(prod.categorie ?? '').trim())
+                    .filter(Boolean)
+            )].sort((a, b) => a.localeCompare(b, 'es'));
+
+            let categoryOpts = '<option value="">Todas las categorías</option>';
+            categories.forEach(category => {
+                categoryOpts += `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`;
+            });
+
+            let productOpts = '<option value="">Producto...</option>';
+            productsList.forEach((prod, index) => {
+                productOpts += `<option value="${index}">${escapeHtml(prod.reference)}</option>`;
+            });
+
+            row.innerHTML = `
+                <select class="row-category" aria-label="Categoría" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; background: var(--card-bg); color: var(--text-primary);">${categoryOpts}</select>
+                <select class="row-product" aria-label="Producto" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; background: var(--card-bg); color: var(--text-primary);">${productOpts}</select>
+                <select class="row-size" disabled style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; background: var(--card-bg); color: var(--text-primary);"><option value="">—</option></select>
+                <input type="text" class="row-price" disabled placeholder="$0" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; box-sizing: border-box;">
+                <input type="number" class="row-amount" min="1" step="1" placeholder="Ej. 10" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; box-sizing: border-box;">
+                <div class="row-subtotal" style="font-size: 13px; font-weight: 600; color: var(--text-primary);">$ 0</div>
+                <button type="button" class="btn-remove-row" aria-label="Quitar producto" style="padding: 6px; background: transparent; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; color: var(--text-secondary); display: flex; align-items: center; justify-content: center;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            `;
+
+            purchaseProductRows.appendChild(row);
+            updatePurchaseRowsVisibility();
+
+            const categorySelect = row.querySelector('.row-category');
+            const productSelect = row.querySelector('.row-product');
+            const sizeSelect = row.querySelector('.row-size');
+            const priceInput = row.querySelector('.row-price');
+            const amountInput = row.querySelector('.row-amount');
+            const subtotalEl = row.querySelector('.row-subtotal');
+
+            function updatePurchaseProductOptions() {
+                const selectedCategory = categorySelect.value;
+                let filteredProductOpts = '<option value="">Producto...</option>';
+
+                productsList.forEach((prod, index) => {
+                    const productCategory = String(prod.categorie ?? '').trim();
+                    if (selectedCategory && productCategory !== selectedCategory) return;
+                    filteredProductOpts += `<option value="${index}">${escapeHtml(prod.reference)}</option>`;
+                });
+
+                productSelect.innerHTML = filteredProductOpts;
+                productSelect.value = '';
+                priceInput.value = '';
+                amountInput.value = '';
+                subtotalEl.textContent = '$ 0';
+                sizeSelect.innerHTML = '<option value="">—</option>';
+                sizeSelect.disabled = true;
+                updateGrandTotalPurchase();
+                updateSubmitPurchaseState();
+            }
+
+            categorySelect.addEventListener('change', updatePurchaseProductOptions);
+
+            productSelect.addEventListener('change', () => {
+                const selectedProd = productsList[productSelect.value];
+                amountInput.value = '';
+                subtotalEl.textContent = '$ 0';
+                updateGrandTotalPurchase();
+
+                if (selectedProd) {
+                    priceInput.value = formatCurrency(selectedProd.purchase_price);
+
+                    const sizes = parseSizes(selectedProd.size);
+                    if (sizes.length === 0) {
+                        sizeSelect.innerHTML = '<option value="">Sin tallas</option>';
+                        sizeSelect.disabled = true;
+                    } else {
+                        let sizeOpts = '<option value="">Talla...</option>';
+                        sizes.forEach(s => {
+                            sizeOpts += `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`;
+                        });
+                        sizeSelect.innerHTML = sizeOpts;
+                        sizeSelect.disabled = false;
+                    }
+                } else {
+                    priceInput.value = '';
+                    sizeSelect.innerHTML = '<option value="">—</option>';
+                    sizeSelect.disabled = true;
+                }
+                updateSubmitPurchaseState();
+            });
+
+            sizeSelect.addEventListener('change', () => {
+                if (sizeSelect.value) {
+                    amountInput.disabled = false;
+                    amountInput.focus();
+                } else {
+                    amountInput.disabled = true;
+                    amountInput.value = '';
+                    subtotalEl.textContent = '$ 0';
+                    updateGrandTotalPurchase();
+                }
+                updateSubmitPurchaseState();
+            });
+
+            amountInput.addEventListener('input', () => {
+                amountInput.value = amountInput.value.replace(/\D/g, '');
+                const val = parseInt(amountInput.value, 10);
+                const price = productsList[productSelect.value] ? (Number(productsList[productSelect.value].purchase_price) || 0) : 0;
+                subtotalEl.textContent = (!isNaN(val) && val > 0) ? formatCurrency(price * val) : '$ 0';
+                updateGrandTotalPurchase();
+                updateSubmitPurchaseState();
+            });
+
+            row.querySelector('.btn-remove-row').addEventListener('click', () => {
+                row.remove();
+                updatePurchaseRowsVisibility();
+                updateGrandTotalPurchase();
+                updateSubmitPurchaseState();
+            });
+
+            updateSubmitPurchaseState();
+        }
+
+        function updatePurchaseRowsVisibility() {
+            const hasRows = purchaseProductRows.children.length > 0;
+            noPurchaseProductsMessage.style.display = hasRows ? 'none' : 'block';
+        }
+
+        function getPurchaseRowData() {
+            const rows = [];
+            purchaseProductRows.querySelectorAll('.purchase-product-row').forEach(rowEl => {
+                const productIdx = rowEl.querySelector('.row-product').value;
+                const sizeVal = rowEl.querySelector('.row-size').value.trim();
+                const amountVal = parseInt(rowEl.querySelector('.row-amount').value, 10);
+                const prod = productsList[productIdx];
+                if (!prod || !sizeVal || isNaN(amountVal) || amountVal <= 0) return;
+                rows.push({
+                    prod,
+                    size: sizeVal,
+                    amount: amountVal,
+                    price: Number(prod.purchase_price) || 0
+                });
+            });
+            return rows;
+        }
+
+        function updateGrandTotalPurchase() {
+            const rows = getPurchaseRowData();
+            const grandTotal = rows.reduce((acc, r) => acc + (r.price * r.amount), 0);
+            grandTotalPurchaseDisplay.textContent = formatCurrency(grandTotal);
+            return grandTotal;
+        }
+
+        function updateSubmitPurchaseState() {
+            const rows = getPurchaseRowData();
+            btnSubmitPurchase.disabled = rows.length === 0;
+        }
+
+        btnAddPurchaseProductRow.addEventListener('click', addPurchaseProductRow);
+
+        // Enviar formulario de registro de compra
+        createPurchaseForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hidePurchaseAlert();
+
+            const rows = getPurchaseRowData();
+            if (rows.length === 0) {
+                showPurchaseAlert('Agrega al menos un producto con talla y cantidad válida.');
+                return;
+            }
+
+            const grandTotal = updateGrandTotalPurchase();
+            const now = bogotaTimestamp();
+
+            btnSubmitPurchase.disabled = true;
+            btnSubmitPurchaseText.style.display = 'none';
+            btnSubmitPurchaseLoader.style.display = 'inline-flex';
+
+            try {
+                // Construir arrays con todos los productos de la compra
+                const references = rows.map(r => r.prod.reference);
+                const sizes = rows.map(r => r.size);
+                const amounts = rows.map(r => r.amount);
+                const purchasePrices = rows.map(r => r.price);
+
+                 // 1. Insertar una sola compra con todos los productos en un registro
+                 const { data: insertedPurchase, error: insertError } = await supabase
+                     .from('purchases')
+                     .insert({
+                         reference: pgArrayLiteral(references),
+                         size: pgArrayLiteral(sizes),
+                         purchase_price: purchasePrices,
+                         amount: amounts,
+                         total_purchase: grandTotal,
+                         created_at: now
+                     })
+                     .select()
+                     .single();
+
+                 if (insertError) {
+                     throw insertError;
+                 }
+
+                // 2. Sumar la cantidad comprada al inventario para cada producto/talla
+                for (const item of rows) {
+                    const { data: invRows, error: fetchInvErr } = await supabase
+                        .from('inventory')
+                        .select('*')
+                        .eq('reference', item.prod.reference)
+                        .eq('size', item.size);
+
+                    if (fetchInvErr) {
+                        console.error('Error al consultar inventario:', fetchInvErr);
+                        throw new Error('La compra se registró pero ocurrió un error al consultar el inventario: ' + fetchInvErr.message);
+                    }
+
+                    if (invRows && invRows.length > 0) {
+                        const firstRow = invRows[0];
+                        const currentStock = Number(firstRow.amount) || 0;
+                        const newStock = currentStock + item.amount;
+
+                        let updateQuery = supabase.from('inventory').update({ amount: newStock });
+
+                        if (firstRow.id !== undefined && firstRow.id !== null) {
+                            updateQuery = updateQuery.eq('id', firstRow.id);
+                        } else if (firstRow.created_at) {
+                            updateQuery = updateQuery
+                                .eq('reference', item.prod.reference)
+                                .eq('size', item.size)
+                                .eq('created_at', firstRow.created_at);
+                        } else {
+                            updateQuery = updateQuery
+                                .eq('reference', item.prod.reference)
+                                .eq('size', item.size);
+                        }
+
+                        const { error: updateInvErr } = await updateQuery;
+                        if (updateInvErr) {
+                            console.error('Error al actualizar inventario:', updateInvErr);
+                            throw new Error('La compra se registró pero ocurrió un error al actualizar el inventario: ' + updateInvErr.message);
+                        }
+                    } else {
+                        const { error: createInvErr } = await supabase
+                            .from('inventory')
+                            .insert({
+                                reference: item.prod.reference,
+                                size: item.size,
+                                amount: item.amount,
+                                categorie: item.prod.categorie || null,
+                                created_at: now
+                            });
+
+                        if (createInvErr) {
+                            console.error('Error al insertar en inventario:', createInvErr);
+                            throw new Error('La compra se registró pero ocurrió un error al ingresar al inventario: ' + createInvErr.message);
+                        }
+                    }
+                }
+
+                // 3. Restar el total de la compra al capital actual (capital actual - total compra)
+                const { data: budgetRows, error: budgetFetchErr } = await supabase
+                    .from('budget')
+                    .select('id, value')
+                    .limit(1);
+
+                if (budgetFetchErr) {
+                    console.error('Error al consultar el capital:', budgetFetchErr);
+                    throw new Error('La compra se registró pero ocurrió un error al consultar el capital: ' + budgetFetchErr.message);
+                }
+
+                if (budgetRows && budgetRows.length > 0) {
+                    const budgetRecord = budgetRows[0];
+                    const newCapital = (Number(budgetRecord.value) || 0) - grandTotal;
+
+                    const { error: budgetUpdateErr } = await supabase
+                        .from('budget')
+                        .update({ value: newCapital })
+                        .eq('id', budgetRecord.id);
+
+                    if (budgetUpdateErr) {
+                        console.error('Error al actualizar el capital:', budgetUpdateErr);
+                        throw new Error('La compra se registró pero ocurrió un error al actualizar el capital: ' + budgetUpdateErr.message);
+                    }
+                }
+
+                closeCreatePurchaseModalFn();
+                await loadPurchases();
+
+                // Guardar en la tabla movements (uno por producto)
+                 const purchaseId = insertedPurchase?.id;
+                 const movements = rows.map(item => ({
+                     type: 'Compra',
+                     source_id: purchaseId || null,
+                     source_type: 'purchase',
+                     purchase_data: {
+                         reference: item.prod.reference,
+                         size: item.size,
+                         purchase_price: item.price,
+                         amount: item.amount,
+                         total_purchase: item.price * item.amount
+                     },
+                     created_at: bogotaTimestamp()
+                 }));
+                const { error: movementError } = await supabase
+                    .from('movements')
+                    .insert(movements);
+                if (movementError) {
+                    console.error('Error saving movement:', movementError);
+                }
+            } catch (err) {
+                console.error('Error al registrar la compra:', err);
+                showPurchaseAlert(err.message || 'Error al registrar la compra. Intenta nuevamente.');
+            } finally {
+                btnSubmitPurchase.disabled = false;
+                btnSubmitPurchaseText.style.display = 'inline';
+                btnSubmitPurchaseLoader.style.display = 'none';
+            }
+        });
+
+        // Botón Regresar al Dashboard
+        btnBack.addEventListener('click', () => {
+            window.location.href = 'dashboard.html';
+        });
+
+        // Workspace Drawer
+        const workspaceMenuBtn = document.getElementById('workspaceMenuBtn');
+        const workspaceDrawer = document.getElementById('workspaceDrawer');
+        const workspaceDrawerOverlay = document.getElementById('workspaceDrawerOverlay');
+        const workspaceDrawerClose = document.getElementById('workspaceDrawerClose');
+
+        function openWorkspaceDrawer() {
+            workspaceDrawer.classList.add('active');
+            workspaceDrawerOverlay.classList.add('active');
+            workspaceMenuBtn.setAttribute('aria-expanded', 'true');
+        }
+
+        function closeWorkspaceDrawer() {
+            workspaceDrawer.classList.remove('active');
+            workspaceDrawerOverlay.classList.remove('active');
+            workspaceMenuBtn.setAttribute('aria-expanded', 'false');
+        }
+
+        workspaceMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (workspaceDrawer.classList.contains('active')) {
+                closeWorkspaceDrawer();
+            } else {
+                openWorkspaceDrawer();
+            }
+        });
+
+        workspaceDrawerClose.addEventListener('click', closeWorkspaceDrawer);
+        workspaceDrawerOverlay.addEventListener('click', closeWorkspaceDrawer);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && workspaceDrawer.classList.contains('active')) {
+                closeWorkspaceDrawer();
+                workspaceMenuBtn.focus();
+            }
+        });
+
+        // Load user profile and apply role-based restrictions
+        async function loadWorkspaceUser() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session?.user) {
+                hidePageLoading();
+                return;
+            }
+
+            const { data: profile, error } = await supabase
+                .from('users')
+                .select('name, role')
+                .eq('user_id', session.user.id)
+                .maybeSingle();
+
+            const name = profile?.name || session.user.user_metadata?.name || 'Usuario';
+            const role = profile?.role || null;
+
+            const avatar = document.getElementById('workspaceUserAvatar');
+            const nameEl = document.getElementById('workspaceUserName');
+            if (avatar) avatar.textContent = name.charAt(0).toUpperCase();
+            if (nameEl) nameEl.textContent = name;
+
+            // Apply role-based restrictions (hide for 'usuario' role)
+            const isUserRole = String(role || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === 'usuario';
+            const restrictedModules = ['usuarios', 'productos', 'compras', 'historial'];
+            if (isUserRole) {
+                restrictedModules.forEach(module => {
+                    const item = document.querySelector(`.workspace-drawer-item[href="${module}.html"]`);
+                    if (item) item.style.display = 'none';
+                });
+            }
+            hidePageLoading();
+        }
+        loadWorkspaceUser();
+
+        async function loadPurchases() {
+            tableContent.innerHTML = `
+                <div class="loading-container">
+                    <div class="spinner-lg"></div>
+                    <p style="color: var(--text-muted);">Cargando compras...</p>
+                </div>
+            `;
+
+             const { data, error } = await supabase
+                 .from('purchases')
+                 .select('id, created_at, reference, size, purchase_price, amount, total_purchase')
+                 .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Error al cargar compras:', error);
+                tableContent.innerHTML = `<div class="purchases-empty"><p>Error al cargar las compras. Intenta de nuevo.</p></div>`;
+                return;
+            }
+
+            purchasesList = data || [];
+            purchasesCount.textContent = data ? data.length : 0;
+
+            if (!data || data.length === 0) {
+                tableContent.innerHTML = `
+                    <div class="purchases-empty">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <path d="M16 10a4 4 0 0 1-8 0"></path>
+                        </svg>
+                        <p>No hay compras registradas.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <table class="purchases-table">
+             <thead>
+                         <tr>
+                             <th>Fecha</th>
+                             <th>Referencia</th>
+                             <th>Talla</th>
+                             <th>Cantidad</th>
+                             <th>Total</th>
+                             <th class="actions-cell">Acciones</th>
+                         </tr>
+                     </thead>
+                    <tbody>
+            `;
+
+            data.forEach((item, index) => {
+                const formattedDate = formatDateOnly(item.created_at);
+                const items = getPurchaseItems(item);
+
+                const refDisplay = items.map(i => i.reference).filter(Boolean).join(', ') || '—';
+                const sizeDisplay = items.map(i => i.size).filter(Boolean).join(', ') || '—';
+                const totalAmount = items.reduce((sum, i) => sum + i.amount, 0);
+                const formattedTotal = formatCurrency(item.total_purchase);
+
+                html += `
+                    <tr>
+                        <td>${escapeHtml(formattedDate)}</td>
+                        <td>${escapeHtml(refDisplay)}</td>
+                        <td>${escapeHtml(sizeDisplay)}</td>
+                        <td>${totalAmount}</td>
+                        <td class="total-cell">${escapeHtml(formattedTotal)}</td>
+                        <td class="actions-cell">
+                            <button class="btn-action btn-edit" data-id="${item.id || ''}" data-index="${index}" aria-label="Editar compra">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                            </button>
+                            <button class="btn-action btn-delete" data-id="${item.id || ''}" data-index="${index}" aria-label="Eliminar compra">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3 6 5 6 21 6"/>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                </svg>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            tableContent.innerHTML = html;
+
+            // Event listeners for action buttons
+            tableContent.querySelectorAll('.btn-edit').forEach(btn => {
+                btn.addEventListener('click', () => openEditPurchaseModal(btn.dataset.id, parseInt(btn.dataset.index, 10)));
+            });
+            tableContent.querySelectorAll('.btn-delete').forEach(btn => {
+                btn.addEventListener('click', () => deletePurchase(btn.dataset.id, parseInt(btn.dataset.index, 10)));
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (!session) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            await loadPurchases();
+        });
+    </script>
+</body>
+</html>
