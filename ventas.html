@@ -7,12 +7,28 @@
     <link rel="icon" type="image/png" href="img/logo_eladis_boutique.png">
     <link rel="stylesheet" href="style.css">
     <style>
+        .sales-page {
+            height: 100vh;
+            height: 100dvh;
+            min-height: 0;
+            padding: 0;
+            align-items: stretch;
+            justify-content: flex-start;
+            overflow: hidden;
+        }
+
         .sales-container {
-            min-height: 100vh;
+            height: 100vh;
+            height: 100dvh;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
             background: var(--background);
         }
 
         .sales-header {
+            flex: 0 0 auto;
             background: var(--card-bg);
             border-bottom: 1px solid var(--border);
             padding: 20px 40px;
@@ -118,12 +134,17 @@
         }
 
         .sales-main {
+            display: flex;
+            flex: 1 1 auto;
+            flex-direction: column;
+            min-height: 0;
             padding: 40px;
             max-width: 1200px;
             margin: 0 auto;
         }
 
         .sales-section-header {
+            flex: 0 0 auto;
             margin-bottom: 24px;
         }
 
@@ -150,11 +171,14 @@
         }
 
         .sales-table-wrapper {
+            flex: 1 1 auto;
+            min-height: 0;
             background: var(--card-bg);
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-md);
             border: 1px solid var(--border);
-            overflow-x: auto;
+            overflow: auto;
+            overscroll-behavior: contain;
         }
 
         .sales-table {
@@ -164,6 +188,9 @@
         }
 
         .sales-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
             background: var(--background);
             padding: 16px 20px;
             text-align: center;
@@ -678,7 +705,7 @@
         }
     </style>
 </head>
-<body class="page-loading">
+<body class="sales-page page-loading">
     <div class="page-loading-screen" role="status" aria-live="polite">
         <div class="page-loading-content">
             <img class="page-loading-logo" src="img/logo_eladis_boutique.png" alt="Eladis Boutique">
