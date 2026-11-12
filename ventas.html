@@ -1181,8 +1181,12 @@
                         <input type="number" id="editSaleAmount" min="1" step="1" placeholder="Ej. 1" required>
                         <div id="editStockInfoBox" class="stock-info-box" style="display: none;"></div>
                     </div>
-                    <div class="sale-form-group">
-                        <label for="editSaleTotal">Total venta</label>
+                    <div class="sale-form-group" id="editSaleDeliveryGroup">
+                        <label for="editSaleDeliveryInput">Valor domicilio</label>
+                        <input type="text" id="editSaleDeliveryInput" inputmode="numeric" autocomplete="off" placeholder="Escribe el valor">
+                    </div>
+                    <div class="sale-form-group" id="editSaleTotalGroup">
+                        <label for="editSaleTotal">Total a cobrar</label>
                         <input type="text" id="editSaleTotal" required disabled>
                     </div>
                     <div id="editSaleItemsContainer"></div>
@@ -1204,7 +1208,7 @@
     </div>
 
     <script type="module">
-        import { supabase, insertSaleWithDelivery, showPageLoading, hidePageLoading, formatDateOnlyLocal, bogotaTimestamp } from './app.js';
+        import { supabase, insertSaleWithDelivery, updateSaleWithDelivery, showPageLoading, hidePageLoading, formatDateOnlyLocal, bogotaTimestamp } from './app.js';
         import { downloadMiniInvoice } from './downloads.js';
 
         showPageLoading();
@@ -1277,6 +1281,7 @@
         const editSaleSize = document.getElementById('editSaleSize');
         const editSalePrice = document.getElementById('editSalePrice');
         const editSaleAmount = document.getElementById('editSaleAmount');
+        const editSaleDeliveryInput = document.getElementById('editSaleDeliveryInput');
         const editSaleTotal = document.getElementById('editSaleTotal');
         const btnSaveEditSale = document.getElementById('btnSaveEditSale');
         const btnSaveEditSaleText = document.getElementById('btnSaveEditSaleText');
@@ -1648,13 +1653,18 @@
             checkEmptyProducts();
         }
 
-        async function openCreateSaleModal() {
-            hideSaleAlert();
-            document.getElementById('createSaleForm').reset();
-            
-            // Clear product rows
-            document.getElementById('saleProductRows').innerHTML = '';
+        function resetCreateSaleForm() {
+            createSaleForm.reset();
+            saleProductRows.innerHTML = '';
             saleProductCounter = 0;
+            document.getElementById('summaryProductCount').textContent = '0';
+            document.getElementById('summaryGrandTotal').textContent = formatCurrency(0);
+            grandTotalDisplay.textContent = formatCurrency(0);
+            goToStep(1);
+        }
+
+        async function openCreateSaleModal() {
+            resetCreateSaleForm();
             
             // Load products if not cached
             if (productsCache.length === 0) {
@@ -1671,15 +1681,12 @@
             updateGrandTotal();
             
             createSaleModal.classList.add('active');
-            document.getElementById('clientFullName').focus();
+            saleProductRows.querySelector('.sale-row-product-input').focus();
         }
 
         function closeCreateSaleModalFn() {
             createSaleModal.classList.remove('active');
-            hideSaleAlert();
-            document.getElementById('createSaleForm').reset();
-            document.getElementById('saleProductRows').innerHTML = '';
-            saleProductCounter = 0;
+            resetCreateSaleForm();
         }
 
         btnRegistrarVenta.addEventListener('click', openCreateSaleModal);
@@ -1989,6 +1996,7 @@ const clientData = {
                 badge1.classList.add('active');
                 badge1.querySelector('.step-badge-num').style.background = 'var(--primary)';
                 badge1.querySelector('.step-badge-num').style.color = 'white';
+                badge1.querySelector('.step-badge-num').style.border = 'none';
                 badge2.classList.remove('active');
                 badge2.querySelector('.step-badge-num').style.background = 'var(--background)';
                 badge2.querySelector('.step-badge-num').style.color = 'var(--text-muted)';
@@ -2204,6 +2212,11 @@ const clientData = {
             updateEditSaleTotal();
         });
 
+        editSaleDeliveryInput.addEventListener('input', () => {
+            formatDeliveryInput(editSaleDeliveryInput);
+            updateEditSaleTotal();
+        });
+
 editSaleForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             editSaleModalAlert.style.display = 'none';
@@ -2220,6 +2233,13 @@ editSaleForm.addEventListener('submit', async (e) => {
 
             const items = getSaleItems(sale);
             const isMultiItem = items.length > 1;
+            const delivery = getDeliveryValue(editSaleDeliveryInput);
+            if (!Number.isFinite(delivery) || delivery < 0) {
+                editSaleModalAlert.className = 'modal-alert error';
+                editSaleModalAlert.textContent = 'El valor del domicilio debe ser un número mayor o igual a cero.';
+                editSaleModalAlert.style.display = 'block';
+                return;
+            }
 
             btnSaveEditSale.disabled = true;
             btnSaveEditSaleText.style.display = 'none';
@@ -2309,6 +2329,8 @@ editSaleForm.addEventListener('submit', async (e) => {
                     });
                 }
 
+                grandTotal += delivery;
+
                 // Verify stock for all items
                 for (const item of updatedItems) {
                     const { data: invRows, error: invFetchErr } = await supabase
@@ -2338,26 +2360,13 @@ editSaleForm.addEventListener('submit', async (e) => {
                 const pricesArray = '{' + updatedItems.map(i => i.price).join(',') + '}';
                 const amountsArray = '{' + updatedItems.map(i => i.amount).join(',') + '}';
 
-                let query = supabase
-                    .from('sales')
-                    .update({ 
+                const { error } = await updateSaleWithDelivery(sale, {
                         reference: refsArray,
                         size: sizesArray,
                         price: pricesArray,
                         amount: amountsArray,
                         total_sale: grandTotal 
-                    });
-
-                if (id) {
-                    query = query.eq('id', id);
-                } else {
-                    query = query
-                        .eq('reference', sale.reference)
-                        .eq('size', sale.size)
-                        .eq('created_at', sale.created_at);
-                }
-
-                const { error } = await query;
+                    }, delivery);
                 if (error) throw error;
 
                 // 2. Handle inventory changes for each item
@@ -2482,6 +2491,7 @@ editSaleForm.addEventListener('submit', async (e) => {
                      sale_data: {
                          items: updatedItems,
                          total_sale: grandTotal,
+                         delivery,
                          sale_id: id
                      },
                      created_at: bogotaTimestamp()
@@ -2494,6 +2504,9 @@ editSaleForm.addEventListener('submit', async (e) => {
                  if (movementUpdateError) {
                      console.error('Error updating movement:', movementUpdateError);
                  }
+
+                 closeEditSaleModalFn();
+                 await loadSales();
             } catch (err) {
                 console.error('Error updating sale:', err);
                 editSaleModalAlert.className = 'modal-alert error';
@@ -2799,11 +2812,14 @@ async function openEditSaleModal(id, index) {
             editSaleIndex.value = index;
             editSaleOriginalTotal.value = sale.total_sale || 0;
             editSaleTotal.value = formatCurrency(sale.total_sale);
+            const savedDelivery = Number(sale.delivery) || 0;
+            editSaleDeliveryInput.value = savedDelivery ? String(savedDelivery) : '';
+            formatDeliveryInput(editSaleDeliveryInput);
 
             const isMultiItem = items.length > 1;
 
             // Hide single-item fields when multiple items
-            const singleItemFields = document.querySelectorAll('#editSaleForm > .sale-form-group:not(#editSaleItemsContainer)');
+            const singleItemFields = document.querySelectorAll('#editSaleForm > .sale-form-group:not(#editSaleItemsContainer):not(#editSaleDeliveryGroup)');
             singleItemFields.forEach(field => {
                 field.style.display = isMultiItem ? 'none' : 'block';
             });
@@ -2820,7 +2836,7 @@ async function openEditSaleModal(id, index) {
                 editSaleOriginalAmount.value = item.amount || 0;
 
                 // Load sizes for the single item
-                await loadEditSaleSizes(item.reference);
+                await loadEditSaleSizes(item.reference, item.size);
                 // Load stock for original size
                 await fetchEditSaleStock(item.reference, item.size);
             }
@@ -2905,7 +2921,9 @@ async function openEditSaleModal(id, index) {
                 .single();
 
             if (error || !productData) {
-                sizeSelect.innerHTML = '<option value="">Sin tallas</option>';
+                sizeSelect.innerHTML = originalSize
+                    ? `<option value="${escapeHtml(originalSize)}" selected>${escapeHtml(originalSize)}</option>`
+                    : '<option value="">Sin tallas</option>';
                 return;
             }
 
@@ -2922,8 +2940,11 @@ async function openEditSaleModal(id, index) {
             }
 
             let opts = '<option value="">Selecciona talla...</option>';
+            if (originalSize && !sizesArr.some(size => String(size) === String(originalSize))) {
+                sizesArr.unshift(originalSize);
+            }
             sizesArr.forEach(s => {
-                const selected = s === originalSize ? ' selected' : '';
+                const selected = String(s) === String(originalSize) ? ' selected' : '';
                 opts += `<option value="${escapeHtml(s)}"${selected}>${escapeHtml(s)}</option>`;
             });
             sizeSelect.innerHTML = opts;
@@ -2962,7 +2983,7 @@ async function openEditSaleModal(id, index) {
             stockBox.innerHTML = `Disponibles: <strong>${totalStock}</strong> uds`;
         }
 
-        async function loadEditSaleSizes(reference) {
+        async function loadEditSaleSizes(reference, originalSize = '') {
             const sizeSelect = document.getElementById('editSaleSize');
             if (!sizeSelect) return;
 
@@ -2973,7 +2994,9 @@ async function openEditSaleModal(id, index) {
                 .single();
 
             if (error || !productData) {
-                sizeSelect.innerHTML = '<option value="">Sin tallas</option>';
+                sizeSelect.innerHTML = originalSize
+                    ? `<option value="${escapeHtml(originalSize)}" selected>${escapeHtml(originalSize)}</option>`
+                    : '<option value="">Sin tallas</option>';
                 return;
             }
 
@@ -2990,8 +3013,12 @@ async function openEditSaleModal(id, index) {
             }
 
             let opts = '<option value="">Selecciona talla...</option>';
+            if (originalSize && !sizesArr.some(size => String(size) === String(originalSize))) {
+                sizesArr.unshift(originalSize);
+            }
             sizesArr.forEach(s => {
-                opts += `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`;
+                const selected = String(s) === String(originalSize) ? ' selected' : '';
+                opts += `<option value="${escapeHtml(s)}"${selected}>${escapeHtml(s)}</option>`;
             });
             sizeSelect.innerHTML = opts;
         }
@@ -3020,13 +3047,10 @@ async function openEditSaleModal(id, index) {
             const amountVal = parseInt(editSaleAmount.value, 10);
             // Remove $, spaces, and dots (thousands separators) before parsing
             const priceVal = parseFloat(editSalePrice.value.replace(/[^0-9.-]/g, '').replace(/\./g, '')) || 0;
-
-            if (!isNaN(amountVal) && amountVal > 0 && priceVal > 0) {
-                const total = priceVal * amountVal;
-                editSaleTotal.value = formatCurrency(total);
-            } else {
-                editSaleTotal.value = formatCurrency(0);
-            }
+            const productTotal = !isNaN(amountVal) && amountVal > 0 && priceVal > 0
+                ? priceVal * amountVal
+                : 0;
+            editSaleTotal.value = formatCurrency(productTotal + getDeliveryValue(editSaleDeliveryInput));
         }
 
         function closeEditSaleModalFn() {
@@ -3037,11 +3061,11 @@ async function openEditSaleModal(id, index) {
             document.getElementById('editSaleItemsContainer').innerHTML = '';
             
             // Reset single-item fields visibility
-            const singleItemFields = document.querySelectorAll('#editSaleForm > .sale-form-group:not(#editSaleItemsContainer)');
+            const singleItemFields = document.querySelectorAll('#editSaleForm > .sale-form-group:not(#editSaleItemsContainer):not(#editSaleDeliveryGroup)');
             singleItemFields.forEach(field => {
                 field.style.display = 'block';
             });
-            const singleTotalField = document.querySelector('#editSaleForm > .sale-form-group:nth-of-type(5)');
+            const singleTotalField = document.getElementById('editSaleTotalGroup');
             if (singleTotalField) {
                 singleTotalField.style.display = 'block';
             }

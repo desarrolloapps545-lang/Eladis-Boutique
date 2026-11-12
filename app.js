@@ -15,6 +15,25 @@ export function insertSaleWithDelivery(saleData, delivery) {
         .insert({ ...saleData, delivery });
 }
 
+export function updateSaleWithDelivery(sale, saleData, delivery) {
+    if (!Number.isFinite(delivery) || delivery < 0) {
+        throw new Error('El valor del domicilio debe ser un número mayor o igual a cero.');
+    }
+
+    let query = supabase
+        .from('sales')
+        .update({ ...saleData, delivery });
+
+    if (sale.id) {
+        return query.eq('id', sale.id);
+    }
+
+    return query
+        .eq('reference', sale.reference)
+        .eq('size', sale.size)
+        .eq('created_at', sale.created_at);
+}
+
 // ===== Role helpers =====
 export function normalizeRole(role) {
     return String(role || '')
