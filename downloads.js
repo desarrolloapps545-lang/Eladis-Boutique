@@ -51,21 +51,21 @@ export async function downloadMiniInvoice(saleId, index, saleData = null, ctx = 
 
     // Funciones helper para dibujar
     const drawText = (text, x, y, options = {}) => {
-        ctxDraw.font = `${options.weight || '400'} ${options.size || 13}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+        ctxDraw.font = `${options.weight || '400'} ${options.size || 11}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
         ctxDraw.fillStyle = options.color || '#1a1a2e';
         ctxDraw.textAlign = options.align || 'left';
         ctxDraw.fillText(text, x, y);
     };
 
     const drawSectionHeader = (text, y) => {
-        drawText(text, padding, y, { size: 16, weight: '600', color: '#374151' });
+        drawText(text, padding, y, { size: 14, weight: '600', color: '#374151' });
         return y + 20;
     };
 
     const drawRow = (label, value, y) => {
-        drawText(label, padding, y, { size: 16, color: '#6b7280' });
+        drawText(label, padding, y, { size: 14, color: '#6b7280' });
         drawText(value, width - padding, y, {
-            size: 16, weight: '500', color: '#1a1a2e', align: 'right'
+            size: 14, weight: '500', color: '#1a1a2e', align: 'right'
         });
         return y + 22;
     };
