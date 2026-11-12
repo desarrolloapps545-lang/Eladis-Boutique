@@ -935,6 +935,10 @@
                                     <input type="text" id="clientAddressInput" placeholder="Dirección de entrega o residencia" required>
                                 </div>
                                 <div class="sale-form-group">
+                                    <label for="clientDeliveryInput">Valor domicilio</label>
+                                    <input type="text" id="clientDeliveryInput" inputmode="numeric" autocomplete="off" placeholder="Escribe el valor">
+                                </div>
+                                <div class="sale-form-group">
                                     <label for="clientPaymentSelect">Tipo de pago *</label>
                                     <select id="clientPaymentSelect" required>
                                         <option value="">Selecciona tipo de pago...</option>
@@ -1059,6 +1063,10 @@
                                  <div class="sale-form-group">
                                      <label for="customClientAddressInput">Dirección *</label>
                                      <input type="text" id="customClientAddressInput" placeholder="Dirección de entrega o residencia" required>
+                                 </div>
+                                 <div class="sale-form-group">
+                                     <label for="customClientDeliveryInput">Valor domicilio</label>
+                                     <input type="text" id="customClientDeliveryInput" inputmode="numeric" autocomplete="off" placeholder="Escribe el valor">
                                  </div>
                                  <div class="sale-form-group">
                                      <label for="customClientPaymentSelect">Tipo de pago *</label>
@@ -1196,7 +1204,7 @@
     </div>
 
     <script type="module">
-        import { supabase, showPageLoading, hidePageLoading, formatDateOnlyLocal, bogotaTimestamp } from './app.js';
+        import { supabase, insertSaleWithDelivery, showPageLoading, hidePageLoading, formatDateOnlyLocal, bogotaTimestamp } from './app.js';
         import { downloadMiniInvoice } from './downloads.js';
 
         showPageLoading();
@@ -1224,6 +1232,7 @@
         const btnSubmitSaleLoader = document.getElementById('btnSubmitSaleLoader');
         const saleProductRows = document.getElementById('saleProductRows');
         const grandTotalDisplay = document.getElementById('grandTotalDisplay');
+        const clientDeliveryInput = document.getElementById('clientDeliveryInput');
 
          // Modal Venta Personalizada
          const customSaleModal = document.getElementById('customSaleModal');
@@ -1235,6 +1244,7 @@
           const customSaleProductRows = document.getElementById('customSaleProductRows');
           const customGrandTotalDisplay = document.getElementById('customGrandTotalDisplay');
           const customNoProductsMessage = document.getElementById('customNoProductsMessage');
+          const customClientDeliveryInput = document.getElementById('customClientDeliveryInput');
          const btnCustomNextToClient = document.getElementById('btnCustomNextToClient');
          const customBtnBackToStep1 = document.getElementById('customBtnBackToStep1');
          const btnSubmitCustomSale = document.getElementById('btnSubmitCustomSale');
@@ -1280,6 +1290,25 @@
             const num = typeof value === 'string' ? parseFloat(value.replace(/[^0-9.-]/g, '')) : Number(value);
             if (isNaN(num)) return '—';
             return '$ ' + num.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+        }
+
+        function formatDeliveryInput(input) {
+            const cursorPosition = input.selectionStart;
+            const digitsBeforeCursor = input.value.slice(0, cursorPosition).replace(/\D/g, '').length;
+            const digits = input.value.replace(/\D/g, '');
+            input.value = digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+            let newCursorPosition = 0;
+            let digitsAtCursor = 0;
+            while (newCursorPosition < input.value.length && digitsAtCursor < digitsBeforeCursor) {
+                if (/\d/.test(input.value[newCursorPosition])) digitsAtCursor++;
+                newCursorPosition++;
+            }
+            input.setSelectionRange(newCursorPosition, newCursorPosition);
+        }
+
+        function getDeliveryValue(input) {
+            return Number(input.value.replace(/\./g, '')) || 0;
         }
 
         function showSaleAlert(msg, type = 'error') {
@@ -1690,6 +1719,7 @@
             const fullName = document.getElementById('clientFullName').value.trim();
             const phone = document.getElementById('clientPhoneInput').value.trim();
             const address = document.getElementById('clientAddressInput').value.trim();
+            const delivery = getDeliveryValue(clientDeliveryInput);
             const paymentType = document.getElementById('clientPaymentSelect').value;
 
             if (!fullName) {
@@ -1704,6 +1734,11 @@
 
             if (!address) {
                 showSaleAlert('Por favor ingresa la dirección de entrega o residencia.');
+                return;
+            }
+
+            if (!Number.isFinite(delivery) || delivery < 0) {
+                showSaleAlert('El valor del domicilio debe ser un número mayor o igual a cero.');
                 return;
             }
 
@@ -1783,6 +1818,7 @@ const clientData = {
 
                  // Calculate grand total and earnings per product
                  saleItems.forEach(item => grandTotal += item.subtotal);
+                 grandTotal += delivery;
 
                  // Fetch purchase prices to calculate earnings per product
                  let earningsObj = {};
@@ -1806,9 +1842,7 @@ const clientData = {
                  const pricesArray = '{' + saleItems.map(i => i.price).join(',') + '}';
                  const amountsArray = '{' + saleItems.map(i => i.amount).join(',') + '}';
 
-                 const { data: newSale, error: insertSaleError } = await supabase
-                     .from('sales')
-                     .insert({
+                 const { data: newSale, error: insertSaleError } = await insertSaleWithDelivery({
                          reference: refsArray,
                          size: sizesArray,
                          price: pricesArray,
@@ -1817,7 +1851,7 @@ const clientData = {
                          earnings: earningsObj,
                          client_data: clientData,
                          created_at: bogotaTimestamp()
-                     })
+                     }, delivery)
                      .select('id')
                      .single();
 
@@ -1916,6 +1950,7 @@ const clientData = {
                     price: saleItems.map(i => i.price),
                     amount: saleItems.map(i => i.amount),
                     total_sale: grandTotal,
+                    delivery,
                     client_data: {
                         nombre: clientData.nombre,
                         celular: clientData.celular,
@@ -1994,8 +2029,13 @@ const clientData = {
                 }
             });
             document.getElementById('summaryProductCount').textContent = count;
-            document.getElementById('summaryGrandTotal').textContent = formatCurrency(total);
+            document.getElementById('summaryGrandTotal').textContent = formatCurrency(total + getDeliveryValue(clientDeliveryInput));
         }
+
+        clientDeliveryInput.addEventListener('input', () => {
+            formatDeliveryInput(clientDeliveryInput);
+            updateStep2Summary();
+        });
 
         // Step navigation event listeners
         document.getElementById('btnNextToClient').addEventListener('click', () => {
@@ -3286,8 +3326,13 @@ async function openEditSaleModal(id, index) {
                  }
              });
              document.getElementById('customSummaryProductCount').textContent = count;
-             document.getElementById('customSummaryGrandTotal').textContent = formatCurrency(total);
+             document.getElementById('customSummaryGrandTotal').textContent = formatCurrency(total + getDeliveryValue(customClientDeliveryInput));
          }
+
+         customClientDeliveryInput.addEventListener('input', () => {
+             formatDeliveryInput(customClientDeliveryInput);
+             updateCustomStep2Summary();
+         });
 
          // Step navigation for custom sale
          function goToCustomStep(step) {
@@ -3353,6 +3398,7 @@ async function openEditSaleModal(id, index) {
              const fullName = document.getElementById('customClientFullName').value.trim();
              const phone = document.getElementById('customClientPhoneInput').value.trim();
              const address = document.getElementById('customClientAddressInput').value.trim();
+             const delivery = getDeliveryValue(customClientDeliveryInput);
              const paymentType = document.getElementById('customClientPaymentSelect').value;
 
              if (!fullName) {
@@ -3365,6 +3411,10 @@ async function openEditSaleModal(id, index) {
              }
              if (!address) {
                  showCustomSaleAlert('Por favor ingresa la dirección de entrega o residencia.');
+                 return;
+             }
+             if (!Number.isFinite(delivery) || delivery < 0) {
+                 showCustomSaleAlert('El valor del domicilio debe ser un número mayor o igual a cero.');
                  return;
              }
              if (!paymentType) {
@@ -3382,6 +3432,7 @@ async function openEditSaleModal(id, index) {
 
              let grandTotal = 0;
              saleItems.forEach(item => grandTotal += item.subtotal);
+             grandTotal += delivery;
 
              btnSubmitCustomSale.disabled = true;
              btnSubmitCustomSaleText.style.display = 'none';
@@ -3393,9 +3444,7 @@ async function openEditSaleModal(id, index) {
                  const pricesArray = '{' + saleItems.map(i => i.price).join(',') + '}';
                  const amountsArray = '{' + saleItems.map(i => i.amount).join(',') + '}';
 
-                 const { data: newSale, error: insertSaleError } = await supabase
-                     .from('sales')
-                     .insert({
+                 const { data: newSale, error: insertSaleError } = await insertSaleWithDelivery({
                          reference: refsArray,
                          size: sizesArray,
                          price: pricesArray,
@@ -3404,7 +3453,7 @@ async function openEditSaleModal(id, index) {
                          earnings: {},
                          client_data: clientData,
                          created_at: bogotaTimestamp()
-                     })
+                     }, delivery)
                      .select('id')
                      .single();
 

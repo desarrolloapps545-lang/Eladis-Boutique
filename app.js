@@ -5,6 +5,16 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_eDa8I1-LttvCUy2nCHBreA_0WCdzvqx
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
+export function insertSaleWithDelivery(saleData, delivery) {
+    if (!Number.isFinite(delivery) || delivery < 0) {
+        throw new Error('El valor del domicilio debe ser un número mayor o igual a cero.');
+    }
+
+    return supabase
+        .from('sales')
+        .insert({ ...saleData, delivery });
+}
+
 // ===== Role helpers =====
 export function normalizeRole(role) {
     return String(role || '')

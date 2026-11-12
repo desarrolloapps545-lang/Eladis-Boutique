@@ -10,6 +10,11 @@ export async function downloadMiniInvoice(saleId, index, saleData = null, ctx = 
 
     const client = sale.client_data || {};
     const items = (getSaleItems || getSaleItemsFromSale)(sale);
+    const productTotal = items.reduce((total, item) => {
+        return total + (Number(item.price) || 0) * (Number(item.amount) || 0);
+    }, 0);
+    const delivery = Number(sale.delivery) || 0;
+    const totalToCharge = productTotal + delivery;
 
     // Fetch product categories for all references
     let productCategories = {};
@@ -51,21 +56,21 @@ export async function downloadMiniInvoice(saleId, index, saleData = null, ctx = 
 
     // Funciones helper para dibujar
     const drawText = (text, x, y, options = {}) => {
-        ctxDraw.font = `${options.weight || '400'} ${options.size || 11}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+        ctxDraw.font = `${options.weight || '400'} ${options.size || 14}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
         ctxDraw.fillStyle = options.color || '#1a1a2e';
         ctxDraw.textAlign = options.align || 'left';
         ctxDraw.fillText(text, x, y);
     };
 
     const drawSectionHeader = (text, y) => {
-        drawText(text, padding, y, { size: 14, weight: '600', color: '#374151' });
+        drawText(text, padding, y, { size: 16, weight: '600', color: '#374151' });
         return y + 20;
     };
 
     const drawRow = (label, value, y) => {
         drawText(label, padding, y, { size: 14, color: '#6b7280' });
         drawText(value, width - padding, y, {
-            size: 14, weight: '500', color: '#1a1a2e', align: 'right'
+            size: 16, weight: '500', color: '#1a1a2e', align: 'right'
         });
         return y + 22;
     };
@@ -102,7 +107,9 @@ export async function downloadMiniInvoice(saleId, index, saleData = null, ctx = 
     // Sección: Información de la Venta
     y = drawSectionHeader('INFORMACIÓN DE LA VENTA', y);
     y = drawRow('Fecha:', formatDate(sale.created_at), y);
-    y = drawRow('Total:', formatCurrency(sale.total_sale), y);
+    y = drawRow('Valor producto:', formatCurrency(productTotal), y);
+    y = drawRow('Valor domicilio:', formatCurrency(delivery), y);
+    y = drawRow('Total a cobrar:', formatCurrency(totalToCharge), y);
     y = drawDivider(y + 8);
 
     // Sección: Producto(s)
