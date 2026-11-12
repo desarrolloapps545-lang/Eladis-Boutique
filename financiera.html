@@ -377,6 +377,25 @@
              width: 95%;
          }
 
+         .reporte-ganancias-modal-content {
+             display: flex;
+             flex-direction: column;
+             max-height: calc(100vh - 40px);
+             max-height: calc(100dvh - 40px);
+         }
+
+         .reporte-ganancias-modal-body {
+             display: flex;
+             flex-direction: column;
+             flex: 1 1 auto;
+             min-height: 0;
+             overflow: hidden;
+         }
+
+         .reporte-ganancias-modal-content > .modal-header {
+             flex: 0 0 auto;
+         }
+
          .reporte-ganancias-filters {
              display: flex;
              gap: 12px;
@@ -390,6 +409,26 @@
              margin-bottom: 0;
          }
 
+         @media (max-width: 768px) {
+             .reporte-ganancias-modal-content {
+                 max-height: calc(100vh - 24px);
+                 max-height: calc(100dvh - 24px);
+             }
+
+             .reporte-ganancias-modal-body {
+                 padding: 16px !important;
+             }
+
+             .reporte-ganancias-filters {
+                 flex-direction: column;
+             }
+
+             .reporte-ganancias-filters .modal-form-group {
+                 min-width: 0;
+                 width: 100%;
+             }
+         }
+
          .reporte-ganancias-total {
              text-align: left;
              font-weight: 700;
@@ -399,7 +438,11 @@
          }
 
         .reporte-ganancias-table {
-            overflow-x: auto;
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
         }
 
         .reporte-ganancias-table .bills-table {
@@ -836,7 +879,7 @@
      <!-- Modal Reporte de Ganancias -->
     <div id="reporteGananciasModal" class="modal modal-lg" role="dialog" aria-modal="true" aria-labelledby="reporteGananciasTitle">
         <div class="modal-overlay" id="reporteGananciasOverlay"></div>
-        <div class="modal-content" style="max-width: 900px; width: 95%;">
+        <div class="modal-content reporte-ganancias-modal-content" style="max-width: 900px; width: 95%;">
             <div class="modal-header">
                 <h2 id="reporteGananciasTitle">Reporte de Ganancias</h2>
                 <button type="button" class="modal-close" id="closeReporteGananciasModal" aria-label="Cerrar">
@@ -846,7 +889,7 @@
                     </svg>
                 </button>
             </div>
-            <div class="modal-body" style="padding: 24px; text-align: left;">
+            <div class="modal-body reporte-ganancias-modal-body" style="padding: 24px; text-align: left;">
                 <div class="reporte-ganancias-filters">
                     <div class="modal-form-group">
                         <label for="reporteGananciasFilterDate">Fecha</label>
