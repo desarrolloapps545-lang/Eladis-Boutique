@@ -56,33 +56,29 @@ export async function downloadMiniInvoice(saleId, index, saleData = null, ctx = 
 
     // Funciones helper para dibujar
     const drawText = (text, x, y, options = {}) => {
-        ctxDraw.font = `${options.weight || '400'} ${options.size || 14}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+        ctxDraw.font = `${options.weight || '400'} ${options.size || 18}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
         ctxDraw.fillStyle = options.color || '#1a1a2e';
         ctxDraw.textAlign = options.align || 'left';
         ctxDraw.fillText(text, x, y);
     };
 
     const drawSectionHeader = (text, y) => {
-        drawText(text, padding, y, { size: 16, weight: '600', color: '#374151' });
+        drawText(text, width / 2, y, { size: 24, weight: '600', color: '#374151', align: 'center' });
         return y + 20;
     };
 
-    const drawRow = (label, value, y) => {
-        drawText(label, padding, y, { size: 14, color: '#6b7280' });
-        drawText(value, width - padding, y, {
-            size: 16, weight: '500', color: '#1a1a2e', align: 'right'
+    const drawCenteredRow = (label, value, y) => {
+        drawText(`${label} ${value}`, width / 2, y, {
+            size: 24, weight: '500', color: '#1a1a2e', align: 'center'
         });
         return y + 22;
     };
 
-    const drawDivider = (y) => {
-        ctxDraw.strokeStyle = '#e5e7eb';
-        ctxDraw.lineWidth = 1;
-        ctxDraw.beginPath();
-        ctxDraw.moveTo(padding, y);
-        ctxDraw.lineTo(width - padding, y);
-        ctxDraw.stroke();
-        return y + 12;
+    const drawCenteredValue = (value, y) => {
+        drawText(value, width / 2, y, {
+            size: 24, weight: '500', color: '#1a1a2e', align: 'center'
+        });
+        return y + 22;
     };
 
     const formatDate = (iso) => formatDateOnlyLocal(iso);
@@ -102,34 +98,34 @@ export async function downloadMiniInvoice(saleId, index, saleData = null, ctx = 
     // Espacio reservado para la ubicación del título debajo del logo
     y = centerY + logoSize + 40;
 
-    y = drawDivider(y + 8);
+    y += 20;
 
     // Sección: Información de la Venta
     y = drawSectionHeader('INFORMACIÓN DE LA VENTA', y);
-    y = drawRow('Fecha:', formatDate(sale.created_at), y);
-    y = drawRow('Valor producto:', formatCurrency(productTotal), y);
-    y = drawRow('Valor domicilio:', formatCurrency(delivery), y);
-    y = drawRow('Total a cobrar:', formatCurrency(totalToCharge), y);
-    y = drawDivider(y + 8);
+    y = drawCenteredRow('Fecha:', formatDate(sale.created_at), y);
+    y = drawCenteredRow('Valor producto:', formatCurrency(productTotal), y);
+    y = drawCenteredRow('Valor domicilio:', formatCurrency(delivery), y);
+    y = drawCenteredRow('Total a cobrar:', formatCurrency(totalToCharge), y);
+    y += 20;
 
     // Sección: Producto(s)
     y = drawSectionHeader('PRODUCTO(S)', y);
     items.forEach((item, i) => {
         const productRef = item.reference || '—';
-        y = drawRow('Referencia:', productRef, y);
-        y = drawRow('Talla:', item.size || '—', y);
-        y = drawRow('cantidad:', item.amount !== null && item.amount !== undefined ? String(item.amount) : '—', y);
+        y = drawCenteredValue(productRef, y);
+        y = drawCenteredRow('Talla:', item.size || '—', y);
+        y = drawCenteredRow('Cantidad:', item.amount !== null && item.amount !== undefined ? String(item.amount) : '—', y);
         if (i < items.length - 1) y += 4;
     });
-    y = drawDivider(y + 8);
+    y += 20;
 
     // Sección: Cliente
     y = drawSectionHeader('CLIENTE', y);
-    y = drawRow('Nombre:', client?.nombre || '—', y);
-    y = drawRow('Celular:', client?.celular || '—', y);
-    y = drawRow('Dirección:', client?.direccion || '—', y);
-    y = drawRow('Tipo de Pago:', client?.tipoPago || client?.payment || '—', y);
-    y = drawDivider(y + 8);
+    y = drawCenteredValue(client?.nombre || '—', y);
+    y = drawCenteredValue(client?.celular || '—', y);
+    y = drawCenteredValue(client?.direccion || '—', y);
+    y = drawCenteredValue(client?.tipoPago || client?.payment || '—', y);
+    y += 20;
 
     // Footer
     // (sin texto de generado automáticamente)
